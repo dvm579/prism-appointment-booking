@@ -13,6 +13,7 @@ let allSlots = [];
 let selectedSlotTime = null;
 let timerInterval;
 let signaturePad;
+let isWaitlistSubmission = false; // Add this line
 
 // --- DOM ELEMENTS ---
 const DOMElements = {
@@ -24,7 +25,9 @@ const DOMElements = {
     confirmationSection: document.getElementById('confirmationSection'),
     timer: document.getElementById('timer'),
     regForm: document.getElementById('regForm'),
-    goBackButton: document.getElementById('goBackButton')
+    goBackButton: document.getElementById('goBackButton'),
+    waitlistSection: document.getElementById('waitlistSection'), // Add this
+    joinWaitlistBtn: document.getElementById('joinWaitlistBtn') // Add this
 };
 
 // --- CORE FUNCTIONS ---
@@ -106,12 +109,11 @@ async function callAPI(action, payload) {
 function setupEventListeners() {
     DOMElements.regForm.addEventListener('submit', submitBooking);
     DOMElements.goBackButton.addEventListener('click', goBack);
+    DOMElements.joinWaitlistBtn.addEventListener('click', joinWaitlist); // Add this
     document.getElementById('dob').addEventListener('change', checkAge);
 
-    // Release slot if user closes the tab while a slot is pending
     window.addEventListener('beforeunload', (e) => {
         if (selectedSlotTime) {
-            // Using navigator.sendBeacon is more reliable for requests during unload
             const payload = { eventId, startTime: selectedSlotTime };
             const data = JSON.stringify({ action: 'releaseSlot', payload });
             navigator.sendBeacon(GAS_API_URL, data);
@@ -128,19 +130,25 @@ function displayEventDetails(event) {
 
 function renderSlots() {
     const container = DOMElements.slotsGrid;
-    container.innerHTML = ''; // Clear previous slots
+    container.innerHTML = '';
     
     const eventSlots = allSlots.filter(slot => slot.eventId === eventId);
+    const openSlots = eventSlots.filter(slot => slot.Available === 'Open');
 
-    if (eventSlots.length === 0) {
-        container.innerHTML = '<div class="text-danger">No slots available for this event.</div>';
+    // If there are no open slots, show the waitlist option
+    if (openSlots.length === 0) {
+        DOMElements.slotsGrid.classList.add('d-none');
+        DOMElements.waitlistSection.classList.remove('d-none');
         return;
     }
 
+    // Otherwise, render the available slots
+    DOMElements.slotsGrid.classList.remove('d-none');
+    DOMElements.waitlistSection.classList.add('d-none');
+    
     eventSlots.forEach(slot => {
         const pill = document.createElement('div');
         pill.classList.add('slot-item');
-        // Assuming your CSV has 'Start Time' and 'End Time' headers
         pill.textContent = `${slot['Start Time']} – ${slot['End Time']}`;
 
         if (slot.Available === 'Open') {
@@ -206,6 +214,26 @@ async function goBack() {
     }
 }
 
+function joinWaitlist() {
+    isWaitlistSubmission = true; // Set the flag
+    selectedSlotTime = null; // No slot is selected
+
+    DOMElements.slotSection.classList.add('d-none');
+    DOMElements.formSection.classList.remove('d-none');
+    DOMElements.timer.classList.add('d-none'); // Hide the timer for waitlist
+
+    const currentEvent = allEvents.find(e => e.eventId === eventId);
+    displayEventDetails(currentEvent);
+    DOMElements.eventDetails.innerHTML += `<br> <b>Joining the Waitlist</b>`;
+
+    if (!signaturePad) {
+        const canvas = document.getElementById('sigPad');
+        signaturePad = new SignaturePad(canvas);
+    } else {
+        signaturePad.clear();
+    }
+}
+
 async function submitBooking(e) {
     e.preventDefault();
     if (signaturePad.isEmpty()) {
@@ -219,21 +247,15 @@ async function submitBooking(e) {
     const data = {
       eventId,
       slotTime: selectedSlotTime,
+      isWaitlist: isWaitlistSubmission, // Add this flag
       demographics: {},
       insurance: {},
       signature: signaturePad.toDataURL()
     };
 
-    // Demographics
-    ['firstName','middleName','lastName','dob','gender','race','ethnicity',
-     'fullAddress','street','city','state','zip','cell','home','email','ssn',
-     'parentName','parentRel','parentContact']
-      .forEach(id => data.demographics[id] = form[id]?.value || '');
-
-    // Insurance
-    ['primaryIns','primaryPayer','primaryPlan','primaryId','primaryGroup','primaryPayerId',
-     'secondaryIns','secondaryPlan','secondaryId','secondaryGroup','secondaryPayerId']
-      .forEach(id => data.insurance[id] = form[id]?.value || '');
+    // Gather form data (same as before)
+    ['firstName','middleName','lastName','dob','gender','race','ethnicity','fullAddress','street','city','state','zip','cell','home','email','ssn','parentName','parentRel','parentContact'].forEach(id => data.demographics[id] = form[id]?.value || '');
+    ['primaryIns','primaryPayer','primaryPlan','primaryId','primaryGroup','primaryPayerId','secondaryIns','secondaryPlan','secondaryId','secondaryGroup','secondaryPayerId'].forEach(id => data.insurance[id] = form[id]?.value || '');
     
     try {
         const response = await callAPI('submitForm', data);
@@ -245,20 +267,30 @@ async function submitBooking(e) {
     }
 }
 
+
 function displayConfirmation(response, form) {
-    const { appointmentID, qrBase64 } = response;
+    const { appointmentID, qrBase64, isWaitlist } = response;
     
     DOMElements.slotSection.classList.add('d-none');
     DOMElements.formSection.classList.add('d-none');
     DOMElements.confirmationSection.classList.remove('d-none');
 
-    // Populate confirmation details
-    document.getElementById('confEventName').textContent = DOMElements.eventDetails.textContent.split('-')[0].trim();
-    document.getElementById('confEventDate').textContent = new Date(allEvents.find(e=>e.eventId === eventId).eventDate).toLocaleDateString();
-    document.getElementById('confPatientName').textContent = `${form.firstName.value} ${form.lastName.value}`;
+    const patientName = `${form.firstName.value} ${form.lastName.value}`;
+    document.getElementById('confPatientName').textContent = patientName;
     document.getElementById('confPatientDob').textContent = form.dob.value;
-    document.getElementById('confApptId').textContent = appointmentID;
-    document.getElementById('confQrCode').src = `data:image/png;base64,${qrBase64}`;
+    document.getElementById('confEventName').textContent = DOMElements.eventDetails.textContent.split('-')[0].trim();
+
+    // Show different confirmation messages
+    if (isWaitlist) {
+        document.querySelector('#confirmationSection h2').textContent = "You've Been Added to the Waitlist";
+        document.getElementById('confApptId').parentElement.innerHTML = "You will be notified by email if an appointment becomes available.";
+        document.getElementById('confQrCode').style.display = 'none';
+    } else {
+        document.querySelector('#confirmationSection h2').textContent = "Registration Confirmed";
+        document.getElementById('confApptId').textContent = appointmentID;
+        document.getElementById('confQrCode').src = `data:image/png;base64,${qrBase64}`;
+        document.getElementById('confQrCode').style.display = 'block';
+    }
 }
 
 
