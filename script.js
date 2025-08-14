@@ -50,7 +50,7 @@ window.addEventListener('DOMContentLoaded', async () => {
             fetchCSV(SLOTS_CSV_URL)
         ]);
 
-        const currentEvent = allEvents.find(event => event.eventId === eventId);
+        const currentEvent = allEvents.find(event => event.EventID === eventId);
         if (!currentEvent) {
             handleError("Event not found.");
             return;
@@ -132,7 +132,7 @@ function renderSlots() {
     const container = DOMElements.slotsGrid;
     container.innerHTML = '';
     
-    const eventSlots = allSlots.filter(slot => slot.eventId === eventId);
+    const eventSlots = allSlots.filter(slot => slot.EventID === eventId);
     const openSlots = eventSlots.filter(slot => slot.Available === 'Open');
 
     // If there are no open slots, show the waitlist option
@@ -173,7 +173,7 @@ async function selectSlot(time) {
         startTimer();
         DOMElements.slotSection.classList.add('d-none');
         DOMElements.formSection.classList.remove('d-none');
-        const currentEvent = allEvents.find(e => e.eventId === eventId);
+        const currentEvent = allEvents.find(e => e.EventID === eventId);
         displayEventDetails(currentEvent); // Refresh details to include time
         DOMElements.eventDetails.innerHTML += `<br> Selected Time Slot: ${time}`;
         
@@ -208,7 +208,7 @@ async function goBack() {
         selectedSlotTime = null;
         DOMElements.formSection.classList.add('d-none');
         DOMElements.slotSection.classList.remove('d-none');
-        const currentEvent = allEvents.find(e => e.eventId === eventId);
+        const currentEvent = allEvents.find(e => e.EventID === eventId);
         displayEventDetails(currentEvent); // Reset details
         hideLoading();
     }
@@ -222,7 +222,7 @@ function joinWaitlist() {
     DOMElements.formSection.classList.remove('d-none');
     DOMElements.timer.classList.add('d-none'); // Hide the timer for waitlist
 
-    const currentEvent = allEvents.find(e => e.eventId === eventId);
+    const currentEvent = allEvents.find(e => e.EventID === eventId);
     displayEventDetails(currentEvent);
     DOMElements.eventDetails.innerHTML += `<br> <b>Joining the Waitlist</b>`;
 
