@@ -1,0 +1,51 @@
+body { margin: 20px; }
+table { width: 100%; border-collapse: collapse; margin-bottom: 1em; }
+th, td { padding: 8px; border: 1px solid #ccc; text-align: center; }
+td.disabled { background: #f0f0f0; color: #999; cursor: not-allowed; }
+td.open { background: #e8f5e9; cursor: pointer; }
+td.selected { background: #c8e6c9; }
+
+/* replace your #slotsGrid / .slot-item styles with: */
+#slotsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+}
+
+/* Tablet: 2‑cols */
+@media (max-width: 768px) {
+  #slotsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Mobile: 1‑col */
+@media (max-width: 576px) {
+  #slotsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.slot-item {
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.5rem;
+  border: 1px solid;
+  text-align: center;
+  font-weight: 500;
+  user-select: none;
+}
+
+/* Open slots: blue bg, white text */
+.slot-open {
+  background-color: #0d6efd;
+  color: #fff;
+  border-color: #0a58ca;
+  cursor: pointer;
+}
+
+/* Taken slots: light gray bg, black text */
+.slot-taken {
+  background-color: #e9ecef;
+  color: #000;
+  border-color: #adb5bd;
+}
