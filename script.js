@@ -198,10 +198,14 @@ function setupEventListeners() {
 }
 
 function displayEventDetails(event) {
-    const eventDate = new Date(event.Date).toLocaleDateString(undefined, {
-      year: 'numeric', month: '2-digit', day: '2-digit'
-    });
-    DOMElements.eventDetails.textContent = `${event['Event Name']} - ${eventDate}`;
+    if (event.Date) {
+        const eventDate = new Date(event.Date).toLocaleDateString(undefined, {
+          year: 'numeric', month: '2-digit', day: '2-digit'
+        });
+        DOMElements.eventDetails.textContent = `${event['Event Name']} - ${eventDate}`;
+    } else {
+        DOMElements.eventDetails.textContent = "General Waitlist Registration";
+    }
 }
 
 function renderSlots() {
