@@ -451,6 +451,17 @@ function handleError(userMessage, error) {
     hideLoading();
 }
 
+/**
+ * Changes the Google Translate language and reloads the page.
+ * @param {string} lang The two-letter language code (e.g., 'es' for Spanish).
+ */
+function changeLanguage(lang) {
+  // Set the cookie that the Google Translate script reads
+  document.cookie = `googtrans=/en/${lang}`;
+  // Reload the page to apply the translation
+  location.reload();
+}
+
 function checkAge() {
     const dobVal = document.getElementById('dob').value;
     const parentDiv = document.getElementById('parentFields');
