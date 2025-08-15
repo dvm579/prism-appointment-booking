@@ -5,7 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Register for Appointment</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="style.css" rel="stylesheet"> </head>
+    <link href="style.css" rel="stylesheet"> 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat&display=swap" rel="stylesheet">
+</head>
 
 <body class="container-fluid container-md">
     <div id="loadingOverlay" style="
@@ -235,6 +239,10 @@
           <!-- Consent & Signature -->
           <div class="mb-4">
             <h4>Consent &amp; Signature</h4>
+            <div class="mb-3 form-check">
+              <input type="checkbox" class="form-check-input" id="electronicConsent" name="electronicConsent">
+              <label class="form-check-label" for="electronicConsent">I agree to use electronic records and electronic signatures.</label>
+            </div>
             <div class="mb-3">
               <label class="form-label">
                 May we contact you for record collection, scheduling, reminders, and results related to this program (informational only; automated systems may be used)? <span class="text-danger">*</span>
@@ -252,7 +260,7 @@
                 </label>
               </div>
               <div class="form-check">
-                <input class="form-check-input" type="checkbox" value="" id="consentEmails" name="consentEmails">
+                <input class="form-check-input" type="checkbox" value="true" id="consentEmails" name="consentEmails">
                 <label class="form-check-label" for="consentEmails">
                   I consent to emails
                 </label>
@@ -274,9 +282,33 @@
                 </div>
               </div>
             </div>
-            <p>Please sign below, acknowledging you have read and agree to the above policies:</p>
-            <canvas id="sigPad" class="border"></canvas><br>
-            <button class="btn btn-outline-secondary mt-2" type="button" onclick="pad.clear()">Clear Signature</button>
+            <div class="mb-3 form-check">
+              <input type="checkbox" class="form-check-input" id="certifyConsent" name="certifyConsent" required>
+              <label class="form-check-label" for="certifyConsent">I certify that I am the Parent/Legal Guardian, the individual receiving services and at least 18 years of age/emancipated, or a Legally Authorized Representative, and that I have read and agree to the Consent & Authorizations above.</label>
+            </div>
+            <p>Signature:</p>
+            <ul class="nav nav-tabs" id="signatureTabs" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="draw-tab" data-bs-toggle="tab" data-bs-target="#draw-pane" type="button" role="tab" aria-controls="draw-pane" aria-selected="true">Draw Signature</button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="type-tab" data-bs-toggle="tab" data-bs-target="#type-pane" type="button" role="tab" aria-controls="type-pane" aria-selected="false">Type Signature</button>
+              </li>
+            </ul>
+            
+            <div class="tab-content border border-top-0 p-3" id="signatureTabContent">
+              <div class="tab-pane fade show active" id="draw-pane" role="tabpanel" aria-labelledby="draw-tab">
+                <p>Use your mouse or finger to draw your signature:</p>
+                <canvas id="sigPad" class="border"></canvas><br>
+                <button class="btn btn-outline-secondary btn-sm mt-2" type="button" id="clearSignatureBtn">Clear</button>
+              </div>
+            
+              <div class="tab-pane fade" id="type-pane" role="tabpanel" aria-labelledby="type-tab">
+                <p>Type your name and it will be converted into a signature:</p>
+                <input type="text" class="form-control" id="typedName" style="font-family: 'Caveat', cursive; font-size: 2.5rem; border: none; border-bottom: 1px solid #ccc;">
+                <canvas id="typeCanvas" style="display: none;"></canvas>
+              </div>
+            </div>
           </div>
   
           <button class="btn btn-primary" type="submit">Submit Registration</button>
