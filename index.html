@@ -12,6 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Caveat&display=swap" rel="stylesheet">
   </head>
   <body class="container-fluid container-md">
+<!--   LOADING OVERLAY     -->
     <div id="loadingOverlay" style="
         display: none;
         position: fixed;
@@ -30,6 +31,7 @@
       </div>
     </div>
 
+<!--     TRANSLATION BUTTONS     -->
   <div class="row justify-content-center text-center mb-4">
       <div class="col-auto">
           <div id="translation-buttons">
@@ -44,7 +46,8 @@
           <div id="google_translate_element" style="display: none;"></div>
       </div>
   </div>
-    
+
+<!--     PAGE HEADER     -->
     <header class="container mb-5">
         <div class="row align-items-center">
             <div class="col-auto">
@@ -61,6 +64,8 @@
         <span id="eventDetails"></span>
       </h2>
     </div>
+
+<!--     SLOT SELECTION     -->
     <div id="slotSection">
       <h3 class="d-flex justify-content-between align-items-center">
         <span>Select an Appointment Slot</span>
@@ -71,6 +76,8 @@
         <button id="joinWaitlistBtn" class="btn btn-primary">Join the Waitlist</button>
       </div>
     </div>
+
+<!--     FORM SECTION     -->
     <div id="formSection" class="d-none">
       <h3 class="d-flex justify-content-between align-items-center">
         <button class="btn btn-outline-secondary" type="button" id="goBackButton">Back</button>
@@ -80,6 +87,7 @@
         <span>Complete Your Registration</span>
       </h3>
       <form id="regForm">
+        
         <!-- Demographics -->
         <div class="mb-4">
           <h4>Patient Information</h4>
@@ -189,11 +197,32 @@
             </div>
           </div>
         </div>
+        
+        <!-- Medical Records -->
+        <div class="form-check mb-4">
+            <input class="form-check-input" type="checkbox" id="hasRecordsCheck">
+            <label class="form-check-label" for="hasRecordsCheck">
+                I have medical records to upload
+            </label>
+        </div>
+        
+        <div class="mb-4 d-none" id="recordsSection">
+            <h4>Medical Records</h4>
+            <div class="row g-3">
+                <div class="col-12">
+                    <label for="medicalRecordsUpload" class="form-label">Upload Files</label>
+                    <input type="file" class="form-control" id="medicalRecordsUpload" name="medicalRecordsUpload" multiple accept=".pdf,image/*">
+                    <small class="form-text text-white-50">You can upload up to 5 files (PDFs or images).</small>
+                    <div id="fileList" class="mt-2 text-white-50"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Insurance -->
         <div class="form-check mb-4">
           <input class="form-check-input" type="checkbox" id="hasInsuranceCheck">
           <label class="form-check-label" for="hasInsuranceCheck"> I have insurance information to provide </label>
         </div>
-        <!-- Insurance -->
         <div class="mb-4 d-none" id="insuranceSection">
           <h4>Insurance</h4>
           <div class="row g-3">
@@ -243,6 +272,7 @@
             </div>
           </div>
         </div>
+        
         <!-- Consent & Signature -->
         <div class="mb-4">
           <h4>Consent &amp; Signature</h4>
@@ -420,6 +450,8 @@
       </form>
     </div>
     </div>
+
+<!--     Confirmation Page   -->
     <div id="confirmationSection" class="container d-none mt-5">
       <h2>Registration Confirmed</h2>
       <p>
@@ -461,6 +493,7 @@
     </script>
     <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
+<!--     FOOTER     -->
     <footer class="mt-5 py-5 text-white" style="background-color: #002855;">
         <div class="container">
             <div class="row">
