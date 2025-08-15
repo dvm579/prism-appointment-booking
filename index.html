@@ -32,7 +32,7 @@
                 <img src="https://prism.org/Lab_Assets/phl-logo-color.png" alt="Prism Health Lab Logo" class="img-fluid" style="max-height:60px;">
             </div>
             <div class="col text-center">
-                <h1 class="mb-0">Vaccine Event Registration</h1>
+                <h1 class="mb-0">Patient Registration</h1>
             </div>
         </div>
     </header>
@@ -236,22 +236,43 @@
           <div class="mb-4">
             <h4>Consent &amp; Signature</h4>
             <div class="mb-3">
-              <label for="consent1" class="form-label">Privacy Notice</label>
-              <iframe
-                src="https://docs.google.com/gview?url=https://prism.org/PublicFiles/PrivacyNotice.pdf&embedded=true"
-                style="width:100%; height:500px; border:1px solid #ccc;"
-                frameborder="0"
-              ></iframe>
-              <p>If your browser has trouble loading the above PDF, please try refreshing the page or click <a href="https://prism.org/PublicFiles/PrivacyNotice.pdf" target="_blank">here</a> to view the privacy notice in a new tab.</p>
+              <label class="form-label">
+                May we contact you for record collection, scheduling, reminders, and results related to this program (informational only; automated systems may be used)? <span class="text-danger">*</span>
+              </label>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="" id="consentCalls" name="consentCalls">
+                <label class="form-check-label" for="consentCalls">
+                  I consent to phone calls
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="" id="consentTexts" name="consentTexts">
+                <label class="form-check-label" for="consentTexts">
+                  I consent to text messages (reply STOP to opt out; standard rates may apply)
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="" id="consentEmails" name="consentEmails">
+                <label class="form-check-label" for="consentEmails">
+                  I consent to emails
+                </label>
+              </div>
             </div>
-            <div class="mb-3">
-              <label for="consent2" class="form-label">Vaccination Consent</label>
-              <iframe
-                src="https://docs.google.com/gview?url=https://prism.org/PublicFiles/VaccinationConsent.pdf&embedded=true"
-                style="width:100%; height:500px; border:1px solid #ccc;"
-                frameborder="0"
-              ></iframe>
-              <p>If your browser has trouble loading the above PDF, please try refreshing the page or click <a href="https://prism.org/PublicFiles/VaccinationConsent.pdf" target="_blank">here</a> to view the vaccination consent form in a new tab.</p>
+            <div class="accordion mb-3" id="consentAccordion">
+              <div class="accordion-item">
+                <h2 class="accordion-header" id="headingOne">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                    <strong>Vaccination Consent</strong>
+                  </button>
+                </h2>
+                <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#consentAccordion">
+                  <div class="accordion-body">
+                    <p>
+                      I consent to PRISM HEALTH reviewing school health records and providing screening, education, outreach, and clinically indicated services (e.g., physicals, immunizations, lab tests) with education and referrals as needed. I will receive/read CDC Vaccine Information Statements; I understand risks/benefits and may decline any specific vaccine at the time of service. Unless I limit in writing, this consent covers any age‑appropriate immunizations recommended by CDC/ACIP for school or routine care; I may decline any specific vaccine at the time of service. I authorize Prism (as an IDPH I‑CARE user) to query/retrieve/update my child’s immunization history in I‑CARE and to share immunization/relevant information with my child’s school/district (including CPS), ISBE, IDPH (including I‑CARE/HIE), CDPH, HFS/Medicaid and managed care plans, our health‑care professionals/clinics, school‑based health centers, FQHC partners, labs, pharmacies, and payers as needed to arrange/provide/pay for services; I also authorize my child’s school/district to disclose relevant health/shot records to Prism for record verification and coordination. Record review/consultation is free. If I later request billable services, I authorize Prism to submit claims and request that benefits be paid to Prism and I agree to be responsible for any copays/coinsurance/deductibles and for services not covered by program funding; I will be clearly notified in advance of any out‑of‑pocket costs before services are provided or billed. Any patient‑responsible amount is due at the time of service or, if invoiced after the visit, upon receipt. I acknowledge CPS health deadlines; I consent to phone/text/email communications (STOP to opt out; standard rates may apply). I release and hold harmless CPS, my child’s school/district, the City of Chicago/CDPH, ISBE, IDPH, HFS/Medicaid, and Prism/Foundation and partners, except for willful or wanton misconduct. Special situations: DCFS guardianship requires DCFS consent before services. Term: 365 days unless revoked in writing; revocation does not affect prior actions; information disclosed may be re‑disclosed. Privacy Practices available on request.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
             <p>Please sign below, acknowledging you have read and agree to the above policies:</p>
             <canvas id="sigPad" class="border"></canvas><br>
