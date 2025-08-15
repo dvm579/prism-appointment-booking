@@ -49,7 +49,10 @@ window.addEventListener('DOMContentLoaded', async () => {
             fetchCSV(EVENTS_CSV_URL),
             fetchCSV(SLOTS_CSV_URL)
         ]);
-
+        
+        console.log("First Event Row:", allEvents[0]);
+        console.log("First Slot Row:", allSlots[0]);
+        
         const currentEvent = allEvents.find(event => event.EventID === eventId);
         if (!currentEvent) {
             handleError("Event not found.");
@@ -122,7 +125,7 @@ function setupEventListeners() {
 }
 
 function displayEventDetails(event) {
-    const eventDate = new Date(event['Event Date']).toLocaleDateString(undefined, {
+    const eventDate = new Date(event.Date).toLocaleDateString(undefined, {
       year: 'numeric', month: '2-digit', day: '2-digit'
     });
     DOMElements.eventDetails.textContent = `${event['Event Name']} - ${eventDate}`;
