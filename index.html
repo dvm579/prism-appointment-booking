@@ -76,7 +76,7 @@
           <h4>Patient Information</h4>
           <div class="row g-3">
             <div class="col-md-4">
-              <label for="firstName" class="form-label">First Name *</label>
+              <label for="firstName" class="form-label">First Name<span class="text-danger">*</span></label>
               <input type="text" class="form-control" id="firstName" name="firstName" required>
             </div>
             <div class="col-md-4">
@@ -84,15 +84,15 @@
               <input type="text" class="form-control" id="middleName" name="middleName">
             </div>
             <div class="col-md-4">
-              <label for="lastName" class="form-label">Last Name *</label>
+              <label for="lastName" class="form-label">Last Name<span class="text-danger">*</span></label>
               <input type="text" class="form-control" id="lastName" name="lastName" required>
             </div>
             <div class="col-md-4">
-              <label for="dob" class="form-label">Date of Birth *</label>
+              <label for="dob" class="form-label">Date of Birth<span class="text-danger">*</span></label>
               <input type="date" class="form-control" id="dob" name="dob" required>
             </div>
             <div class="col-md-4">
-              <label for="gender" class="form-label">Gender *</label>
+              <label for="gender" class="form-label">Gender<span class="text-danger">*</span></label>
               <select class="form-select" id="gender" name="gender" required>
                 <option value="" disabled selected></option>
                 <option>Male</option>
@@ -102,7 +102,7 @@
               </select>
             </div>
             <div class="col-md-4">
-              <label for="race" class="form-label">Race *</label>
+              <label for="race" class="form-label">Race<span class="text-danger">*</span></label>
               <select class="form-select" id="race" name="race" required>
                 <option value="" disabled selected></option>
                 <option>American Indian or Alaska Native</option>
@@ -116,7 +116,7 @@
               </select>
             </div>
             <div class="col-md-4">
-              <label for="ethnicity" class="form-label">Ethnicity *</label>
+              <label for="ethnicity" class="form-label">Ethnicity<span class="text-danger">*</span></label>
               <select class="form-select" id="ethnicity" name="ethnicity" required>
                 <option value="" disabled selected></option>
                 <option>Hispanic or Latino</option>
@@ -159,11 +159,11 @@
               <input type="text" class="form-control" id="state" name="state">
             </div>
             <div class="col-md-4">
-              <label for="zip" class="form-label">Zip Code *</label>
+              <label for="zip" class="form-label">Zip Code<span class="text-danger">*</span></label>
               <input type="text" class="form-control" id="zip" name="zip" placeholder="12345" pattern="\d{5}" maxlength="5" inputmode="numeric" required>
             </div>
             <div class="col-md-6">
-              <label for="cell" class="form-label">Cell Phone *</label>
+              <label for="cell" class="form-label">Cell Phone<span class="text-danger">*</span></label>
               <input type="tel" class="form-control" id="cell" name="cell" placeholder="(XXX) XXX-XXXX" pattern="^(?:\(\d{3}\)\s*|\d{3}[.\-]?)\d{3}[.\-]?\d{4}$" required>
             </div>
             <div class="col-md-6">
@@ -171,7 +171,7 @@
               <input type="tel" class="form-control" id="home" name="home" placeholder="(XXX) XXX-XXXX" pattern="^(?:\(\d{3}\)\s*|\d{3}[.\-]?)\d{3}[.\-]?\d{4}$">
             </div>
             <div class="col-md-6">
-              <label for="email" class="form-label">Email Address *</label>
+              <label for="email" class="form-label">Email Address<span class="text-danger">*</span></label>
               <input type="email" class="form-control" id="email" name="email" placeholder="user@example.com" pattern="^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$" required>
             </div>
             <div class="col-md-6">
@@ -379,11 +379,11 @@
             </div>
             <div class="mb-3 form-check">
               <input type="checkbox" class="form-check-input" id="electronicConsent" name="electronicConsent" required>
-              <label class="form-check-label" for="electronicConsent">I agree to the use of electronic records and electronic signatures.</label>
+              <label class="form-check-label" for="electronicConsent">I agree to the use of electronic records and electronic signatures.<span class="text-danger">*</span></label>
             </div>
             <div class="mb-3 form-check">
               <input type="checkbox" class="form-check-input" id="certifyConsent" name="certifyConsent" required>
-              <label class="form-check-label" for="certifyConsent">I certify that I am the Parent/Legal Guardian, the individual receiving services and at least 18 years of age/emancipated, or a Legally Authorized Representative, and that I have read and agree to the Consent & Authorizations above.</label>
+              <label class="form-check-label" for="certifyConsent">I certify that I am the Parent/Legal Guardian, the individual receiving services and at least 18 years of age/emancipated, or a Legally Authorized Representative, and that I have read and agree to the Consent & Authorizations above. <span class="text-danger">*</span></label>
             </div>
             <ul class="nav nav-tabs" id="signatureTabs" role="tablist">
               <li class="nav-item" role="presentation">
