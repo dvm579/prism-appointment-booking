@@ -345,7 +345,9 @@ async function submitBooking(e) {
       // --- DATA COLLECTION FOR NEW CHECKBOXES ---
       consentCalls: form.consentCalls.checked, // Will be true or false
       consentTexts: form.consentTexts.checked, // Will be true or false
-      consentEmails: form.consentEmails.checked  // Will be true or false
+      consentEmails: form.consentEmails.checked,  // Will be true or false
+      electronicConsent: form.electronicConsent.checked,
+      vaxConsent: form.certifyConsent.checked,
     };
 
     // Gather form data (same as before)
