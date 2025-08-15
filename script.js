@@ -27,7 +27,9 @@ const DOMElements = {
     regForm: document.getElementById('regForm'),
     goBackButton: document.getElementById('goBackButton'),
     waitlistSection: document.getElementById('waitlistSection'), // Add this
-    joinWaitlistBtn: document.getElementById('joinWaitlistBtn') // Add this
+    joinWaitlistBtn: document.getElementById('joinWaitlistBtn'),
+    hasInsuranceCheck: document.getElementById('hasInsuranceCheck'), // Add this
+    insuranceSection: document.getElementById('insuranceSection') // Add this
 };
 
 // --- CORE FUNCTIONS ---
@@ -123,6 +125,7 @@ function setupEventListeners() {
     DOMElements.goBackButton.addEventListener('click', goBack);
     DOMElements.joinWaitlistBtn.addEventListener('click', joinWaitlist); // Add this
     document.getElementById('dob').addEventListener('change', checkAge);
+    DOMElements.hasInsuranceCheck.addEventListener('change', toggleInsuranceSection); 
 
     window.addEventListener('beforeunload', (e) => {
         if (selectedSlotTime) {
@@ -347,6 +350,7 @@ function handleError(userMessage, error) {
     alert(userMessage);
     hideLoading();
 }
+
 function checkAge() {
     const dobVal = document.getElementById('dob').value;
     const parentDiv = document.getElementById('parentFields');
@@ -366,5 +370,15 @@ function checkAge() {
       parentDiv.classList.add('d-none');
       p1.required = false;
       p2.required = false;
+    }
+}
+
+function toggleInsuranceSection() {
+    if (DOMElements.hasInsuranceCheck.checked) {
+        // If checked, show the insurance section
+        DOMElements.insuranceSection.classList.remove('d-none');
+    } else {
+        // If unchecked, hide it
+        DOMElements.insuranceSection.classList.add('d-none');
     }
 }
