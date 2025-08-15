@@ -345,6 +345,7 @@ async function submitBooking(e) {
             return;
         }
         signatureDataUrl = document.getElementById('typeCanvas').toDataURL();
+        console.log("Submitting this Data URL:", signatureDataUrl);
     }
     // --- END NEW SIGNATURE LOGIC ---
 
