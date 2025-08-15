@@ -392,7 +392,7 @@ function displayConfirmation(response, form) {
     // --- Get event details reliably from our data ---
     const currentEvent = allEvents.find(event => String(event.EventID) === String(eventId));
     const eventName = currentEvent ? currentEvent['Event Name'] : 'Your Event'; // Use your actual header name
-    const eventDate = currentEvent ? new Date(currentEvent['Event Date']).toLocaleDateString() : '';
+    const eventDate = currentEvent ? new Date(currentEvent['Date']).toLocaleDateString() : '';
     
     // --- Assign the extracted values ---
     document.getElementById('confEventDate').textContent = eventDate;
