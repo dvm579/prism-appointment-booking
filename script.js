@@ -198,7 +198,7 @@ function setupEventListeners() {
 }
 
 function displayEventDetails(event) {
-    if (event.Date) {
+    if (event) {
         const eventDate = new Date(event.Date).toLocaleDateString(undefined, {
           year: 'numeric', month: '2-digit', day: '2-digit'
         });
