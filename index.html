@@ -8,7 +8,16 @@
     <link href="style.css" rel="stylesheet"> </head>
 
 <body class="container-fluid container-md">
-    <div id="loadingOverlay">
+    <div id="loadingOverlay" style="
+        display: none;
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(255,255,255,0.8);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+    ">
       <div class="text-center">
         <div class="spinner-border text-primary" role="status">
           <span class="visually-hidden">Loading...</span>
