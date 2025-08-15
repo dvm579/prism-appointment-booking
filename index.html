@@ -30,11 +30,17 @@
       </div>
     </div>
 
-    <div class="row justify-content-center mb-4">
-        <div class="col-auto">
-            <div id="google_translate_element"></div>
-        </div>
-    </div>
+  <div class="row justify-content-center text-center mb-4">
+      <div class="col-auto">
+          <div id="translation-buttons">
+              <button class="btn btn-outline-light btn-sm mx-1" onclick="changeLanguage('en')">English</button>
+              <button class="btn btn-outline-light btn-sm mx-1" onclick="changeLanguage('es')">Español</button>
+              <button class="btn btn-outline-light btn-sm mx-1" onclick="changeLanguage('pl')">Polski</button>
+              <button class="btn btn-outline-light btn-sm mx-1" onclick="changeLanguage('zh-CN')">中文</button>
+          </div>
+          <div id="google_translate_element" style="display: none;"></div>
+      </div>
+  </div>
     
     <header class="container mb-5">
         <div class="row align-items-center">
