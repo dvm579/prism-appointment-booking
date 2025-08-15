@@ -456,9 +456,19 @@ function handleError(userMessage, error) {
  * @param {string} lang The two-letter language code (e.g., 'es' for Spanish).
  */
 function changeLanguage(lang) {
-  // Set the cookie that the Google Translate script reads
-  document.cookie = `googtrans=/en/${lang}`;
-  // Reload the page to apply the translation
+  // The page's original language.
+  const originalLanguage = 'en';
+
+  if (lang === originalLanguage) {
+    // If the user is switching back to English, we need to clear the cookie.
+    // This effectively "turns off" the translation.
+    document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+  } else {
+    // For any other language, set the cookie with the new language.
+    document.cookie = `googtrans=/${originalLanguage}/${lang}; path=/`;
+  }
+  
+  // Reload the page to apply the changes.
   location.reload();
 }
 
