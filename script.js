@@ -345,7 +345,6 @@ async function submitBooking(e) {
             return;
         }
         signatureDataUrl = document.getElementById('typeCanvas').toDataURL();
-        console.log("Submitting this Data URL:", signatureDataUrl);
     }
     // --- END NEW SIGNATURE LOGIC ---
 
@@ -358,7 +357,7 @@ async function submitBooking(e) {
       isWaitlist: isWaitlistSubmission,
       demographics: {},
       insurance: {},
-      signature: signaturePad.toDataURL(),
+      signature: signatureDataUrl,
       // --- DATA COLLECTION FOR NEW CHECKBOXES ---
       consentCalls: form.consentCalls.checked, // Will be true or false
       consentTexts: form.consentTexts.checked, // Will be true or false
