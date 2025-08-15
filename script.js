@@ -452,24 +452,24 @@ function handleError(userMessage, error) {
 }
 
 /**
- * Changes the Google Translate language and reloads the page.
+ * Changes the Google Translate language by directly interacting with the widget.
+ * This method is more reliable and avoids a page reload.
  * @param {string} lang The two-letter language code (e.g., 'es' for Spanish).
  */
 function changeLanguage(lang) {
-  // The page's original language.
-  const originalLanguage = 'en';
+  // Find the <select> element that the Google Translate widget creates.
+  const translateSelect = document.querySelector('#google_translate_element select');
 
-  if (lang === originalLanguage) {
-    // If the user is switching back to English, we need to clear the cookie.
-    // This effectively "turns off" the translation.
-    document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+  if (translateSelect) {
+    // Set the value of the dropdown to the desired language.
+    translateSelect.value = lang;
+    
+    // Dispatch a "change" event on the dropdown to trigger the translation.
+    translateSelect.dispatchEvent(new Event('change'));
   } else {
-    // For any other language, set the cookie with the new language.
-    document.cookie = `googtrans=/${originalLanguage}/${lang}; path=/`;
+    // This can happen if the widget hasn't finished loading yet.
+    console.error("Google Translate dropdown not found. It may not have loaded yet.");
   }
-  
-  // Reload the page to apply the changes.
-  location.reload();
 }
 
 function checkAge() {
