@@ -434,7 +434,7 @@ function displayConfirmation(response, form) {
 
     // Handle display based on whether it's a general waitlist or a specific event
     if (eventId === 'WAITLIST') {
-        eventName = '';
+        eventName = 'General Registration / School Records Check';
         // Hide the date field since it's not applicable
         document.getElementById('confEventDate').parentElement.classList.add('d-none');
     } else {
@@ -447,14 +447,13 @@ function displayConfirmation(response, form) {
     document.getElementById('confPatientName').textContent = patientName;
     document.getElementById('confPatientDob').textContent = form.dob.value;
     document.getElementById('confEventName').textContent = eventName;
-
+    document.querySelector('#confirmationSection h2').textContent = "Registration Confirmed";
+    
     // This existing logic correctly handles the waitlist confirmation message
     if (isWaitlist) {
-        document.querySelector('#confirmationSection h2').textContent = "You've Been Added to the Waitlist";
-        document.getElementById('confApptId').parentElement.innerHTML = "You will be notified by email if an appointment becomes available.";
+        document.getElementById('confApptId').parentElement.innerHTML = "Thanks for your registration! We'll update your chart in the background and reach out soon with next steps.";
         document.getElementById('confQrCode').style.display = 'none';
     } else {
-        document.querySelector('#confirmationSection h2').textContent = "Registration Confirmed";
         document.getElementById('confApptId').textContent = appointmentID;
         document.getElementById('confQrCode').src = `data:image/png;base64,${qrBase64}`;
         document.getElementById('confQrCode').style.display = 'block';
