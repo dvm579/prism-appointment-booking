@@ -383,6 +383,7 @@ async function submitBooking(e) {
 
 function displayConfirmation(response, form) {
     const { appointmentID, qrBase64, isWaitlist } = response;
+    console.log(response)
     
     DOMElements.slotSection.classList.add('d-none');
     DOMElements.formSection.classList.add('d-none');
