@@ -118,3 +118,17 @@ h1, h2, h3, h4 {
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     gap: 10px;
 }
+
+#logo {
+  width: auto;
+  height: auto;
+}
+
+@media (max-width: 600px) {
+  #logo {
+    display: block;
+    margin: 0 auto; /* centers horizontally */
+    width: 50%;
+    height: auto;
+  }
+}
