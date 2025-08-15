@@ -389,14 +389,10 @@ function displayConfirmation(response, form) {
     DOMElements.confirmationSection.classList.remove('d-none');
 
     const patientName = `${form.firstName.value} ${form.lastName.value}`;
-    // Split the string once and store the parts in an array
-    const eventParts = DOMElements.eventDetails.textContent.split('-');
-    
-    // Use .pop() to remove and get the last element (the date)
-    const eventDate = eventParts.pop().trim();
-    
-    // Join the remaining parts to get the event name
-    const eventName = eventParts.join(' - ').trim();
+    // --- Get event details reliably from our data ---
+    const currentEvent = allEvents.find(event => String(event.EventID) === String(eventId));
+    const eventName = currentEvent ? currentEvent['Event Name'] : 'Your Event'; // Use your actual header name
+    const eventDate = currentEvent ? new Date(currentEvent['Event Date']).toLocaleDateString() : '';
     
     // --- Assign the extracted values ---
     document.getElementById('confEventDate').textContent = eventDate;
