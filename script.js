@@ -312,10 +312,25 @@ async function submitBooking(e) {
         return; // Stop the submission
     }
 
-    if (signaturePad.isEmpty()) {
-        alert("Please provide a signature.");
-        return;
+    // --- NEW SIGNATURE LOGIC ---
+    let signatureDataUrl = '';
+    const isDrawTabActive = document.getElementById('draw-tab').classList.contains('active');
+
+    if (isDrawTabActive) {
+        if (signaturePad.isEmpty()) {
+            alert("Please provide a signature by drawing it.");
+            return;
+        }
+        signatureDataUrl = signaturePad.toDataURL();
+    } else { // Type tab is active
+        const typedName = document.getElementById('typedName').value;
+        if (!typedName.trim()) {
+            alert("Please provide a signature by typing your name.");
+            return;
+        }
+        signatureDataUrl = document.getElementById('typeCanvas').toDataURL();
     }
+    // --- END NEW SIGNATURE LOGIC ---
 
     showLoading();
     clearInterval(timerInterval);
