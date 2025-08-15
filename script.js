@@ -337,7 +337,9 @@ function joinWaitlist() {
 
     const currentEvent = allEvents.find(e => e.EventID === eventId);
     displayEventDetails(currentEvent);
-    DOMElements.eventDetails.innerHTML += `<br> <b>Joining the Waitlist</b>`;
+    if (currentEvent) {
+        DOMElements.eventDetails.innerHTML += `<br> <b>Joining the Waitlist</b>`;
+    }
 
     if (!signaturePad) {
         const canvas = document.getElementById('sigPad');
