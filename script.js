@@ -208,20 +208,52 @@ async function selectSlot(time) {
     }
 }
 
+function startTimer() {
+    const endTime = Date.now() + TIMEOUT_MS;
+
+    // Make sure the timer element is visible
+    DOMElements.timer.classList.remove('d-none');
+
+    timerInterval = setInterval(() => {
+        const msRemaining = endTime - Date.now();
+
+        if (msRemaining <= 0) {
+            clearInterval(timerInterval);
+            // The goBack() function will handle resetting the UI
+            goBack();
+            alert('Your session has expired. The slot has been released.');
+            return;
+        }
+
+        const minutes = Math.floor(msRemaining / 60000);
+        const seconds = Math.floor((msRemaining % 60000) / 1000);
+        
+        // Update the timer element on the page
+        DOMElements.timer.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }, 1000);
+}
+
 async function goBack() {
     clearInterval(timerInterval);
     showLoading();
-    
+
     try {
-        await callAPI('releaseSlot', { eventId, startTime: selectedSlotTime });
+        // Only release a slot if one was actually selected
+        if (selectedSlotTime) {
+            await callAPI('releaseSlot', { eventId, startTime: selectedSlotTime });
+        }
     } catch (error) {
         console.error("Failed to release slot, but proceeding with UI reset.", error);
     } finally {
         selectedSlotTime = null;
+        isWaitlistSubmission = false; // Reset waitlist flag
         DOMElements.formSection.classList.add('d-none');
         DOMElements.slotSection.classList.remove('d-none');
-        const currentEvent = allEvents.find(e => e.EventID === eventId);
-        displayEventDetails(currentEvent); // Reset details
+        DOMElements.timer.classList.add('d-none'); // Hide the timer
+
+        const currentEvent = allEvents.find(e => String(e.EventID) === String(eventId));
+        displayEventDetails(currentEvent); // Reset event details text
+        renderSlots(); // Re-render slots to ensure they are clickable again
         hideLoading();
     }
 }
