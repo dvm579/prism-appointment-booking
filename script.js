@@ -61,7 +61,7 @@ window.addEventListener('DOMContentLoaded', async () => {
             DOMElements.slotSection.classList.add('d-none');
             DOMElements.formSection.classList.remove('d-none');
             DOMElements.timer.classList.add('d-none'); // Hide timer
-            DOMElements.eventDetails.innerHTML = '<b>General Waitlist Registration</b>';
+            DOMElements.eventDetails.innerHTML = '<b></b>';
 
             // Initialize the signature pad for the form
             if (!signaturePad) {
@@ -204,7 +204,7 @@ function displayEventDetails(event) {
         });
         DOMElements.eventDetails.textContent = `${event['Event Name']} - ${eventDate}`;
     } else {
-        DOMElements.eventDetails.textContent = "General Waitlist Registration";
+        DOMElements.eventDetails.textContent = "";
     }
 }
 
@@ -432,7 +432,7 @@ function displayConfirmation(response, form) {
 
     // Handle display based on whether it's a general waitlist or a specific event
     if (eventId === 'WAITLIST') {
-        eventName = 'General Waitlist Registration';
+        eventName = '';
         // Hide the date field since it's not applicable
         document.getElementById('confEventDate').parentElement.classList.add('d-none');
     } else {
