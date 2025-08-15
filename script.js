@@ -122,10 +122,10 @@ function setupEventListeners() {
 }
 
 function displayEventDetails(event) {
-    const eventDate = new Date(event.eventDate).toLocaleDateString(undefined, {
+    const eventDate = new Date(event['Event Date']).toLocaleDateString(undefined, {
       year: 'numeric', month: '2-digit', day: '2-digit'
     });
-    DOMElements.eventDetails.textContent = `${event.eventName} - ${eventDate}`;
+    DOMElements.eventDetails.textContent = `${event['Event Name']} - ${eventDate}`;
 }
 
 function renderSlots() {
@@ -133,7 +133,7 @@ function renderSlots() {
     container.innerHTML = '';
     
     const eventSlots = allSlots.filter(slot => slot.EventID === eventId);
-    const openSlots = eventSlots.filter(slot => slot.Available === 'Open');
+    const openSlots = eventSlots.filter(slot => slot.Status === 'Open');
 
     // If there are no open slots, show the waitlist option
     if (openSlots.length === 0) {
@@ -151,7 +151,7 @@ function renderSlots() {
         pill.classList.add('slot-item');
         pill.textContent = `${slot['Start Time']} – ${slot['End Time']}`;
 
-        if (slot.Available === 'Open') {
+        if (slot.Status === 'Open') {
             pill.classList.add('slot-open');
             pill.onclick = () => selectSlot(slot['Start Time'], pill);
         } else {
