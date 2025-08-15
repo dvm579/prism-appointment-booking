@@ -402,7 +402,7 @@ async function submitBooking(e) {
     ['firstName','middleName','lastName','dob','gender','race','ethnicity','fullAddress','street','city','state','zip','cell','home','email','ssn','parentName','parentRel','parentContact', 'school', 'grade'].forEach(id => data.demographics[id] = form[id]?.value || '');
     ['primaryIns','primaryPayer','primaryPlan','primaryId','primaryGroup','primaryPayerId','secondaryIns','secondaryPlan','secondaryId','secondaryGroup','secondaryPayerId'].forEach(id => data.insurance[id] = form[id]?.value || '');
 
-    updateLoadingMessage("Files Ready ✓<br>Submitting registration...");
+    updateLoadingMessage("Submitting registration...");
     
     try {
         const response = await callAPI('submitForm', data);
