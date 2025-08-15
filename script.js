@@ -525,15 +525,23 @@ function handleFileSelection(event) {
     const files = event.target.files;
     DOMElements.fileList.innerHTML = ''; // Clear previous list
 
-    if (files.length > 5) {
-        alert("You can only upload a maximum of 5 files.");
+    // --- NEW LOGIC TO CHECK TOTAL FILE SIZE ---
+    const MAX_TOTAL_SIZE_MB = 25;
+    const MAX_TOTAL_SIZE_BYTES = MAX_TOTAL_SIZE_MB * 1024 * 1024;
+
+    const totalSize = Array.from(files).reduce((sum, file) => sum + file.size, 0);
+
+    if (totalSize > MAX_TOTAL_SIZE_BYTES) {
+        alert(`The total file size cannot exceed ${MAX_TOTAL_SIZE_MB} MB. Please select smaller files.`);
         event.target.value = null; // Clear the selection
         return;
     }
+    // --- END NEW LOGIC ---
 
     if (files.length > 0) {
+        const totalSizeInMB = (totalSize / 1024 / 1024).toFixed(2);
         let fileNames = Array.from(files).map(file => file.name).join(', ');
-        DOMElements.fileList.textContent = `Selected: ${fileNames}`;
+        DOMElements.fileList.textContent = `Selected: ${fileNames} (${totalSizeInMB} MB)`;
     }
 }
 
