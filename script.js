@@ -348,5 +348,23 @@ function handleError(userMessage, error) {
     hideLoading();
 }
 function checkAge() {
-    // This function is unchanged from your original code.
+    const dobVal = document.getElementById('dob').value;
+    const parentDiv = document.getElementById('parentFields');
+    const p1 = document.getElementById('parentName');
+    const p2 = document.getElementById('parentRel');
+    if (!dobVal) {
+      parentDiv.classList.add('d-none');
+      return;
+    }
+    const dob = new Date(dobVal);
+    const age = (Date.now() - dob.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
+    if (age < 18) {
+      parentDiv.classList.remove('d-none');
+      p1.required = true;
+      p2.required = true;
+    } else {
+      parentDiv.classList.add('d-none');
+      p1.required = false;
+      p2.required = false;
+    }
 }
