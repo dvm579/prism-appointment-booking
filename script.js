@@ -173,6 +173,31 @@ function renderSlots() {
     });
 }
 
+function startTimer() {
+    const endTime = Date.now() + TIMEOUT_MS;
+
+    // Make sure the timer element is visible
+    DOMElements.timer.classList.remove('d-none');
+
+    timerInterval = setInterval(() => {
+        const msRemaining = endTime - Date.now();
+
+        if (msRemaining <= 0) {
+            clearInterval(timerInterval);
+            // The goBack() function will handle resetting the UI
+            goBack();
+            alert('Your session has expired. The slot has been released.');
+            return;
+        }
+
+        const minutes = Math.floor(msRemaining / 60000);
+        const seconds = Math.floor((msRemaining % 60000) / 1000);
+        
+        // Update the timer element on the page
+        DOMElements.timer.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }, 1000);
+}
+
 async function selectSlot(time) {
     if (selectedSlotTime) return; // Prevent double-clicking
     showLoading();
@@ -206,31 +231,6 @@ async function selectSlot(time) {
     } finally {
         hideLoading();
     }
-}
-
-function startTimer() {
-    const endTime = Date.now() + TIMEOUT_MS;
-
-    // Make sure the timer element is visible
-    DOMElements.timer.classList.remove('d-none');
-
-    timerInterval = setInterval(() => {
-        const msRemaining = endTime - Date.now();
-
-        if (msRemaining <= 0) {
-            clearInterval(timerInterval);
-            // The goBack() function will handle resetting the UI
-            goBack();
-            alert('Your session has expired. The slot has been released.');
-            return;
-        }
-
-        const minutes = Math.floor(msRemaining / 60000);
-        const seconds = Math.floor((msRemaining % 60000) / 1000);
-        
-        // Update the timer element on the page
-        DOMElements.timer.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-    }, 1000);
 }
 
 async function goBack() {
