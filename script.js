@@ -40,32 +40,49 @@ const DOMElements = {
  */
 window.addEventListener('DOMContentLoaded', async () => {
     try {
+        // Set up listeners first to ensure they're active in both modes
+        setupEventListeners();
+
         const urlParams = new URLSearchParams(window.location.search);
         eventId = urlParams.get('eventId');
+
         if (!eventId) {
-            handleError("Event ID is missing from the URL.");
-            return;
-        }
+            // --- WAITLIST MODE ---
+            // No event ID was provided, so go directly to the waitlist form.
+            eventId = 'WAITLIST';
+            isWaitlistSubmission = true; // Set the waitlist flag
 
-        // Fetch both CSV files in parallel for speed
-        [allEvents, allSlots] = await Promise.all([
-            fetchCSV(EVENTS_CSV_URL),
-            fetchCSV(SLOTS_CSV_URL)
-        ]);
-        
-        console.log("First Event Row:", allEvents[0]);
-        console.log("First Slot Row:", allSlots[0]);
-        
-        const currentEvent = allEvents.find(event => event.EventID === eventId);
-        if (!currentEvent) {
-            handleError("Event not found.");
-            return;
-        }
+            // Update the UI to show the form immediately
+            DOMElements.slotSection.classList.add('d-none');
+            DOMElements.formSection.classList.remove('d-none');
+            DOMElements.timer.classList.add('d-none'); // Hide timer
+            DOMElements.eventDetails.innerHTML = '<b>General Waitlist Registration</b>';
 
-        displayEventDetails(currentEvent);
-        renderSlots();
-        setupEventListeners();
-        hideLoading();
+            // Initialize the signature pad for the form
+            if (!signaturePad) {
+                const canvas = document.getElementById('sigPad');
+                signaturePad = new SignaturePad(canvas);
+            }
+            hideLoading(); // Hide the loading spinner
+
+        } else {
+            // --- STANDARD EVENT MODE ---
+            // An event ID was found, proceed with fetching slots as normal.
+            [allEvents, allSlots] = await Promise.all([
+                fetchCSV(EVENTS_CSV_URL),
+                fetchCSV(SLOTS_CSV_URL)
+            ]);
+            
+            const currentEvent = allEvents.find(event => event.EventID === eventId);
+            if (!currentEvent) {
+                handleError("Event not found.");
+                return;
+            }
+
+            displayEventDetails(currentEvent);
+            renderSlots();
+            hideLoading();
+        }
 
     } catch (error) {
         handleError("Failed to initialize the application.", error);
@@ -383,27 +400,32 @@ async function submitBooking(e) {
 
 function displayConfirmation(response, form) {
     const { appointmentID, qrBase64, isWaitlist } = response;
-    console.log(response)
     
     DOMElements.slotSection.classList.add('d-none');
     DOMElements.formSection.classList.add('d-none');
     DOMElements.confirmationSection.classList.remove('d-none');
 
     const patientName = `${form.firstName.value} ${form.lastName.value}`;
-    // --- Get event details reliably from our data ---
-    const currentEvent = allEvents.find(event => String(event.EventID) === String(eventId));
-    const eventName = currentEvent ? currentEvent['Event Name'] : 'Your Event'; // Use your actual header name
-    const eventDate = currentEvent ? new Date(currentEvent['Date']).toLocaleDateString() : '';
-    console.log(eventName)
-    console.log(eventDate)
+    let eventName = '';
+    let eventDate = '';
+
+    // Handle display based on whether it's a general waitlist or a specific event
+    if (eventId === 'WAITLIST') {
+        eventName = 'General Waitlist Registration';
+        // Hide the date field since it's not applicable
+        document.getElementById('confEventDate').parentElement.classList.add('d-none');
+    } else {
+        const currentEvent = allEvents.find(event => String(event.EventID) === String(eventId));
+        eventName = currentEvent ? currentEvent['Event Name'] : 'Your Event';
+        eventDate = currentEvent ? new Date(currentEvent['Date']).toLocaleDateString() : '';
+        document.getElementById('confEventDate').textContent = eventDate;
+    }
     
-    // --- Assign the extracted values ---
-    document.getElementById('confEventDate').textContent = eventDate;
     document.getElementById('confPatientName').textContent = patientName;
     document.getElementById('confPatientDob').textContent = form.dob.value;
     document.getElementById('confEventName').textContent = eventName;
 
-    // Show different confirmation messages
+    // This existing logic correctly handles the waitlist confirmation message
     if (isWaitlist) {
         document.querySelector('#confirmationSection h2').textContent = "You've Been Added to the Waitlist";
         document.getElementById('confApptId').parentElement.innerHTML = "You will be notified by email if an appointment becomes available.";
@@ -415,6 +437,8 @@ function displayConfirmation(response, form) {
         document.getElementById('confQrCode').style.display = 'block';
     }
 }
+
+// ... (keep the rest of your script.js file) ...
 
 
 // --- UTILITY FUNCTIONS ---
