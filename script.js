@@ -134,6 +134,27 @@ function setupEventListeners() {
             navigator.sendBeacon(GAS_API_URL, data);
         }
     });
+
+    const typedNameInput = document.getElementById('typedName');
+    const typeCanvas = document.getElementById('typeCanvas');
+    
+    typedNameInput.addEventListener('input', () => {
+        const ctx = typeCanvas.getContext('2d');
+        const text = typedNameInput.value;
+    
+        // Set canvas dimensions (important for high-res output)
+        typeCanvas.width = 600;
+        typeCanvas.height = 150;
+    
+        // Clear previous text
+        ctx.clearRect(0, 0, typeCanvas.width, typeCanvas.height);
+    
+        // Set font style to match the input box
+        ctx.font = "60px 'Caveat', cursive";
+        ctx.fillStyle = "#000";
+        ctx.textBaseline = "middle";
+        ctx.fillText(text, 20, typeCanvas.height / 2);
+    });
 }
 
 function displayEventDetails(event) {
