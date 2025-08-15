@@ -1,51 +1,120 @@
-body { margin: 20px; }
-table { width: 100%; border-collapse: collapse; margin-bottom: 1em; }
-th, td { padding: 8px; border: 1px solid #ccc; text-align: center; }
-td.disabled { background: #f0f0f0; color: #999; cursor: not-allowed; }
-td.open { background: #e8f5e9; cursor: pointer; }
-td.selected { background: #c8e6c9; }
+/* --- style.css --- */
 
-/* replace your #slotsGrid / .slot-item styles with: */
-#slotsGrid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0.5rem;
+/* Main Body and Font Styles */
+body {
+    background-color: #002855; /* Prism Navy Blue */
+    color: #ffffff; /* White text */
+    font-family: 'Poppins', sans-serif;
+    padding-top: 2rem;
+    padding-bottom: 2rem;
 }
 
-/* Tablet: 2‑cols */
-@media (max-width: 768px) {
-  #slotsGrid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+/* Header and Section Titles */
+h1, h2, h3, h4 {
+    font-weight: 700; /* Bold titles */
 }
 
-/* Mobile: 1‑col */
-@media (max-width: 576px) {
-  #slotsGrid {
-    grid-template-columns: 1fr;
-  }
+/* Form Styling for Dark Background */
+.form-label {
+    color: #f0f0f0;
+    margin-bottom: 0.5rem;
 }
 
+.form-control, .form-select {
+    background-color: #ffffff;
+    color: #212529; /* Dark text for readability */
+    border: 1px solid #ced4da;
+}
+
+.form-control:focus, .form-select:focus {
+    background-color: #ffffff;
+    color: #212529;
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Make placeholder text visible */
+.form-control::placeholder {
+    color: #6c757d;
+    opacity: 1;
+}
+
+/* Style for consent text */
+.form-check-label, .accordion-body p {
+    color: #f0f0f0;
+}
+
+/* Accordion (Privacy Policy, etc.) Styling */
+.accordion-button {
+    background-color: #0d3b6e;
+    color: #ffffff;
+}
+
+.accordion-button:not(.collapsed) {
+    background-color: #1a4c85;
+    color: #ffffff;
+}
+
+.accordion-button:focus {
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.accordion-button::after {
+    filter: invert(1) grayscale(100%) brightness(200%); /* Makes chevron icon white */
+}
+
+.accordion-body {
+    background-color: #002855;
+    color: #f0f0f0;
+}
+
+/* Button Styling */
+.btn-primary {
+    background-color: #2a7de1; /* A bright blue from your site */
+    border-color: #2a7de1;
+}
+
+.btn-primary:hover {
+    background-color: #1a6bcf;
+    border-color: #1a6bcf;
+}
+
+.btn-outline-secondary {
+    color: #ffffff;
+    border-color: #ffffff;
+}
+
+.btn-outline-secondary:hover {
+    background-color: #ffffff;
+    color: #002855;
+}
+
+/* Appointment Slot Styling */
 .slot-item {
-  padding: 0.75rem 1.25rem;
-  border-radius: 0.5rem;
-  border: 1px solid;
-  text-align: center;
-  font-weight: 500;
-  user-select: none;
+    cursor: pointer;
+    border: 1px solid #2a7de1;
+    color: #f0f0f0;
+    padding: 10px;
+    margin: 5px;
+    text-align: center;
+    border-radius: 20px;
+    transition: background-color 0.2s;
 }
 
-/* Open slots: blue bg, white text */
-.slot-open {
-  background-color: #0d6efd;
-  color: #fff;
-  border-color: #0a58ca;
-  cursor: pointer;
+.slot-open:hover {
+    background-color: #2a7de1;
+    color: #ffffff;
 }
 
-/* Taken slots: light gray bg, black text */
 .slot-taken {
-  background-color: #e9ecef;
-  color: #000;
-  border-color: #adb5bd;
+    border-color: #6c757d;
+    color: #6c757d;
+    cursor: not-allowed;
+    background-color: #343a40;
+}
+
+#slotsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
 }
