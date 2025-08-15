@@ -389,9 +389,10 @@ function displayConfirmation(response, form) {
     DOMElements.confirmationSection.classList.remove('d-none');
 
     const patientName = `${form.firstName.value} ${form.lastName.value}`;
+    document.getElementById('confEventDate').textContent = DOMElements.eventDetails.textContent.split('-')[-1].trim();
     document.getElementById('confPatientName').textContent = patientName;
     document.getElementById('confPatientDob').textContent = form.dob.value;
-    document.getElementById('confEventName').textContent = DOMElements.eventDetails.textContent.split('-')[0].trim();
+    document.getElementById('confEventName').textContent = DOMElements.eventDetails.textContent.split('-').slice(undefined, -1).join(' - ').trim();
 
     // Show different confirmation messages
     if (isWaitlist) {
