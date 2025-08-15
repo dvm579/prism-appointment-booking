@@ -93,18 +93,27 @@ function fetchCSV(url) {
  * @returns {Promise<Object>} The JSON response from the server
  */
 async function callAPI(action, payload) {
-    const response = await fetch(GAS_API_URL, {
-        method: 'POST',
-        mode: 'cors', // Important for cross-origin requests
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // GAS quirk
-        body: JSON.stringify({ action, payload })
-    });
+  const response = await fetch(GAS_API_URL, {
+      method: 'POST',
+      mode: 'cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action, payload })
+  });
 
-    const result = await response.json();
-    if (result.status === 'error') {
-        throw new Error(result.message);
-    }
-    return result;
+  // Check if the response is JSON before trying to parse it
+  const contentType = response.headers.get("content-type");
+  if (contentType && contentType.indexOf("application/json") !== -1) {
+      const result = await response.json();
+      if (result.status === 'error') {
+          throw new Error(result.message);
+      }
+      return result;
+  } else {
+      // If we get HTML or something else, log it for debugging
+      const textResponse = await response.text();
+      console.error("Received a non-JSON response from the server:", textResponse);
+      throw new Error("An unexpected error occurred. The server sent an invalid response.");
+  }
 }
 
 // --- UI AND EVENT HANDLING ---
