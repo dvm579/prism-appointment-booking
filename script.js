@@ -283,27 +283,39 @@ function joinWaitlist() {
 
 async function submitBooking(e) {
     e.preventDefault();
+    const form = e.target;
+
+    // --- VALIDATION FOR NEW CHECKBOXES ---
+    if (!form.consentCalls.checked && !form.consentTexts.checked && !form.consentEmails.checked) {
+        alert("Please consent to at least one method of contact to continue.");
+        return; // Stop the submission
+    }
+
     if (signaturePad.isEmpty()) {
         alert("Please provide a signature.");
         return;
     }
+
     showLoading();
     clearInterval(timerInterval);
 
-    const form = e.target;
     const data = {
       eventId,
       slotTime: selectedSlotTime,
-      isWaitlist: isWaitlistSubmission, // Add this flag
+      isWaitlist: isWaitlistSubmission,
       demographics: {},
       insurance: {},
-      signature: signaturePad.toDataURL()
+      signature: signaturePad.toDataURL(),
+      // --- DATA COLLECTION FOR NEW CHECKBOXES ---
+      consentCalls: form.consentCalls.checked, // Will be true or false
+      consentTexts: form.consentTexts.checked, // Will be true or false
+      consentEmails: form.consentEmails.checked  // Will be true or false
     };
 
     // Gather form data (same as before)
     ['firstName','middleName','lastName','dob','gender','race','ethnicity','fullAddress','street','city','state','zip','cell','home','email','ssn','parentName','parentRel','parentContact'].forEach(id => data.demographics[id] = form[id]?.value || '');
     ['primaryIns','primaryPayer','primaryPlan','primaryId','primaryGroup','primaryPayerId','secondaryIns','secondaryPlan','secondaryId','secondaryGroup','secondaryPayerId'].forEach(id => data.insurance[id] = form[id]?.value || '');
-    
+
     try {
         const response = await callAPI('submitForm', data);
         displayConfirmation(response, form);
