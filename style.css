@@ -124,11 +124,16 @@ h1, h2, h3, h4 {
   height: auto;
 }
 
+/* Phone only - center and shrink logo */
 @media (max-width: 600px) {
-  #logo {
-    display: block;
-    margin: 0 auto; /* centers horizontally */
+  .logo-wrapper {
+    width: 100%;
+    text-align: center;
+  }
+
+  .logo-wrapper #logo {
     width: 50%;
     height: auto;
+    padding-bottom: 1rem; /* bottom spacing */
   }
 }
