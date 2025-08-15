@@ -363,7 +363,7 @@ async function submitBooking(e) {
       consentTexts: form.consentTexts.checked, // Will be true or false
       consentEmails: form.consentEmails.checked,  // Will be true or false
       electronicConsent: form.electronicConsent.checked,
-      vaxConsent: form.certifyConsent.checked,
+      vaxConsent: form.certifyConsent.checked
     };
 
     // Gather form data (same as before)
