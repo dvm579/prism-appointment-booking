@@ -30,7 +30,11 @@ const DOMElements = {
     joinWaitlistBtn: document.getElementById('joinWaitlistBtn'),
     hasInsuranceCheck: document.getElementById('hasInsuranceCheck'), // Add this
     insuranceSection: document.getElementById('insuranceSection'), // Add this
-    sigClear: document.getElementById('clearSignatureBtn')
+    sigClear: document.getElementById('clearSignatureBtn'),
+    hasRecordsCheck: document.getElementById('hasRecordsCheck'),
+    recordsSection: document.getElementById('recordsSection'),
+    medicalRecordsUpload: document.getElementById('medicalRecordsUpload'),
+    fileList: document.getElementById('fileList')
 };
 
 // --- CORE FUNCTIONS ---
@@ -147,6 +151,8 @@ function setupEventListeners() {
     DOMElements.sigClear.addEventListener('click', (e) => {
         signaturePad.clear();
     });
+    DOMElements.hasRecordsCheck.addEventListener('change', toggleRecordsSection);
+    DOMElements.medicalRecordsUpload.addEventListener('change', handleFileSelection);
 
     window.addEventListener('beforeunload', (e) => {
         if (selectedSlotTime) {
@@ -368,12 +374,19 @@ async function submitBooking(e) {
     showLoading();
     clearInterval(timerInterval);
 
+    // --- ADD THIS BLOCK TO READ FILES ---
+    const medicalRecords = DOMElements.hasRecordsCheck.checked 
+        ? await readFilesAsBase64(DOMElements.medicalRecordsUpload) 
+        : [];
+    // --- END BLOCK ---
+
     const data = {
       eventId,
       slotTime: selectedSlotTime,
       isWaitlist: isWaitlistSubmission,
       demographics: {},
       insurance: {},
+      medicalRecords: medicalRecords,
       signature: signatureDataUrl,
       // --- DATA COLLECTION FOR NEW CHECKBOXES ---
       consentCalls: form.consentCalls.checked, // Will be true or false
@@ -502,4 +515,46 @@ function toggleInsuranceSection() {
         // If unchecked, hide it
         DOMElements.insuranceSection.classList.add('d-none');
     }
+}
+
+function toggleRecordsSection() {
+    DOMElements.recordsSection.classList.toggle('d-none', !DOMElements.hasRecordsCheck.checked);
+}
+
+function handleFileSelection(event) {
+    const files = event.target.files;
+    DOMElements.fileList.innerHTML = ''; // Clear previous list
+
+    if (files.length > 5) {
+        alert("You can only upload a maximum of 5 files.");
+        event.target.value = null; // Clear the selection
+        return;
+    }
+
+    if (files.length > 0) {
+        let fileNames = Array.from(files).map(file => file.name).join(', ');
+        DOMElements.fileList.textContent = `Selected: ${fileNames}`;
+    }
+}
+
+async function readFilesAsBase64(fileInput) {
+    const files = fileInput.files;
+    if (!files || files.length === 0) {
+        return [];
+    }
+
+    const filePromises = Array.from(files).map(file => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve({
+                name: file.name,
+                type: file.type,
+                data: reader.result
+            });
+            reader.onerror = error => reject(error);
+            reader.readAsDataURL(file);
+        });
+    });
+
+    return await Promise.all(filePromises);
 }
