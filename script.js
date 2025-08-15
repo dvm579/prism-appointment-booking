@@ -29,7 +29,8 @@ const DOMElements = {
     waitlistSection: document.getElementById('waitlistSection'), // Add this
     joinWaitlistBtn: document.getElementById('joinWaitlistBtn'),
     hasInsuranceCheck: document.getElementById('hasInsuranceCheck'), // Add this
-    insuranceSection: document.getElementById('insuranceSection') // Add this
+    insuranceSection: document.getElementById('insuranceSection'), // Add this
+    sigClear: document.getElementById('clearSignatureBtn')
 };
 
 // --- CORE FUNCTIONS ---
@@ -126,6 +127,9 @@ function setupEventListeners() {
     DOMElements.joinWaitlistBtn.addEventListener('click', joinWaitlist); // Add this
     document.getElementById('dob').addEventListener('change', checkAge);
     DOMElements.hasInsuranceCheck.addEventListener('change', toggleInsuranceSection); 
+    DOMElements.sigClear.addEventListener('click', (e) => {
+        signaturePad.clear();
+    };
 
     window.addEventListener('beforeunload', (e) => {
         if (selectedSlotTime) {
@@ -137,24 +141,36 @@ function setupEventListeners() {
 
     const typedNameInput = document.getElementById('typedName');
     const typeCanvas = document.getElementById('typeCanvas');
+    const typeTabButton = document.getElementById('type-tab');
     
-    typedNameInput.addEventListener('input', () => {
+    // This is our new, reliable function for drawing text to the canvas
+    const renderTypedSignature = async () => {
+        // Wait for any custom fonts on the page to finish loading
+        await document.fonts.ready;
+    
         const ctx = typeCanvas.getContext('2d');
         const text = typedNameInput.value;
     
-        // Set canvas dimensions (important for high-res output)
+        // Set canvas dimensions
         typeCanvas.width = 600;
         typeCanvas.height = 150;
     
-        // Clear previous text
+        // Clear previous drawing
         ctx.clearRect(0, 0, typeCanvas.width, typeCanvas.height);
     
-        // Set font style to match the input box
+        // Set font style and draw the text
         ctx.font = "60px 'Caveat', cursive";
         ctx.fillStyle = "#000";
-        ctx.textBaseline = "middle";
+        ctx.textBaseline = "middle"; // Vertically center the text
         ctx.fillText(text, 20, typeCanvas.height / 2);
-    });
+    };
+    
+    // Call the render function whenever the user types
+    typedNameInput.addEventListener('input', renderTypedSignature);
+    
+    // Also, re-render the signature when the user clicks the "Type Signature" tab.
+    // This ensures it's drawn correctly if they switch back and forth.
+    typeTabButton.addEventListener('shown.bs.tab', renderTypedSignature);
 }
 
 function displayEventDetails(event) {
