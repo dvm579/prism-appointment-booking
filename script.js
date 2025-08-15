@@ -18,6 +18,7 @@ let isWaitlistSubmission = false; // Add this line
 // --- DOM ELEMENTS ---
 const DOMElements = {
     loadingOverlay: document.getElementById('loadingOverlay'),
+    loadingMessage: document.getElementById('loadingMessage'),
     eventDetails: document.getElementById('eventDetails'),
     slotsGrid: document.getElementById('slotsGrid'),
     slotSection: document.getElementById('slotSection'),
@@ -263,11 +264,12 @@ function startTimer() {
 
 async function selectSlot(time) {
     if (selectedSlotTime) return; // Prevent double-clicking
-    showLoading();
+    showLoading("Checking Availability...");
 
     try {
         await callAPI('bookSlot', { eventId, startTime: time });
         selectedSlotTime = time;
+        updateLoadingMessage("Slot Selected!")
 
         // Update UI
         startTimer();
@@ -298,7 +300,7 @@ async function selectSlot(time) {
 
 async function goBack() {
     clearInterval(timerInterval);
-    showLoading();
+    showLoading("Releasing Time Slot...");
 
     try {
         // Only release a slot if one was actually selected
@@ -371,7 +373,7 @@ async function submitBooking(e) {
     }
     // --- END NEW SIGNATURE LOGIC ---
 
-    showLoading();
+    showLoading("Preparing your files...");
     clearInterval(timerInterval);
 
     // --- ADD THIS BLOCK TO READ FILES ---
@@ -400,6 +402,8 @@ async function submitBooking(e) {
     ['firstName','middleName','lastName','dob','gender','race','ethnicity','fullAddress','street','city','state','zip','cell','home','email','ssn','parentName','parentRel','parentContact', 'school', 'grade'].forEach(id => data.demographics[id] = form[id]?.value || '');
     ['primaryIns','primaryPayer','primaryPlan','primaryId','primaryGroup','primaryPayerId','secondaryIns','secondaryPlan','secondaryId','secondaryGroup','secondaryPayerId'].forEach(id => data.insurance[id] = form[id]?.value || '');
 
+    updateLoadingMessage("Files Ready ✓<br>Submitting registration...");
+    
     try {
         const response = await callAPI('submitForm', data);
         displayConfirmation(response, form);
@@ -456,8 +460,13 @@ function displayConfirmation(response, form) {
 
 // --- UTILITY FUNCTIONS ---
 
-function showLoading() { DOMElements.loadingOverlay.style.display = 'flex'; }
+function showLoading(message = "Please wait…") {
+    DOMElements.loadingMessage.textContent = message;
+    DOMElements.loadingOverlay.style.display = 'flex';
+}
+
 function hideLoading() { DOMElements.loadingOverlay.style.display = 'none'; }
+
 function handleError(userMessage, error) {
     console.error(userMessage, error);
     alert(userMessage);
@@ -565,4 +574,8 @@ async function readFilesAsBase64(fileInput) {
     });
 
     return await Promise.all(filePromises);
+}
+
+function updateLoadingMessage(message) {
+    DOMElements.loadingMessage.textContent = message;
 }
