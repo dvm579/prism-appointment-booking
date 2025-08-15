@@ -367,7 +367,7 @@ async function submitBooking(e) {
     };
 
     // Gather form data (same as before)
-    ['firstName','middleName','lastName','dob','gender','race','ethnicity','fullAddress','street','city','state','zip','cell','home','email','ssn','parentName','parentRel','parentContact'].forEach(id => data.demographics[id] = form[id]?.value || '');
+    ['firstName','middleName','lastName','dob','gender','race','ethnicity','fullAddress','street','city','state','zip','cell','home','email','ssn','parentName','parentRel','parentContact', 'school', 'grade'].forEach(id => data.demographics[id] = form[id]?.value || '');
     ['primaryIns','primaryPayer','primaryPlan','primaryId','primaryGroup','primaryPayerId','secondaryIns','secondaryPlan','secondaryId','secondaryGroup','secondaryPayerId'].forEach(id => data.insurance[id] = form[id]?.value || '');
 
     try {
