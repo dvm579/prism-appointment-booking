@@ -129,7 +129,7 @@ function setupEventListeners() {
     DOMElements.hasInsuranceCheck.addEventListener('change', toggleInsuranceSection); 
     DOMElements.sigClear.addEventListener('click', (e) => {
         signaturePad.clear();
-    };
+    });
 
     window.addEventListener('beforeunload', (e) => {
         if (selectedSlotTime) {
