@@ -395,6 +395,7 @@ async function submitBooking(e) {
       demographics: {},
       insurance: {},
       medicalRecords: medicalRecords,
+      screening: {}, // Object to hold screening answers
       signature: signatureDataUrl,
       // --- DATA COLLECTION FOR NEW CHECKBOXES ---
       consentCalls: form.consentCalls.checked, // Will be true or false
@@ -408,6 +409,15 @@ async function submitBooking(e) {
     ['firstName','middleName','lastName','dob','gender','race','ethnicity','fullAddress','street','city','state','zip','cell','home','email','ssn','parentName','parentRel','parentContact', 'school', 'grade'].forEach(id => data.demographics[id] = form[id]?.value || '');
     ['primaryIns','primaryPayer','primaryPlan','primaryId','primaryGroup','primaryPayerId','secondaryIns','secondaryPlan','secondaryId','secondaryGroup','secondaryPayerId'].forEach(id => data.insurance[id] = form[id]?.value || '');
 
+    // --- NEW: GATHER SCREENING DATA ---
+    for (let i = 1; i <= 13; i++) {
+        const radioName = `screening${i}`;
+        const selectedRadio = form.querySelector(`input[name="${radioName}"]:checked`);
+        data.screening[radioName] = selectedRadio ? selectedRadio.value : '';
+    }
+    data.screening.screening9_explain = form.screening9_explain.value || '';
+    // --- END NEW SECTION ---
+    
     updateLoadingMessage("Submitting registration...");
     
     try {
