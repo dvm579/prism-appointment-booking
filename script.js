@@ -5,6 +5,7 @@ const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwnvm7Q26ebVGOnC14B
 const EVENTS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSjsfBdiXj2A0M4v-cjYryFN9WwB_qMd4B5FVjxV2DsPWngRm8tz670W02S3uAfqqobEtAcMsjwGAsC/pub?gid=1643561266&single=true&output=csv";
 const SLOTS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSjsfBdiXj2A0M4v-cjYryFN9WwB_qMd4B5FVjxV2DsPWngRm8tz670W02S3uAfqqobEtAcMsjwGAsC/pub?gid=582524870&single=true&output=csv";
 const TIMEOUT_MS = 20 * 60 * 1000; // 20 minutes
+const BASE_URL = "https://register.prism.org/"; // Base URL for event links
 
 // --- GLOBAL STATE ---
 let eventId;
@@ -13,7 +14,7 @@ let allSlots = [];
 let selectedSlotTime = null;
 let timerInterval;
 let signaturePad;
-let isWaitlistSubmission = false; // Add this line
+let isWaitlistSubmission = false;
 
 // --- DOM ELEMENTS ---
 const DOMElements = {
@@ -22,15 +23,17 @@ const DOMElements = {
     eventDetails: document.getElementById('eventDetails'),
     slotsGrid: document.getElementById('slotsGrid'),
     slotSection: document.getElementById('slotSection'),
+    eventSelectionSection: document.getElementById('eventSelectionSection'), // New
+    eventCardsGrid: document.getElementById('eventCardsGrid'), // New
     formSection: document.getElementById('formSection'),
     confirmationSection: document.getElementById('confirmationSection'),
     timer: document.getElementById('timer'),
     regForm: document.getElementById('regForm'),
     goBackButton: document.getElementById('goBackButton'),
-    waitlistSection: document.getElementById('waitlistSection'), // Add this
+    waitlistSection: document.getElementById('waitlistSection'),
     joinWaitlistBtn: document.getElementById('joinWaitlistBtn'),
-    hasInsuranceCheck: document.getElementById('hasInsuranceCheck'), // Add this
-    insuranceSection: document.getElementById('insuranceSection'), // Add this
+    hasInsuranceCheck: document.getElementById('hasInsuranceCheck'),
+    insuranceSection: document.getElementById('insuranceSection'),
     sigClear: document.getElementById('clearSignatureBtn'),
     hasRecordsCheck: document.getElementById('hasRecordsCheck'),
     recordsSection: document.getElementById('recordsSection'),
@@ -45,54 +48,100 @@ const DOMElements = {
  */
 window.addEventListener('DOMContentLoaded', async () => {
     try {
-        // Set up listeners first to ensure they're active in both modes
         setupEventListeners();
-
         const urlParams = new URLSearchParams(window.location.search);
         eventId = urlParams.get('eventId');
+        const campaignId = urlParams.get('campaignId');
+        const facilityId = urlParams.get('facilityId');
 
-        if (!eventId) {
-            // --- WAITLIST MODE ---
-            // No event ID was provided, so go directly to the waitlist form.
-            eventId = 'WAITLIST';
-            isWaitlistSubmission = true; // Set the waitlist flag
+        // Fetch event data needed for all modes
+        [allEvents, allSlots] = await Promise.all([
+            fetchCSV(EVENTS_CSV_URL),
+            fetchCSV(SLOTS_CSV_URL)
+        ]);
 
-            // Update the UI to show the form immediately
-            DOMElements.slotSection.classList.add('d-none');
-            DOMElements.formSection.classList.remove('d-none');
-            DOMElements.timer.classList.add('d-none'); // Hide timer
-            DOMElements.eventDetails.innerHTML = '<b></b>';
-
-            // Initialize the signature pad for the form
-            if (!signaturePad) {
-                const canvas = document.getElementById('sigPad');
-                signaturePad = new SignaturePad(canvas);
-            }
-            hideLoading(); // Hide the loading spinner
-
-        } else {
+        if (eventId) {
             // --- STANDARD EVENT MODE ---
-            // An event ID was found, proceed with fetching slots as normal.
-            [allEvents, allSlots] = await Promise.all([
-                fetchCSV(EVENTS_CSV_URL),
-                fetchCSV(SLOTS_CSV_URL)
-            ]);
-            
             const currentEvent = allEvents.find(event => event.EventID === eventId);
             if (!currentEvent) {
                 handleError("Event not found.");
                 return;
             }
-
             displayEventDetails(currentEvent);
             renderSlots();
-            hideLoading();
+        } else if (campaignId || facilityId) {
+            // --- NEW: EVENT SELECTION MODE ---
+            DOMElements.slotSection.classList.add('d-none'); // Hide slot view
+            DOMElements.formSection.classList.add('d-none'); // Hide form view
+            DOMElements.eventSelectionSection.classList.remove('d-none'); // Show event card view
+            renderEventCards(campaignId, facilityId);
+        } else {
+            // --- WAITLIST MODE (No params) ---
+            eventId = 'WAITLIST';
+            isWaitlistSubmission = true;
+            DOMElements.slotSection.classList.add('d-none');
+            DOMElements.formSection.classList.remove('d-none');
+            DOMElements.timer.classList.add('d-none');
+            DOMElements.eventDetails.innerHTML = '<b>General Registration</b>';
+            if (!signaturePad) {
+                const canvas = document.getElementById('sigPad');
+                signaturePad = new SignaturePad(canvas);
+            }
         }
-
     } catch (error) {
         handleError("Failed to initialize the application.", error);
+    } finally {
+        hideLoading();
     }
 });
+
+
+/**
+ * NEW: Filters, sorts, and displays events as cards based on campaign or facility ID.
+ * @param {string|null} campaignId The ID of the campaign to filter by.
+ * @param {string|null} facilityId The ID of the facility to filter by.
+ */
+function renderEventCards(campaignId, facilityId) {
+    let filteredEvents = [];
+
+    if (campaignId) {
+        filteredEvents = allEvents.filter(event => event.CampaignID === campaignId);
+    } else if (facilityId) {
+        filteredEvents = allEvents.filter(event => event.FacilityID === facilityId);
+    }
+
+    if (filteredEvents.length === 0) {
+        DOMElements.eventCardsGrid.innerHTML = `<div class="col-12"><p class="text-center">No upcoming events found for this selection.</p></div>`;
+        return;
+    }
+
+    // Sort events by date, from soonest to latest
+    filteredEvents.sort((a, b) => new Date(a.Date) - new Date(b.Date));
+
+    DOMElements.eventCardsGrid.innerHTML = filteredEvents.map(event => {
+        const eventDate = new Date(event.Date).toLocaleDateString(undefined, {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+        const eventLink = `${BASE_URL}?eventId=${event.EventID}`;
+
+        return `
+            <div class="col-md-6 col-lg-4 mb-4">
+                <a href="${eventLink}" class="event-card-link">
+                    <div class="card event-card text-white h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">${event['Event Name']}</h5>
+                            <p class="card-text mb-1"><strong>Date:</strong> ${eventDate}</p>
+                            <p class="card-text"><strong>Time:</strong> ${event['Start Time']} - ${event['End Time']}</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        `;
+    }).join('');
+}
 
 /**
  * Fetches and parses CSV data from a URL using PapaParse
