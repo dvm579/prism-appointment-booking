@@ -410,7 +410,7 @@ async function submitBooking(e) {
     ['primaryIns','primaryPayer','primaryPlan','primaryId','primaryGroup','primaryPayerId','secondaryIns','secondaryPlan','secondaryId','secondaryGroup','secondaryPayerId'].forEach(id => data.insurance[id] = form[id]?.value || '');
 
     // --- NEW: GATHER SCREENING DATA ---
-    for (let i = 1; i <= 13; i++) {
+    for (let i = 1; i <= 14; i++) {
         const radioName = `screening${i}`;
         const selectedRadio = form.querySelector(`input[name="${radioName}"]:checked`);
         data.screening[radioName] = selectedRadio ? selectedRadio.value : '';
