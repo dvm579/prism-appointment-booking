@@ -137,3 +137,20 @@ h1, h2, h3, h4 {
     padding-bottom: 1rem; /* bottom spacing */
   }
 }
+
+/* Styling for the new Event Cards */
+.event-card-link {
+    text-decoration: none; /* Removes underline from the link wrapper */
+}
+
+.event-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    background-color: #0d3b6e; /* A slightly lighter navy */
+    border: 1px solid #2a7de1;
+    height: 100%; /* Ensures all cards in a row are the same height */
+}
+
+.event-card:hover {
+    transform: translateY(-5px); /* Lifts the card on hover */
+    box-shadow: 0 4px 15px rgba(42, 125, 225, 0.4);
+}
