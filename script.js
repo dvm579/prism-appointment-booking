@@ -284,30 +284,47 @@ function renderSlots() {
     container.innerHTML = '';
     
     const eventSlots = allSlots.filter(slot => slot.EventID === eventId);
+    
+    // Find the current event to get its date
+    const currentEvent = allEvents.find(e => e.EventID === eventId);
+    if (!currentEvent) {
+        handleError("Event details could not be found to render slots.");
+        return;
+    }
+
     const openSlots = eventSlots.filter(slot => slot.Status === 'Open');
 
-    // If there are no open slots, show the waitlist option
+    // If there are no open slots listed in the CSV, show the waitlist option
     if (openSlots.length === 0) {
         DOMElements.slotsGrid.classList.add('d-none');
         DOMElements.waitlistSection.classList.remove('d-none');
         return;
     }
 
-    // Otherwise, render the available slots
     DOMElements.slotsGrid.classList.remove('d-none');
     DOMElements.waitlistSection.classList.add('d-none');
     
-    const currentEvent = allEvents.find(e => e.EventID === eventId);
-    const currentDate = currentEvent.Date
     const now = new Date();
+
+    // THE FIX: Manually parse the event date string (MM/DD/YYYY)
+    const dateParts = currentEvent.Date.split('/'); // -> ["10", "07", "2025"]
+    const eventDate = new Date(dateParts[2], dateParts[0] - 1, dateParts[1]);
 
     eventSlots.forEach(slot => {
         const pill = document.createElement('div');
         pill.classList.add('slot-item');
         pill.textContent = `${slot['Start Time']} – ${slot['End Time']}`;
 
-        // Create a full Date object for the slot's start time to compare against the current time
-        const slotDateTime = new Date(`${currentDate}T${slot['Start Time']}`);
+        // THE FIX: Create a reliable Date object for the slot
+        const timeParts = slot['Start Time'].split(':'); // -> ["9", "00"]
+        const slotDateTime = new Date(
+            eventDate.getFullYear(), 
+            eventDate.getMonth(), 
+            eventDate.getDate(), 
+            timeParts[0], // hour
+            timeParts[1]  // minute
+        );
+        
         const isPastSlot = slotDateTime < now;
 
         // A slot is available only if its status is 'Open' and it's not in the past
