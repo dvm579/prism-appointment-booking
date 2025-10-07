@@ -292,31 +292,13 @@ function renderSlots() {
         return;
     }
 
-    const openSlots = eventSlots.filter(slot => slot.Status === 'Open');
-
-    // If there are no open slots listed in the CSV, show the waitlist option
-    if (openSlots.length === 0) {
-        DOMElements.slotsGrid.classList.add('d-none');
-        DOMElements.waitlistSection.classList.remove('d-none');
-        return;
-    }
-
-    DOMElements.slotsGrid.classList.remove('d-none');
-    DOMElements.waitlistSection.classList.add('d-none');
-    
     const now = new Date();
-
-    // THE FIX: Manually parse the event date string (MM/DD/YYYY)
-    const dateParts = currentEvent.Date.split('/'); // -> ["10", "07", "2025"]
+    const dateParts = currentEvent.Date.split('/');
     const eventDate = new Date(dateParts[2], dateParts[0] - 1, dateParts[1]);
 
-    eventSlots.forEach(slot => {
-        const pill = document.createElement('div');
-        pill.classList.add('slot-item');
-        pill.textContent = `${slot['Start Time']} – ${slot['End Time']}`;
-
-        // THE FIX: Create a reliable Date object for the slot
-        const timeParts = slot['Start Time'].split(':'); // -> ["9", "00"]
+    // THE FIX: First, determine which slots are actually available right now.
+    const trulyAvailableSlots = eventSlots.filter(slot => {
+        const timeParts = slot['Start Time'].split(':');
         const slotDateTime = new Date(
             eventDate.getFullYear(), 
             eventDate.getMonth(), 
@@ -324,15 +306,44 @@ function renderSlots() {
             timeParts[0], // hour
             timeParts[1]  // minute
         );
+        const isPastSlot = slotDateTime < now;
+        
+        // A slot is only truly available if it's Open AND not in the past.
+        return slot.Status === 'Open' && !isPastSlot;
+    });
+
+    // THE FIX: Now, base the decision on the truly available slots.
+    if (trulyAvailableSlots.length === 0) {
+        // If no slots are available (all are booked or expired), show waitlist.
+        DOMElements.slotsGrid.classList.add('d-none');
+        DOMElements.waitlistSection.classList.remove('d-none');
+        return; // Exit the function
+    }
+
+    // If we get here, it means there are available slots, so render the full grid.
+    DOMElements.slotsGrid.classList.remove('d-none');
+    DOMElements.waitlistSection.classList.add('d-none');
+    
+    eventSlots.forEach(slot => {
+        const pill = document.createElement('div');
+        pill.classList.add('slot-item');
+        pill.textContent = `${slot['Start Time']} – ${slot['End Time']}`;
+
+        const timeParts = slot['Start Time'].split(':');
+        const slotDateTime = new Date(
+            eventDate.getFullYear(), 
+            eventDate.getMonth(), 
+            eventDate.getDate(), 
+            timeParts[0],
+            timeParts[1]
+        );
         
         const isPastSlot = slotDateTime < now;
 
-        // A slot is available only if its status is 'Open' and it's not in the past
         if (slot.Status === 'Open' && !isPastSlot) {
             pill.classList.add('slot-open');
             pill.onclick = () => selectSlot(slot['Start Time'], pill);
         } else {
-            // This class will now be applied to booked, pending, AND expired slots
             pill.classList.add('slot-taken');
         }
         container.appendChild(pill);
