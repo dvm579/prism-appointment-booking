@@ -146,7 +146,7 @@ function renderEventCards(campaignId, facilityId) {
         if (isPastEvent) {
             return `
                 <div class="col-md-6 col-lg-4 mb-4">
-                    <div class="card event-card text-white h-100 slot-taken">
+                    <div class="card event-card text-muted h-100 slot-taken">
                         ${cardInnerHtml}
                     </div>
                 </div>
