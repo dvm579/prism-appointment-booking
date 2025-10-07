@@ -285,7 +285,6 @@ function renderSlots() {
     
     const eventSlots = allSlots.filter(slot => slot.EventID === eventId);
     
-    // Find the current event to get its date
     const currentEvent = allEvents.find(e => e.EventID === eventId);
     if (!currentEvent) {
         handleError("Event details could not be found to render slots.");
@@ -296,7 +295,7 @@ function renderSlots() {
     const dateParts = currentEvent.Date.split('/');
     const eventDate = new Date(dateParts[2], dateParts[0] - 1, dateParts[1]);
 
-    // THE FIX: First, determine which slots are actually available right now.
+    // First, determine which slots are actually available right now.
     const trulyAvailableSlots = eventSlots.filter(slot => {
         const timeParts = slot['Start Time'].split(':');
         const slotDateTime = new Date(
@@ -308,13 +307,12 @@ function renderSlots() {
         );
         const isPastSlot = slotDateTime < now;
         
-        // A slot is only truly available if it's Open AND not in the past.
+        // A slot is only truly available if its status is 'Open' AND it's not in the past.
         return slot.Status === 'Open' && !isPastSlot;
     });
 
-    // THE FIX: Now, base the decision on the truly available slots.
+    // If that list of currently bookable slots is empty for any reason, show the waitlist.
     if (trulyAvailableSlots.length === 0) {
-        // If no slots are available (all are booked or expired), show waitlist.
         DOMElements.slotsGrid.classList.add('d-none');
         DOMElements.waitlistSection.classList.remove('d-none');
         return; // Exit the function
