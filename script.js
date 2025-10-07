@@ -118,8 +118,14 @@ function renderEventCards(campaignId, facilityId) {
     // Sort events by date, from soonest to latest
     filteredEvents.sort((a, b) => new Date(a.Date) - new Date(b.Date));
 
+    // Get today's date at midnight for an accurate comparison
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
     DOMElements.eventCardsGrid.innerHTML = filteredEvents.map(event => {
-        const eventDate = new Date(event.Date).toLocaleDateString(undefined, {
+        const eventDateObj = new Date(event.Date);
+        const isPastEvent = eventDateObj < today;
+        const eventDate = eventDateObj.toLocaleDateString(undefined, {
             weekday: 'long',
             year: 'numeric',
             month: 'long',
@@ -127,19 +133,35 @@ function renderEventCards(campaignId, facilityId) {
         });
         const eventLink = `${BASE_URL}?eventId=${event.EventID}`;
 
-        return `
-            <div class="col-md-6 col-lg-4 mb-4">
-                <a href="${eventLink}" class="event-card-link">
-                    <div class="card event-card text-white h-100">
-                        <div class="card-body">
-                            <h5 class="card-title">${event['Event Name']}</h5>
-                            <p class="card-text mb-1"><strong>Date:</strong> ${eventDate}</p>
-                            <p class="card-text"><strong>Time:</strong> ${event['Start Time']} - ${event['End Time']}</p>
-                        </div>
-                    </div>
-                </a>
+        // Define the inner content of the card
+        const cardInnerHtml = `
+            <div class="card-body">
+                <h5 class="card-title">${event['Event Name']}</h5>
+                <p class="card-text mb-1"><strong>Date:</strong> ${eventDate}</p>
+                <p class="card-text"><strong>Time:</strong> ${event['Start Time']} - ${event['End Time']}</p>
             </div>
         `;
+
+        // If the event is in the past, render a styled div. Otherwise, render a link.
+        if (isPastEvent) {
+            return `
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card event-card text-white h-100 slot-taken">
+                        ${cardInnerHtml}
+                    </div>
+                </div>
+            `;
+        } else {
+            return `
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <a href="${eventLink}" class="event-card-link">
+                        <div class="card event-card text-white h-100">
+                            ${cardInnerHtml}
+                        </div>
+                    </a>
+                </div>
+            `;
+        }
     }).join('');
 }
 
