@@ -297,15 +297,25 @@ function renderSlots() {
     DOMElements.slotsGrid.classList.remove('d-none');
     DOMElements.waitlistSection.classList.add('d-none');
     
+    const currentEvent = allEvents.find(e => e.EventID === eventId);
+    const currentDate = currentEvent.Date
+    const now = new Date();
+
     eventSlots.forEach(slot => {
         const pill = document.createElement('div');
         pill.classList.add('slot-item');
         pill.textContent = `${slot['Start Time']} – ${slot['End Time']}`;
 
-        if (slot.Status === 'Open') {
+        // Create a full Date object for the slot's start time to compare against the current time
+        const slotDateTime = new Date(`${currentDate}T${slot['Start Time']}`);
+        const isPastSlot = slotDateTime < now;
+
+        // A slot is available only if its status is 'Open' and it's not in the past
+        if (slot.Status === 'Open' && !isPastSlot) {
             pill.classList.add('slot-open');
             pill.onclick = () => selectSlot(slot['Start Time'], pill);
         } else {
+            // This class will now be applied to booked, pending, AND expired slots
             pill.classList.add('slot-taken');
         }
         container.appendChild(pill);
