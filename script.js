@@ -465,28 +465,26 @@ function joinWaitlist() {
 
 function renderDynamicForms(event) {
     const container = DOMElements.dynamicFormsContainer;
-    container.innerHTML = '';
+    container.innerHTML = ''; 
 
     // Expecting a comma-separated list of FormIDs in the 'Forms' column
     const formsString = event && event['Forms'] ? event['Forms'] : '';
-    if (!formsString) return;
+    if (!formsString) return; 
 
     const formIds = formsString.split(',').map(s => s.trim());
-
+    
     // Filter questions where the FormID matches one of the event's forms
     let relevantQuestions = allQuestions.filter(q => formIds.includes(q.FormID));
-
+    
     // Sort by DisplayOrder
     relevantQuestions.sort((a, b) => parseInt(a.DisplayOrder) - parseInt(b.DisplayOrder));
 
     if (relevantQuestions.length > 0) {
         const header = document.createElement('h4');
-        header.textContent = "Screening Questionnaire";
+        header.textContent = "Health Questionnaire";
         header.className = "mb-3 mt-4";
         container.appendChild(header);
     }
-
-    console.log(relevantQuestions);
 
     relevantQuestions.forEach(q => {
         const wrapper = document.createElement('div');
@@ -503,41 +501,77 @@ function renderDynamicForms(event) {
         let inputHtml = '';
         const reqAttr = q.IsRequired === 'True' ? 'required' : '';
 
+        // --- NEW LOGIC START: Parse Options for Selects/Radios ---
         let optionsList = [];
-        if (question.Options) {
-            if (Array.isArray(question.Options)) {
-                optionsList = question.Options;
-            } else {
-                // Assume comma-separated string, trim whitespace
-                optionsList = question.Options.split(',').map(opt => opt.trim());
-            }
+        if (q.Options) {
+            // Split comma-separated string and trim whitespace
+            optionsList = q.Options.toString().split(',').map(opt => opt.trim());
         }
-
-        console.log(optionsList);
+        // --- NEW LOGIC END ---
 
         // Generate HTML based on QuestionType
         switch (q.QuestionType) {
+            
+            // --- NEW CASE: Single Select Dropdown ---
+            case 'single_select':
+                inputHtml = `
+                    <select class="form-select form-control" name="${q.QuestionID}" ${reqAttr} 
+                            data-question-id="${q.QuestionID}">
+                        <option value="">Select an option...</option>
+                        ${optionsList.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+                    </select>`;
+                break;
+
+            // --- NEW CASE: Multi Select Dropdown ---
+            case 'multi_select':
+                inputHtml = `
+                    <select class="form-select form-control" name="${q.QuestionID}" multiple ${reqAttr} 
+                            data-question-id="${q.QuestionID}" style="height: auto;">
+                        ${optionsList.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+                    </select>
+                    <div class="form-text text-muted small">Hold Ctrl (Windows) or Cmd (Mac) to select multiple.</div>`;
+                break;
+
+            // --- NEW CASE: Custom Radio Buttons (Dynamic Options) ---
+            case 'radio_custom':
+                inputHtml = `<div class="mt-1">
+                    ${optionsList.map((opt, index) => `
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" 
+                                   name="${q.QuestionID}" 
+                                   id="${q.QuestionID}_${index}" 
+                                   value="${opt}" ${reqAttr}
+                                   data-question-id="${q.QuestionID}">
+                            <label class="form-check-label" for="${q.QuestionID}_${index}">
+                                ${opt}
+                            </label>
+                        </div>
+                    `).join('')}
+                </div>`;
+                break;
+
+            // --- EXISTING CASES ---
             case 'radio_yes_no':
                 inputHtml = `
                     <div class="row g-2">
                         <div class="col-6 col-md-3">
-                            <input class="form-check-input" type="radio" name="${q.QuestionID}"
-                                   id="${q.QuestionID}_yes" value="Yes" ${reqAttr}
+                            <input class="form-check-input" type="radio" name="${q.QuestionID}" 
+                                   id="${q.QuestionID}_yes" value="Yes" ${reqAttr} 
                                    data-question-id="${q.QuestionID}">
                             <label class="form-check-label ms-2" for="${q.QuestionID}_yes">Yes</label>
                         </div>
                         <div class="col-6 col-md-3">
-                            <input class="form-check-input" type="radio" name="${q.QuestionID}"
+                            <input class="form-check-input" type="radio" name="${q.QuestionID}" 
                                    id="${q.QuestionID}_no" value="No" ${reqAttr}
                                    data-question-id="${q.QuestionID}">
                             <label class="form-check-label ms-2" for="${q.QuestionID}_no">No</label>
                         </div>
                     </div>`;
                 break;
-            case 'text_area':
+            case 'text_area': 
                 inputHtml = `
-                    <input type="text" class="form-control" name="${q.QuestionID}" ${reqAttr}
-                        data-question-id="${q.QuestionID}">`;
+                    <textarea class="form-control" name="${q.QuestionID}" rows="2" ${reqAttr}
+                        data-question-id="${q.QuestionID}"></textarea>`;
                 break;
             case 'date':
                 inputHtml = `
@@ -545,46 +579,8 @@ function renderDynamicForms(event) {
                         data-question-id="${q.QuestionID}">`;
                 break;
             case 'signature':
-                 // Render a placeholder or small acknowledgement since main signature is at bottom
                  inputHtml = `<div class="text-white-50 small"><em>(Please provide your signature at the bottom of this form)</em></div>`;
                  break;
-            case 'single_select':
-                html += `<div class="form-group">
-                            <label for="q_${question.ID}">${question.Label}</label>
-                            <select class="form-control" id="q_${question.ID}" name="q_${question.ID}">
-                                <option value="">Select an option...</option>
-                                ${optionsList.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
-                            </select>
-                         </div>`;
-                break;
-            case 'multi_select':
-                html += `<div class="form-group">
-                            <label for="q_${question.ID}">${question.Label}</label>
-                            <select multiple class="form-control" id="q_${question.ID}" name="q_${question.ID}[]">
-                                ${optionsList.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
-                            </select>
-                            <small class="form-text text-muted">Hold Ctrl (Windows) or Cmd (Mac) to select multiple.</small>
-                         </div>`;
-                break;
-            case 'radio_custom':
-                html += `<div class="form-group">
-                            <label>${question.Label}</label>
-                            <div class="custom-radio-group">
-                                ${optionsList.map((opt, index) => `
-                                    <div class="form-check custom-control custom-radio">
-                                        <input type="radio"
-                                               id="q_${question.ID}_${index}"
-                                               name="q_${question.ID}"
-                                               value="${opt}"
-                                               class="form-check-input custom-control-input">
-                                        <label class="form-check-label custom-control-label" for="q_${question.ID}_${index}">
-                                            ${opt}
-                                        </label>
-                                    </div>
-                                `).join('')}
-                            </div>
-                         </div>`;
-                break;
             default: // Default to standard text input
                  inputHtml = `
                     <input type="text" class="form-control" name="${q.QuestionID}" ${reqAttr}
