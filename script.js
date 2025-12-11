@@ -4,6 +4,7 @@
 const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwnvm7Q26ebVGOnC14BrFajyuh7RyeBijBQg6xSSfz0hA8ofj4HxT8P1EoqKkpg8lDU/exec";
 const EVENTS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSjsfBdiXj2A0M4v-cjYryFN9WwB_qMd4B5FVjxV2DsPWngRm8tz670W02S3uAfqqobEtAcMsjwGAsC/pub?gid=1643561266&single=true&output=csv";
 const SLOTS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSjsfBdiXj2A0M4v-cjYryFN9WwB_qMd4B5FVjxV2DsPWngRm8tz670W02S3uAfqqobEtAcMsjwGAsC/pub?gid=582524870&single=true&output=csv";
+const QUESTIONS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR7QvymXpSerI-ySgEw0jMcCVnj95XQvRbQoqRtqB9DVnHdB022Dg-QZti3Cmd6YeAZJMfhnadrFdVA/pub?gid=979172156&single=true&output=csv";
 const TIMEOUT_MS = 20 * 60 * 1000; // 20 minutes
 const BASE_URL = "https://register.prism.org/"; // Base URL for event links
 
@@ -38,7 +39,8 @@ const DOMElements = {
     hasRecordsCheck: document.getElementById('hasRecordsCheck'),
     recordsSection: document.getElementById('recordsSection'),
     medicalRecordsUpload: document.getElementById('medicalRecordsUpload'),
-    fileList: document.getElementById('fileList')
+    fileList: document.getElementById('fileList'),
+    dynamicFormsContainer: document.getElementById('dynamicFormsContainer') // NEW
 };
 
 // --- CORE FUNCTIONS ---
@@ -57,7 +59,8 @@ window.addEventListener('DOMContentLoaded', async () => {
         // Fetch event data needed for all modes
         [allEvents, allSlots] = await Promise.all([
             fetchCSV(EVENTS_CSV_URL),
-            fetchCSV(SLOTS_CSV_URL)
+            fetchCSV(SLOTS_CSV_URL),
+            fetchCSV(QUESTIONS_CSV_URL)
         ]);
 
         if (eventId) {
@@ -70,7 +73,7 @@ window.addEventListener('DOMContentLoaded', async () => {
             displayEventDetails(currentEvent);
             renderSlots();
         } else if (campaignId || facilityId) {
-            // --- NEW: EVENT SELECTION MODE ---
+            // --- EVENT SELECTION MODE ---
             DOMElements.slotSection.classList.add('d-none'); // Hide slot view
             DOMElements.formSection.classList.add('d-none'); // Hide form view
             DOMElements.eventSelectionSection.classList.remove('d-none'); // Show event card view
@@ -97,7 +100,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
 
 /**
- * NEW: Filters, sorts, and displays events as cards based on campaign or facility ID.
+ * Filters, sorts, and displays events as cards based on campaign or facility ID.
  * @param {string|null} campaignId The ID of the campaign to filter by.
  * @param {string|null} facilityId The ID of the facility to filter by.
  */
@@ -389,6 +392,9 @@ async function selectSlot(time) {
         const currentEvent = allEvents.find(e => e.EventID === eventId);
         displayEventDetails(currentEvent); // Refresh details to include time
         DOMElements.eventDetails.innerHTML += `<br> Selected Time Slot: ${time}`;
+
+        // --- RENDER DYNAMIC FORMS ---
+        renderDynamicForms(currentEvent);
         
         // Initialize Signature Pad only when the form is visible
         if (!signaturePad) {
@@ -456,6 +462,137 @@ function joinWaitlist() {
     }
 }
 
+function renderDynamicForms(event) {
+    const container = DOMElements.dynamicFormsContainer;
+    container.innerHTML = '';
+
+    // Expecting a comma-separated list of FormIDs in the 'Forms' column
+    const formsString = event && event['Forms'] ? event['Forms'] : '';
+    if (!formsString) return;
+
+    const formIds = formsString.split(',').map(s => s.trim());
+
+    // Filter questions where the FormID matches one of the event's forms
+    let relevantQuestions = allQuestions.filter(q => formIds.includes(q.FormID));
+
+    // Sort by DisplayOrder
+    relevantQuestions.sort((a, b) => parseInt(a.DisplayOrder) - parseInt(b.DisplayOrder));
+
+    if (relevantQuestions.length > 0) {
+        const header = document.createElement('h4');
+        header.textContent = "Screening Questionnaire";
+        header.className = "mb-3 mt-4";
+        container.appendChild(header);
+    }
+
+    relevantQuestions.forEach(q => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'mb-3';
+
+        const label = document.createElement('label');
+        label.className = 'form-label';
+        label.textContent = q.QuestionText;
+        if (q.IsRequired === 'True') {
+            label.innerHTML += '<span class="text-danger">*</span>';
+        }
+        wrapper.appendChild(label);
+
+        let inputHtml = '';
+        const reqAttr = q.IsRequired === 'True' ? 'required' : '';
+
+        let optionsList = [];
+        if (question.Options) {
+            if (Array.isArray(question.Options)) {
+                optionsList = question.Options;
+            } else {
+                // Assume comma-separated string, trim whitespace
+                optionsList = question.Options.split(',').map(opt => opt.trim());
+            }
+        }
+
+        // Generate HTML based on QuestionType
+        switch (q.QuestionType) {
+            case 'radio_yes_no':
+                inputHtml = `
+                    <div class="row g-2">
+                        <div class="col-6 col-md-3">
+                            <input class="form-check-input" type="radio" name="${q.QuestionID}"
+                                   id="${q.QuestionID}_yes" value="Yes" ${reqAttr}
+                                   data-question-id="${q.QuestionID}">
+                            <label class="form-check-label ms-2" for="${q.QuestionID}_yes">Yes</label>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <input class="form-check-input" type="radio" name="${q.QuestionID}"
+                                   id="${q.QuestionID}_no" value="No" ${reqAttr}
+                                   data-question-id="${q.QuestionID}">
+                            <label class="form-check-label ms-2" for="${q.QuestionID}_no">No</label>
+                        </div>
+                    </div>`;
+                break;
+            case 'text_area':
+                inputHtml = `
+                    <input type="text" class="form-control" name="${q.QuestionID}" ${reqAttr}
+                        data-question-id="${q.QuestionID}">`;
+                break;
+            case 'date':
+                inputHtml = `
+                    <input type="date" class="form-control" name="${q.QuestionID}" ${reqAttr}
+                        data-question-id="${q.QuestionID}">`;
+                break;
+            case 'signature':
+                 // Render a placeholder or small acknowledgement since main signature is at bottom
+                 inputHtml = `<div class="text-white-50 small"><em>(Please provide your signature at the bottom of this form)</em></div>`;
+                 break;
+            case 'single_select':
+                html += `<div class="form-group">
+                            <label for="q_${question.ID}">${question.Label}</label>
+                            <select class="form-control" id="q_${question.ID}" name="q_${question.ID}">
+                                <option value="">Select an option...</option>
+                                ${optionsList.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+                            </select>
+                         </div>`;
+                break;
+            case 'multi_select':
+                html += `<div class="form-group">
+                            <label for="q_${question.ID}">${question.Label}</label>
+                            <select multiple class="form-control" id="q_${question.ID}" name="q_${question.ID}[]">
+                                ${optionsList.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+                            </select>
+                            <small class="form-text text-muted">Hold Ctrl (Windows) or Cmd (Mac) to select multiple.</small>
+                         </div>`;
+                break;
+            case 'radio_custom':
+                html += `<div class="form-group">
+                            <label>${question.Label}</label>
+                            <div class="custom-radio-group">
+                                ${optionsList.map((opt, index) => `
+                                    <div class="form-check custom-control custom-radio">
+                                        <input type="radio"
+                                               id="q_${question.ID}_${index}"
+                                               name="q_${question.ID}"
+                                               value="${opt}"
+                                               class="form-check-input custom-control-input">
+                                        <label class="form-check-label custom-control-label" for="q_${question.ID}_${index}">
+                                            ${opt}
+                                        </label>
+                                    </div>
+                                `).join('')}
+                            </div>
+                         </div>`;
+                break;
+            default: // Default to standard text input
+                 inputHtml = `
+                    <input type="text" class="form-control" name="${q.QuestionID}" ${reqAttr}
+                        data-question-id="${q.QuestionID}">`;
+        }
+
+        const inputWrapper = document.createElement('div');
+        inputWrapper.innerHTML = inputHtml;
+        wrapper.appendChild(inputWrapper);
+        container.appendChild(wrapper);
+    });
+}
+
 async function submitBooking(e) {
     e.preventDefault();
     const form = e.target;
@@ -495,6 +632,37 @@ async function submitBooking(e) {
         : [];
     // --- END BLOCK ---
 
+    // --- NEW: SCRAPE DYNAMIC ANSWERS ---
+    const formResponses = [];
+    // We select all elements that have our data attribute
+    const dynamicInputs = DOMElements.dynamicFormsContainer.querySelectorAll('[data-question-id]');
+    const processedRadioGroups = new Set();
+
+    dynamicInputs.forEach(input => {
+        const qId = input.dataset.questionId;
+        let answer = '';
+
+        if (input.type === 'radio') {
+            if (processedRadioGroups.has(input.name)) return;
+            processedRadioGroups.add(input.name);
+            const selected = DOMElements.dynamicFormsContainer.querySelector(`input[name="${input.name}"]:checked`);
+            answer = selected ? selected.value : '';
+        } else {
+             // For text, textarea, date, etc.
+             if (input.type !== 'radio' && input.type !== 'checkbox') {
+                 answer = input.value;
+             }
+        }
+
+        // Don't save empty answers for signatures (placeholders) or unchecked things
+        if (qId && answer !== undefined && answer !== null) {
+            formResponses.push({
+                questionId: qId,
+                answer: answer
+            });
+        }
+    });
+
     const data = {
       eventId,
       slotTime: selectedSlotTime,
@@ -502,9 +670,8 @@ async function submitBooking(e) {
       demographics: {},
       insurance: {},
       medicalRecords: medicalRecords,
-      screening: {}, // Object to hold screening answers
+      formResponses: formResponses,
       signature: signatureDataUrl,
-      // --- DATA COLLECTION FOR NEW CHECKBOXES ---
       consentCalls: form.consentCalls.checked, // Will be true or false
       consentTexts: form.consentTexts.checked, // Will be true or false
       consentEmails: form.consentEmails.checked,  // Will be true or false
@@ -516,15 +683,6 @@ async function submitBooking(e) {
     ['firstName','middleName','lastName','dob','gender','race','ethnicity','fullAddress','street','city','state','zip','cell','home','email','ssn','parentName','parentRel','parentContact', 'school', 'grade'].forEach(id => data.demographics[id] = form[id]?.value || '');
     ['primaryIns','primaryPayer','primaryPlan','primaryId','primaryGroup','primaryPayerId','secondaryIns','secondaryPlan','secondaryId','secondaryGroup','secondaryPayerId'].forEach(id => data.insurance[id] = form[id]?.value || '');
 
-    // --- NEW: GATHER SCREENING DATA ---
-    for (let i = 1; i <= 14; i++) {
-        const radioName = `screening${i}`;
-        const selectedRadio = form.querySelector(`input[name="${radioName}"]:checked`);
-        data.screening[radioName] = selectedRadio ? selectedRadio.value : '';
-    }
-    data.screening.screening9_explain = form.screening9_explain.value || '';
-    // --- END NEW SECTION ---
-    
     updateLoadingMessage("Submitting registration...");
     
     try {
