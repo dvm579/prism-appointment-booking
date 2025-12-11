@@ -513,6 +513,8 @@ function renderDynamicForms(event) {
             }
         }
 
+        console.log(optionsList);
+
         // Generate HTML based on QuestionType
         switch (q.QuestionType) {
             case 'radio_yes_no':
