@@ -12,6 +12,7 @@ const BASE_URL = "https://register.prism.org/"; // Base URL for event links
 let eventId;
 let allEvents = [];
 let allSlots = [];
+let allQuestions = [];
 let selectedSlotTime = null;
 let timerInterval;
 let signaturePad;
@@ -57,7 +58,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         const facilityId = urlParams.get('facilityId');
 
         // Fetch event data needed for all modes
-        [allEvents, allSlots] = await Promise.all([
+        [allEvents, allSlots, allQuestions] = await Promise.all([
             fetchCSV(EVENTS_CSV_URL),
             fetchCSV(SLOTS_CSV_URL),
             fetchCSV(QUESTIONS_CSV_URL)
