@@ -486,6 +486,8 @@ function renderDynamicForms(event) {
         container.appendChild(header);
     }
 
+    console.log(relevantQuestions)
+
     relevantQuestions.forEach(q => {
         const wrapper = document.createElement('div');
         wrapper.className = 'mb-3';
