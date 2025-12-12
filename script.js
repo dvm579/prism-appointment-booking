@@ -524,12 +524,20 @@ function renderDynamicForms(event) {
 
             // --- NEW CASE: Multi Select Dropdown ---
             case 'multi_select':
-                inputHtml = `
-                    <select class="form-select form-control" name="${q.QuestionID}" multiple ${reqAttr} 
-                            data-question-id="${q.QuestionID}" style="height: auto;">
-                        ${optionsList.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
-                    </select>
-                    <div class="form-text text-muted small">Hold Ctrl (Windows) or Cmd (Mac) to select multiple.</div>`;
+                inputHtml = `<div class="mt-1">
+                    ${optionsList.map((opt, index) => `
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" 
+                                   name="${q.QuestionID}" 
+                                   id="${q.QuestionID}_${index}" 
+                                   value="${opt}" 
+                                   data-question-id="${q.QuestionID}">
+                            <label class="form-check-label" for="${q.QuestionID}_${index}">
+                                ${opt}
+                            </label>
+                        </div>
+                    `).join('')}
+                </div>`;
                 break;
 
             // --- NEW CASE: Custom Radio Buttons (Dynamic Options) ---
