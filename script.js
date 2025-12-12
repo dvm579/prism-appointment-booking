@@ -464,6 +464,12 @@ function joinWaitlist() {
 }
 
 function renderDynamicForms(event) {
+    const consentContainer = document.getElementById('consent-body');
+    if (consentContainer) {
+        // Use the 'Consent HTML' column, or default to empty if missing
+        consentContainer.innerHTML = event && event['Consent HTML'] ? event['Consent HTML'] : '';
+    }
+    
     const container = DOMElements.dynamicFormsContainer;
     container.innerHTML = ''; 
 
