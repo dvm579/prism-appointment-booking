@@ -501,18 +501,15 @@ function renderDynamicForms(event) {
         let inputHtml = '';
         const reqAttr = q.IsRequired === 'True' ? 'required' : '';
 
-        // --- NEW LOGIC START: Parse Options for Selects/Radios ---
+        // --- Parse Options for Selects/Radios/Checkboxes ---
         let optionsList = [];
         if (q.Options) {
-            // Split comma-separated string and trim whitespace
             optionsList = q.Options.toString().split(',').map(opt => opt.trim());
         }
-        // --- NEW LOGIC END ---
 
         // Generate HTML based on QuestionType
         switch (q.QuestionType) {
             
-            // --- NEW CASE: Single Select Dropdown ---
             case 'single_select':
                 inputHtml = `
                     <select class="form-select form-control" name="${q.QuestionID}" ${reqAttr} 
@@ -522,7 +519,7 @@ function renderDynamicForms(event) {
                     </select>`;
                 break;
 
-            // --- NEW CASE: Multi Select Dropdown ---
+            // --- UPDATED: Multi Select is now a Checkbox Group ---
             case 'multi_select':
                 inputHtml = `<div class="mt-1">
                     ${optionsList.map((opt, index) => `
@@ -540,7 +537,6 @@ function renderDynamicForms(event) {
                 </div>`;
                 break;
 
-            // --- NEW CASE: Custom Radio Buttons (Dynamic Options) ---
             case 'radio_custom':
                 inputHtml = `<div class="mt-1">
                     ${optionsList.map((opt, index) => `
@@ -558,7 +554,6 @@ function renderDynamicForms(event) {
                 </div>`;
                 break;
 
-            // --- EXISTING CASES ---
             case 'radio_yes_no':
                 inputHtml = `
                     <div class="row g-2">
@@ -589,7 +584,7 @@ function renderDynamicForms(event) {
             case 'signature':
                  inputHtml = `<div class="text-white-50 small"><em>(Please provide your signature at the bottom of this form)</em></div>`;
                  break;
-            default: // Default to standard text input
+            default:
                  inputHtml = `
                     <input type="text" class="form-control" name="${q.QuestionID}" ${reqAttr}
                         data-question-id="${q.QuestionID}">`;
