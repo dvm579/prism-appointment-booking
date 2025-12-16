@@ -478,9 +478,18 @@ function renderDynamicForms(event) {
     if (!formsString) return; 
 
     const formIds = formsString.split(',').map(s => s.trim());
-    let relevantQuestions = allQuestions.filter(q => formIds.includes(q.FormID));
     
-    // Sort by DisplayOrder
+    // --- FIX 1: SANITIZE DATA KEYS ---
+    // This handles hidden spaces or carriage returns in CSV headers
+    // It creates a clean copy of the questions so q.IsRequired always works
+    let relevantQuestions = allQuestions.filter(q => formIds.includes(q.FormID)).map(q => {
+        const cleanQ = {};
+        for (let key in q) {
+            cleanQ[key.trim()] = q[key]; // Removes spaces/newlines from header names
+        }
+        return cleanQ;
+    });
+    
     relevantQuestions.sort((a, b) => parseInt(a.DisplayOrder) - parseInt(b.DisplayOrder));
 
     if (relevantQuestions.length > 0) {
@@ -495,19 +504,19 @@ function renderDynamicForms(event) {
         wrapper.className = 'mb-3';
 
         // --- CHECK REQUIRED STATUS ---
-        // We convert to string and lower case to handle "True", "TRUE", "true"
-        const isRequired = String(q.IsRequired).trim().toLowerCase() === 'true';
+        // Now robust because we sanitized the keys above
+        const isRequired = String(q.IsRequired || "false").trim().toLowerCase() === 'true';
         const reqAttr = isRequired ? 'required' : '';
 
-        // --- CREATE LABEL WITH ASTERISK ---
+        // --- FIX 2: CREATE LABEL WITH "FOR" ATTRIBUTE ---
         const label = document.createElement('label');
         label.className = 'form-label';
-        // Add the text
         label.textContent = q.QuestionText;
-        // If required, append the red asterisk
+        label.setAttribute('for', q.QuestionID); // Binds label to the input
+        
         if (isRequired) {
             const asterisk = document.createElement('span');
-            asterisk.className = 'text-danger ms-1'; // ms-1 adds a tiny space
+            asterisk.className = 'text-danger ms-1'; 
             asterisk.textContent = '*';
             label.appendChild(asterisk);
         }
@@ -519,11 +528,16 @@ function renderDynamicForms(event) {
             optionsList = q.Options.toString().split(',').map(opt => opt.trim());
         }
 
+        // --- FIX 3: ADD IDs TO INPUTS ---
+        // We add id="${q.QuestionID}" to inputs so they match the label's "for"
         switch (q.QuestionType) {
             
             case 'single_select':
                 inputHtml = `
-                    <select class="form-select form-control" name="${q.QuestionID}" ${reqAttr} 
+                    <select class="form-select form-control" 
+                            name="${q.QuestionID}" 
+                            id="${q.QuestionID}" 
+                            ${reqAttr} 
                             data-question-id="${q.QuestionID}">
                         <option value="">Select an option...</option>
                         ${optionsList.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
@@ -531,9 +545,8 @@ function renderDynamicForms(event) {
                 break;
 
             case 'multi_select': 
-                // NOTE: We do NOT add 'required' to checkboxes here. 
-                // HTML5 'required' on checkboxes forces you to check EVERY box, which is wrong.
-                // "Select at least one" requires custom JS validation upon submit.
+                // Checkboxes are a group; the main label applies to the group.
+                // We don't put an ID on the div, but individual boxes have their own IDs.
                 inputHtml = `<div class="mt-1">
                     ${optionsList.map((opt, index) => `
                         <div class="form-check">
@@ -586,12 +599,18 @@ function renderDynamicForms(event) {
                 break;
             case 'text_area': 
                 inputHtml = `
-                    <textarea class="form-control" name="${q.QuestionID}" rows="2" ${reqAttr}
+                    <textarea class="form-control" 
+                        name="${q.QuestionID}" 
+                        id="${q.QuestionID}"
+                        rows="2" ${reqAttr}
                         data-question-id="${q.QuestionID}"></textarea>`;
                 break;
             case 'date':
                 inputHtml = `
-                    <input type="date" class="form-control" name="${q.QuestionID}" ${reqAttr}
+                    <input type="date" class="form-control" 
+                        name="${q.QuestionID}" 
+                        id="${q.QuestionID}"
+                        ${reqAttr}
                         data-question-id="${q.QuestionID}">`;
                 break;
             case 'signature':
@@ -599,7 +618,10 @@ function renderDynamicForms(event) {
                  break;
             default:
                  inputHtml = `
-                    <input type="text" class="form-control" name="${q.QuestionID}" ${reqAttr}
+                    <input type="text" class="form-control" 
+                        name="${q.QuestionID}" 
+                        id="${q.QuestionID}"
+                        ${reqAttr}
                         data-question-id="${q.QuestionID}">`;
         }
 
