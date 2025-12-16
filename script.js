@@ -464,22 +464,20 @@ function joinWaitlist() {
 }
 
 function renderDynamicForms(event) {
+    // --- 1. Consent Accordion Logic ---
     const consentContainer = document.getElementById('consent-body');
     if (consentContainer) {
-        // Use the 'Consent HTML' column, or default to empty if missing
         consentContainer.innerHTML = event && event['Consent HTML'] ? event['Consent HTML'] : '';
     }
-    
+
+    // --- 2. Form Rendering Logic ---
     const container = DOMElements.dynamicFormsContainer;
     container.innerHTML = ''; 
 
-    // Expecting a comma-separated list of FormIDs in the 'Forms' column
     const formsString = event && event['Forms'] ? event['Forms'] : '';
     if (!formsString) return; 
 
     const formIds = formsString.split(',').map(s => s.trim());
-    
-    // Filter questions where the FormID matches one of the event's forms
     let relevantQuestions = allQuestions.filter(q => formIds.includes(q.FormID));
     
     // Sort by DisplayOrder
@@ -496,24 +494,31 @@ function renderDynamicForms(event) {
         const wrapper = document.createElement('div');
         wrapper.className = 'mb-3';
 
+        // --- CHECK REQUIRED STATUS ---
+        // We convert to string and lower case to handle "True", "TRUE", "true"
+        const isRequired = String(q.Required).trim().toLowerCase() === 'true';
+        const reqAttr = isRequired ? 'required' : '';
+
+        // --- CREATE LABEL WITH ASTERISK ---
         const label = document.createElement('label');
         label.className = 'form-label';
+        // Add the text
         label.textContent = q.QuestionText;
-        if (q.IsRequired === 'True') {
-            label.innerHTML += '<span class="text-danger">*</span>';
+        // If required, append the red asterisk
+        if (isRequired) {
+            const asterisk = document.createElement('span');
+            asterisk.className = 'text-danger ms-1'; // ms-1 adds a tiny space
+            asterisk.textContent = '*';
+            label.appendChild(asterisk);
         }
         wrapper.appendChild(label);
 
         let inputHtml = '';
-        const reqAttr = q.IsRequired === 'True' ? 'required' : '';
-
-        // --- Parse Options for Selects/Radios/Checkboxes ---
         let optionsList = [];
         if (q.Options) {
             optionsList = q.Options.toString().split(',').map(opt => opt.trim());
         }
 
-        // Generate HTML based on QuestionType
         switch (q.QuestionType) {
             
             case 'single_select':
@@ -525,8 +530,10 @@ function renderDynamicForms(event) {
                     </select>`;
                 break;
 
-            // --- UPDATED: Multi Select is now a Checkbox Group ---
-            case 'multi_select':
+            case 'multi_select': 
+                // NOTE: We do NOT add 'required' to checkboxes here. 
+                // HTML5 'required' on checkboxes forces you to check EVERY box, which is wrong.
+                // "Select at least one" requires custom JS validation upon submit.
                 inputHtml = `<div class="mt-1">
                     ${optionsList.map((opt, index) => `
                         <div class="form-check">
