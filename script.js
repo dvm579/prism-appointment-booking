@@ -614,13 +614,13 @@ async function submitBooking(e) {
     e.preventDefault();
     const form = e.target;
 
-    // --- VALIDATION FOR NEW CHECKBOXES ---
+    // --- 1. EXISTING VALIDATION: CONTACT CONSENT ---
     if (!form.consentCalls.checked && !form.consentTexts.checked && !form.consentEmails.checked) {
         alert("Please consent to at least one method of contact to continue.");
-        return; // Stop the submission
+        return; 
     }
 
-    // --- NEW SIGNATURE LOGIC ---
+    // --- 2. EXISTING VALIDATION: SIGNATURE ---
     let signatureDataUrl = '';
     const isDrawTabActive = document.getElementById('draw-tab').classList.contains('active');
 
@@ -630,7 +630,7 @@ async function submitBooking(e) {
             return;
         }
         signatureDataUrl = signaturePad.toDataURL();
-    } else { // Type tab is active
+    } else { 
         const typedName = document.getElementById('typedName').value;
         if (!typedName.trim()) {
             alert("Please provide a signature by typing your name.");
@@ -638,48 +638,110 @@ async function submitBooking(e) {
         }
         signatureDataUrl = document.getElementById('typeCanvas').toDataURL();
     }
-    // --- END NEW SIGNATURE LOGIC ---
 
     showLoading("Preparing your files...");
     clearInterval(timerInterval);
 
-    // --- ADD THIS BLOCK TO READ FILES ---
+    // --- 3. MEDICAL RECORDS ---
     const medicalRecords = DOMElements.hasRecordsCheck.checked 
         ? await readFilesAsBase64(DOMElements.medicalRecordsUpload) 
         : [];
-    // --- END BLOCK ---
 
-    // --- NEW: SCRAPE DYNAMIC ANSWERS ---
+    // --- 4. NEW: SCRAPE DYNAMIC ANSWERS WITH VALIDATION ---
     const formResponses = [];
-    // We select all elements that have our data attribute
     const dynamicInputs = DOMElements.dynamicFormsContainer.querySelectorAll('[data-question-id]');
-    const processedRadioGroups = new Set();
+    
+    // We use a Set to keep track of groups we've already processed (like Radio buttons or Checkboxes)
+    // to prevent adding the same answer multiple times.
+    const processedGroups = new Set();
+    
+    // Validation flags
+    let isFormValid = true;
+    let firstInvalidElement = null;
 
-    dynamicInputs.forEach(input => {
+    // We use a standard for-loop instead of forEach so we can break or handle control flow easier
+    for (const input of dynamicInputs) {
         const qId = input.dataset.questionId;
-        let answer = '';
+        const groupName = input.name; // This groups radios and checkboxes together
 
+        // If we have already processed this group (e.g. the 2nd checkbox in a list of 5), skip it
+        if (processedGroups.has(groupName)) continue;
+
+        let answer = '';
+        
+        // Look up the question definition to check if it is "Required"
+        // We assume 'allQuestions' is available globally (same as in renderDynamicForms)
+        const questionDef = allQuestions.find(q => q.QuestionID === qId);
+        const isRequired = questionDef && String(questionDef.Required).trim().toLowerCase() === 'true';
+
+        // --- HANDLE RADIOS ---
         if (input.type === 'radio') {
-            if (processedRadioGroups.has(input.name)) return;
-            processedRadioGroups.add(input.name);
-            const selected = DOMElements.dynamicFormsContainer.querySelector(`input[name="${input.name}"]:checked`);
+            processedGroups.add(groupName);
+            const selected = DOMElements.dynamicFormsContainer.querySelector(`input[name="${groupName}"]:checked`);
             answer = selected ? selected.value : '';
+
+            // Custom Validation for Radios
+            if (isRequired && !answer) {
+                isFormValid = false;
+                if (!firstInvalidElement) firstInvalidElement = input;
+            }
+
+        // --- HANDLE CHECKBOXES (Multi-Select) ---
+        } else if (input.type === 'checkbox') {
+            processedGroups.add(groupName);
+            
+            // Get ALL checked boxes for this specific question
+            const checkedBoxes = DOMElements.dynamicFormsContainer.querySelectorAll(`input[name="${groupName}"]:checked`);
+            
+            // Join values with a comma to create a SINGLE string (e.g., "Red, Blue, Green")
+            answer = Array.from(checkedBoxes).map(cb => cb.value).join(', ');
+
+            // Custom Validation for Checkboxes (Must have at least one selected if required)
+            if (isRequired && answer === '') {
+                isFormValid = false;
+                if (!firstInvalidElement) firstInvalidElement = input;
+            }
+
+        // --- HANDLE TEXT, DATE, TEXTAREA, SELECT ---
         } else {
-             // For text, textarea, date, etc.
-             if (input.type !== 'radio' && input.type !== 'checkbox') {
-                 answer = input.value;
-             }
+            // These inputs are unique per question, so no grouping needed usually, 
+            // but we add to processedGroups just in case to be safe.
+            processedGroups.add(groupName); 
+            answer = input.value;
+
+            // Simple value check
+            if (isRequired && !answer.trim()) {
+                isFormValid = false;
+                if (!firstInvalidElement) firstInvalidElement = input;
+            }
         }
 
-        // Don't save empty answers for signatures (placeholders) or unchecked things
-        if (qId && answer !== undefined && answer !== null) {
+        // Add to responses array
+        if (qId) {
             formResponses.push({
                 questionId: qId,
                 answer: answer
             });
         }
-    });
+    }
 
+    // --- 5. STOP IF INVALID ---
+    if (!isFormValid) {
+        hideLoading(); // Hide the loading spinner
+        alert("Please answer all required questions before submitting.");
+        
+        // Optional: Scroll to the first missing question
+        if (firstInvalidElement) {
+            firstInvalidElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // If it's not a radio/checkbox, try to focus it
+            if (firstInvalidElement.type !== 'radio' && firstInvalidElement.type !== 'checkbox') {
+                firstInvalidElement.focus();
+            }
+        }
+        return; // Stop execution
+    }
+
+    // --- 6. PREPARE DATA PACKAGE ---
     const data = {
       eventId,
       slotTime: selectedSlotTime,
@@ -689,14 +751,14 @@ async function submitBooking(e) {
       medicalRecords: medicalRecords,
       formResponses: formResponses,
       signature: signatureDataUrl,
-      consentCalls: form.consentCalls.checked, // Will be true or false
-      consentTexts: form.consentTexts.checked, // Will be true or false
-      consentEmails: form.consentEmails.checked,  // Will be true or false
+      consentCalls: form.consentCalls.checked,
+      consentTexts: form.consentTexts.checked,
+      consentEmails: form.consentEmails.checked,
       electronicConsent: form.electronicConsent.checked,
       vaxConsent: form.certifyConsent.checked
     };
 
-    // Gather form data (same as before)
+    // Gather demographics and insurance (Same as before)
     ['firstName','middleName','lastName','dob','gender','race','ethnicity','fullAddress','street','city','state','zip','cell','home','email','ssn','parentName','parentRel','parentContact', 'school', 'grade'].forEach(id => data.demographics[id] = form[id]?.value || '');
     ['primaryIns','primaryPayer','primaryPlan','primaryId','primaryGroup','primaryPayerId','secondaryIns','secondaryPlan','secondaryId','secondaryGroup','secondaryPayerId'].forEach(id => data.insurance[id] = form[id]?.value || '');
 
