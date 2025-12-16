@@ -496,7 +496,7 @@ function renderDynamicForms(event) {
 
         // --- CHECK REQUIRED STATUS ---
         // We convert to string and lower case to handle "True", "TRUE", "true"
-        const isRequired = String(q.Required).trim().toLowerCase() === 'true';
+        const isRequired = String(q.IsRequired).trim().toLowerCase() === 'true';
         const reqAttr = isRequired ? 'required' : '';
 
         // --- CREATE LABEL WITH ASTERISK ---
