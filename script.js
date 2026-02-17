@@ -490,8 +490,20 @@ function renderDynamicForms(event) {
         return cleanQ;
     });
     
-    relevantQuestions.sort((a, b) => parseInt(a.DisplayOrder) - parseInt(b.DisplayOrder));
-
+    relevantQuestions.sort((a, b) => {
+        // 1. Get the position of each form from your formIds list
+        const formIndexA = formIds.indexOf(a.FormID);
+        const formIndexB = formIds.indexOf(b.FormID);
+    
+        // 2. If the forms are different, sort by the form's position
+        if (formIndexA !== formIndexB) {
+            return formIndexA - formIndexB;
+        }
+    
+        // 3. If they are in the same form, "tie-break" using DisplayOrder
+        return parseInt(a.DisplayOrder) - parseInt(b.DisplayOrder);
+    });
+    
     if (relevantQuestions.length > 0) {
         const header = document.createElement('h4');
         header.textContent = "Health Questionnaire";
