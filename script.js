@@ -570,12 +570,17 @@ function initConditionalLogic() {
 
             if (isMatch) {
                 dep.classList.remove('d-none');
+                dep.querySelectorAll('input, select, textarea').forEach(i => {
+                    if (i.dataset.wasRequired === "true") i.required = true;
+                });
             } else {
                 dep.classList.add('d-none');
-                // Recursively hide and clear any sub-dependents
-                dep.querySelectorAll('input, select, textarea').forEach(input => {
-                    input.value = '';
-                    if(input.type === 'radio' || input.type === 'checkbox') input.checked = false;
+                dep.querySelectorAll('input, select, textarea').forEach(i => {
+                    if (i.required) {
+                        i.dataset.wasRequired = "true";
+                        i.required = false;
+                    }
+                    i.value = '';
                 });
             }
         });
@@ -648,14 +653,27 @@ function renderDynamicForms(event) {
     container.querySelectorAll('.service-selector').forEach(checkbox => {
         checkbox.addEventListener('change', (e) => {
             const targetSection = document.getElementById(`section_${e.target.value}`);
+            const inputs = targetSection.querySelectorAll('input, select, textarea');
+            
             if (e.target.checked) {
                 targetSection.classList.remove('d-none');
+                // Re-enable 'required' for elements that were originally required
+                inputs.forEach(input => {
+                    if (input.dataset.wasRequired === "true") {
+                        input.required = true;
+                    }
+                });
             } else {
                 targetSection.classList.add('d-none');
-                // Optional: Clear fields when hidden to prevent accidental submission
-                targetSection.querySelectorAll('input, select, textarea').forEach(i => {
-                    if (i.type === 'checkbox' || i.type === 'radio') i.checked = false;
-                    else i.value = '';
+                // Disable 'required' so the browser doesn't try to validate hidden fields
+                inputs.forEach(input => {
+                    if (input.required) {
+                        input.dataset.wasRequired = "true"; // Remember it was required
+                        input.required = false;
+                    }
+                    // Clear values
+                    if (input.type === 'checkbox' || input.type === 'radio') input.checked = false;
+                    else input.value = '';
                 });
             }
         });
