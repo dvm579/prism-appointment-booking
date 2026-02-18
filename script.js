@@ -463,184 +463,156 @@ function joinWaitlist() {
     }
 }
 
-function renderDynamicForms(event) {
-    // --- 1. Consent Accordion Logic ---
-    const consentContainer = document.getElementById('consent-body');
-    if (consentContainer) {
-        consentContainer.innerHTML = event && event['Consent HTML'] ? event['Consent HTML'] : '';
+/**
+ * Helper to generate the HTML for a single question.
+ */
+function createQuestionElement(q) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'mb-3';
+
+    const isRequired = String(q.IsRequired || "false").trim().toLowerCase() === 'true';
+    const reqAttr = isRequired ? 'required' : '';
+
+    const label = document.createElement('label');
+    label.className = 'form-label';
+    label.textContent = q.QuestionText;
+    label.setAttribute('for', q.QuestionID);
+    
+    if (isRequired) {
+        const asterisk = document.createElement('span');
+        asterisk.className = 'text-danger ms-1'; 
+        asterisk.textContent = '*';
+        label.appendChild(asterisk);
+    }
+    wrapper.appendChild(label);
+
+    let inputHtml = '';
+    let optionsList = (q.Options || "").toString().split(',').map(opt => opt.trim());
+
+    switch (q.QuestionType) {
+        case 'single_select':
+            inputHtml = `
+                <select class="form-select form-control" name="${q.QuestionID}" id="${q.QuestionID}" ${reqAttr} data-question-id="${q.QuestionID}">
+                    <option value="">Select an option...</option>
+                    ${optionsList.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+                </select>`;
+            break;
+        case 'multi_select': 
+            inputHtml = `<div class="mt-1">
+                ${optionsList.map((opt, index) => `
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="${q.QuestionID}" id="${q.QuestionID}_${index}" value="${opt}" data-question-id="${q.QuestionID}">
+                        <label class="form-check-label" for="${q.QuestionID}_${index}">${opt}</label>
+                    </div>
+                `).join('')}
+            </div>`;
+            break;
+        case 'radio_yes_no':
+            inputHtml = `
+                <div class="row g-2">
+                    <div class="col-6 col-md-3">
+                        <input class="form-check-input" type="radio" name="${q.QuestionID}" id="${q.QuestionID}_yes" value="Yes" ${reqAttr} data-question-id="${q.QuestionID}">
+                        <label class="form-check-label ms-2" for="${q.QuestionID}_yes">Yes</label>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <input class="form-check-input" type="radio" name="${q.QuestionID}" id="${q.QuestionID}_no" value="No" ${reqAttr} data-question-id="${q.QuestionID}">
+                        <label class="form-check-label ms-2" for="${q.QuestionID}_no">No</label>
+                    </div>
+                </div>`;
+            break;
+        case 'text_area': 
+            inputHtml = `<textarea class="form-control" name="${q.QuestionID}" id="${q.QuestionID}" rows="2" ${reqAttr} data-question-id="${q.QuestionID}"></textarea>`;
+            break;
+        case 'date':
+            inputHtml = `<input type="date" class="form-control" name="${q.QuestionID}" id="${q.QuestionID}" ${reqAttr} data-question-id="${q.QuestionID}">`;
+            break;
+        default:
+            inputHtml = `<input type="text" class="form-control" name="${q.QuestionID}" id="${q.QuestionID}" ${reqAttr} data-question-id="${q.QuestionID}">`;
     }
 
-    // --- 2. Form Rendering Logic ---
+    const inputWrapper = document.createElement('div');
+    inputWrapper.innerHTML = inputHtml;
+    wrapper.appendChild(inputWrapper);
+    return wrapper;
+}
+
+function renderDynamicForms(event) {
     const container = DOMElements.dynamicFormsContainer;
     container.innerHTML = ''; 
 
+    // Extract both strings from the event object
     const formsString = event && event['Forms'] ? event['Forms'] : '';
+    const namesString = event && event['Service Names'] ? event['Service Names'] : '';
+    
     if (!formsString) return; 
 
+    // Split both into arrays
     const formIds = formsString.split(',').map(s => s.trim());
+    const serviceNames = namesString.split(',').map(s => s.trim());
+
+    // 1. Create Service Selection Header & Checkboxes
+    const selectionWrapper = document.createElement('div');
+    selectionWrapper.className = 'mb-4 p-3 border border-primary rounded bg-dark';
+    selectionWrapper.innerHTML = `<h5 class="text-white mb-3">Please select the services you would like to receive:</h5>`;
     
-    // --- FIX 1: SANITIZE DATA KEYS ---
-    // This handles hidden spaces or carriage returns in CSV headers
-    // It creates a clean copy of the questions so q.IsRequired always works
+    formIds.forEach((fId, index) => {
+        // Use the corresponding name from the serviceNames array, or fallback to Form ID
+        const displayName = serviceNames[index] || fId.toUpperCase();
+        
+        const checkboxDiv = document.createElement('div');
+        checkboxDiv.className = 'form-check form-switch mb-2';
+        checkboxDiv.innerHTML = `
+            <input class="form-check-input service-selector" type="checkbox" id="select_${fId}" value="${fId}" data-service-name="${displayName}">
+            <label class="form-check-label text-white" for="select_${fId}">${displayName}</label>
+        `;
+        selectionWrapper.appendChild(checkboxDiv);
+    });
+    container.appendChild(selectionWrapper);
+
+    // 2. Prepare Question Sections (Grouped by FormID)
+    const questionsWrapper = document.createElement('div');
+    questionsWrapper.id = "questionsContent";
+    container.appendChild(questionsWrapper);
+
+    // Sanitize questions as before
     let relevantQuestions = allQuestions.filter(q => formIds.includes(q.FormID)).map(q => {
         const cleanQ = {};
-        for (let key in q) {
-            cleanQ[key.trim()] = q[key]; // Removes spaces/newlines from header names
-        }
+        for (let key in q) { cleanQ[key.trim()] = q[key]; }
         return cleanQ;
     });
-    
-    relevantQuestions.sort((a, b) => {
-        // 1. Get the position of each form from your formIds list
-        const formIndexA = formIds.indexOf(a.FormID);
-        const formIndexB = formIds.indexOf(b.FormID);
-    
-        // 2. If the forms are different, sort by the form's position
-        if (formIndexA !== formIndexB) {
-            return formIndexA - formIndexB;
-        }
-    
-        // 3. If they are in the same form, "tie-break" using DisplayOrder
-        return parseInt(a.DisplayOrder) - parseInt(b.DisplayOrder);
-    });
-    
-    if (relevantQuestions.length > 0) {
-        const header = document.createElement('h4');
-        header.textContent = "Health Questionnaire";
-        header.className = "mb-3 mt-4";
-        container.appendChild(header);
-    }
 
-    relevantQuestions.forEach(q => {
-        const wrapper = document.createElement('div');
-        wrapper.className = 'mb-3';
-
-        // --- CHECK REQUIRED STATUS ---
-        // Now robust because we sanitized the keys above
-        const isRequired = String(q.IsRequired || "false").trim().toLowerCase() === 'true';
-        const reqAttr = isRequired ? 'required' : '';
-
-        // --- FIX 2: CREATE LABEL WITH "FOR" ATTRIBUTE ---
-        const label = document.createElement('label');
-        label.className = 'form-label';
-        label.textContent = q.QuestionText;
-        label.setAttribute('for', q.QuestionID); // Binds label to the input
+    formIds.forEach((fId, index) => {
+        const displayName = serviceNames[index] || fId.toUpperCase();
+        const section = document.createElement('div');
+        section.id = `section_${fId}`;
+        section.className = 'd-none mt-4'; // Hidden by default
         
-        if (isRequired) {
-            const asterisk = document.createElement('span');
-            asterisk.className = 'text-danger ms-1'; 
-            asterisk.textContent = '*';
-            label.appendChild(asterisk);
-        }
-        wrapper.appendChild(label);
+        // Use the Readable Name for the Section Header
+        section.innerHTML = `<hr><h4 class="mb-3 text-info">${displayName} Questionnaire</h4>`;
+        
+        const formQs = relevantQuestions.filter(q => q.FormID === fId);
+        formQs.forEach(q => {
+            const qDiv = createQuestionElement(q);
+            section.appendChild(qDiv);
+        });
+        questionsWrapper.appendChild(section);
+    });
 
-        let inputHtml = '';
-        let optionsList = [];
-        if (q.Options) {
-            optionsList = q.Options.toString().split(',').map(opt => opt.trim());
-        }
-
-        // --- FIX 3: ADD IDs TO INPUTS ---
-        // We add id="${q.QuestionID}" to inputs so they match the label's "for"
-        switch (q.QuestionType) {
-            
-            case 'single_select':
-                inputHtml = `
-                    <select class="form-select form-control" 
-                            name="${q.QuestionID}" 
-                            id="${q.QuestionID}" 
-                            ${reqAttr} 
-                            data-question-id="${q.QuestionID}">
-                        <option value="">Select an option...</option>
-                        ${optionsList.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
-                    </select>`;
-                break;
-
-            case 'multi_select': 
-                // Checkboxes are a group; the main label applies to the group.
-                // We don't put an ID on the div, but individual boxes have their own IDs.
-                inputHtml = `<div class="mt-1">
-                    ${optionsList.map((opt, index) => `
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" 
-                                   name="${q.QuestionID}" 
-                                   id="${q.QuestionID}_${index}" 
-                                   value="${opt}" 
-                                   data-question-id="${q.QuestionID}">
-                            <label class="form-check-label" for="${q.QuestionID}_${index}">
-                                ${opt}
-                            </label>
-                        </div>
-                    `).join('')}
-                </div>`;
-                break;
-
-            case 'radio_custom':
-                inputHtml = `<div class="mt-1">
-                    ${optionsList.map((opt, index) => `
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" 
-                                   name="${q.QuestionID}" 
-                                   id="${q.QuestionID}_${index}" 
-                                   value="${opt}" ${reqAttr}
-                                   data-question-id="${q.QuestionID}">
-                            <label class="form-check-label" for="${q.QuestionID}_${index}">
-                                ${opt}
-                            </label>
-                        </div>
-                    `).join('')}
-                </div>`;
-                break;
-
-            case 'radio_yes_no':
-                inputHtml = `
-                    <div class="row g-2">
-                        <div class="col-6 col-md-3">
-                            <input class="form-check-input" type="radio" name="${q.QuestionID}" 
-                                   id="${q.QuestionID}_yes" value="Yes" ${reqAttr} 
-                                   data-question-id="${q.QuestionID}">
-                            <label class="form-check-label ms-2" for="${q.QuestionID}_yes">Yes</label>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <input class="form-check-input" type="radio" name="${q.QuestionID}" 
-                                   id="${q.QuestionID}_no" value="No" ${reqAttr}
-                                   data-question-id="${q.QuestionID}">
-                            <label class="form-check-label ms-2" for="${q.QuestionID}_no">No</label>
-                        </div>
-                    </div>`;
-                break;
-            case 'text_area': 
-                inputHtml = `
-                    <textarea class="form-control" 
-                        name="${q.QuestionID}" 
-                        id="${q.QuestionID}"
-                        rows="2" ${reqAttr}
-                        data-question-id="${q.QuestionID}"></textarea>`;
-                break;
-            case 'date':
-                inputHtml = `
-                    <input type="date" class="form-control" 
-                        name="${q.QuestionID}" 
-                        id="${q.QuestionID}"
-                        ${reqAttr}
-                        data-question-id="${q.QuestionID}">`;
-                break;
-            case 'signature':
-                 inputHtml = `<div class="text-white-50 small"><em>(Please provide your signature at the bottom of this form)</em></div>`;
-                 break;
-            default:
-                 inputHtml = `
-                    <input type="text" class="form-control" 
-                        name="${q.QuestionID}" 
-                        id="${q.QuestionID}"
-                        ${reqAttr}
-                        data-question-id="${q.QuestionID}">`;
-        }
-
-        const inputWrapper = document.createElement('div');
-        inputWrapper.innerHTML = inputHtml;
-        wrapper.appendChild(inputWrapper);
-        container.appendChild(wrapper);
+    // 3. Add Listener to Toggle Sections
+    container.querySelectorAll('.service-selector').forEach(checkbox => {
+        checkbox.addEventListener('change', (e) => {
+            const targetSection = document.getElementById(`section_${e.target.value}`);
+            if (e.target.checked) {
+                targetSection.classList.remove('d-none');
+            } else {
+                targetSection.classList.add('d-none');
+                // Optional: Clear fields when hidden to prevent accidental submission
+                targetSection.querySelectorAll('input, select, textarea').forEach(i => {
+                    if (i.type === 'checkbox' || i.type === 'radio') i.checked = false;
+                    else i.value = '';
+                });
+            }
+        });
     });
 }
 
@@ -698,6 +670,10 @@ async function submitBooking(e) {
         const qId = input.dataset.questionId;
         const groupName = input.name; // This groups radios and checkboxes together
 
+        // NEW: Check if this question belongs to a selected service
+        const parentSection = input.closest('.d-none');
+        if (parentSection) continue; // Skip validation/scraping if the section is hidden
+        
         // If we have already processed this group (e.g. the 2nd checkbox in a list of 5), skip it
         if (processedGroups.has(groupName)) continue;
 
@@ -759,6 +735,18 @@ async function submitBooking(e) {
         }
     }
 
+    // Inside submitBooking function
+    const selectedServices = Array.from(document.querySelectorAll('.service-selector:checked'))
+        .map(cb => ({
+            id: cb.value,
+            name: cb.dataset.serviceName
+        }));
+
+    if (selectedServices.length === 0 && !isWaitlistSubmission) {
+        alert("Please select at least one service to continue.");
+        return;
+    }
+
     // --- 5. STOP IF INVALID ---
     if (!isFormValid) {
         hideLoading(); // Hide the loading spinner
@@ -780,6 +768,7 @@ async function submitBooking(e) {
       eventId,
       slotTime: selectedSlotTime,
       isWaitlist: isWaitlistSubmission,
+      selectedServices: selectedServices,
       demographics: {},
       insurance: {},
       medicalRecords: medicalRecords,
