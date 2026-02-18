@@ -551,23 +551,31 @@ function initConditionalLogic() {
         const qId = changedInput.dataset.questionId;
         if (!qId) return;
 
-        // Find all elements that depend on this question
+        // Find all elements that depend on THIS specific question
         const dependents = container.querySelectorAll(`[data-trigger-id="${qId}"]`);
         
         dependents.forEach(dep => {
-            const triggerVal = dep.getAttribute('data-trigger-value');
-            const isMatch = changedInput.type === 'radio' || changedInput.type === 'checkbox' 
-                ? (changedInput.checked && changedInput.value === triggerVal)
-                : (changedInput.value === triggerVal);
+            const expectedValue = dep.getAttribute('data-trigger-value');
+            let isMatch = false;
+
+            if (changedInput.type === 'radio') {
+                // For radios, only proceed if this specific radio is the one checked
+                // AND its value matches the trigger
+                const selectedRadio = container.querySelector(`input[name="${changedInput.name}"]:checked`);
+                isMatch = (selectedRadio && selectedRadio.value === expectedValue);
+            } else {
+                // For select, text, etc.
+                isMatch = (changedInput.value === expectedValue);
+            }
 
             if (isMatch) {
                 dep.classList.remove('d-none');
             } else {
                 dep.classList.add('d-none');
-                // Clear the value so it's not submitted if hidden
+                // Recursively hide and clear any sub-dependents
                 dep.querySelectorAll('input, select, textarea').forEach(input => {
                     input.value = '';
-                    input.checked = false;
+                    if(input.type === 'radio' || input.type === 'checkbox') input.checked = false;
                 });
             }
         });
