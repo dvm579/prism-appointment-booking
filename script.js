@@ -737,8 +737,6 @@ async function submitBooking(e) {
         let answer = '';
         
         // Look up the question definition to check if it is "Required"
-        // We assume 'allQuestions' is available globally (same as in renderDynamicForms)
-        const questionDef = allQuestions.find(q => q.QuestionID === qId);
         const isRequired = questionDef && String(questionDef.IsRequired).trim().toLowerCase() === 'true';
 
         // --- HANDLE RADIOS ---
