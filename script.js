@@ -792,10 +792,21 @@ async function submitBooking(e) {
 
     // Inside submitBooking function
     const selectedServices = Array.from(document.querySelectorAll('.service-selector:checked'))
-        .map(cb => ({
-            id: cb.value,
-            name: cb.dataset.serviceName
-        }));
+        .map(cb => {
+            const formId = cb.value;
+            
+            // Find a question associated with this FormID to get the 'Services' code
+            const relatedQuestion = allQuestions.find(q => q.FormID === formId);
+            
+            // Use the value from the "Services" column, or fallback to the FormID if missing
+            const serviceTypeId = (relatedQuestion && relatedQuestion.Services) ? relatedQuestion.Services : formId;
+    
+            return {
+                id: formId,
+                name: cb.dataset.serviceName,
+                serviceTypeId: serviceTypeId // <--- New Field
+            };
+        });
 
     if (selectedServices.length === 0 && !isWaitlistSubmission) {
         alert("Please select at least one service to continue.");
