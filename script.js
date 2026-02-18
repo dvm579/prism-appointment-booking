@@ -570,17 +570,12 @@ function initConditionalLogic() {
 
             if (isMatch) {
                 dep.classList.remove('d-none');
-                dep.querySelectorAll('input, select, textarea').forEach(i => {
-                    if (i.dataset.wasRequired === "true") i.required = true;
-                });
             } else {
                 dep.classList.add('d-none');
-                dep.querySelectorAll('input, select, textarea').forEach(i => {
-                    if (i.required) {
-                        i.dataset.wasRequired = "true";
-                        i.required = false;
-                    }
-                    i.value = '';
+                // Recursively hide and clear any sub-dependents
+                dep.querySelectorAll('input, select, textarea').forEach(input => {
+                    input.value = '';
+                    if(input.type === 'radio' || input.type === 'checkbox') input.checked = false;
                 });
             }
         });
@@ -653,27 +648,14 @@ function renderDynamicForms(event) {
     container.querySelectorAll('.service-selector').forEach(checkbox => {
         checkbox.addEventListener('change', (e) => {
             const targetSection = document.getElementById(`section_${e.target.value}`);
-            const inputs = targetSection.querySelectorAll('input, select, textarea');
-            
             if (e.target.checked) {
                 targetSection.classList.remove('d-none');
-                // Re-enable 'required' for elements that were originally required
-                inputs.forEach(input => {
-                    if (input.dataset.wasRequired === "true") {
-                        input.required = true;
-                    }
-                });
             } else {
                 targetSection.classList.add('d-none');
-                // Disable 'required' so the browser doesn't try to validate hidden fields
-                inputs.forEach(input => {
-                    if (input.required) {
-                        input.dataset.wasRequired = "true"; // Remember it was required
-                        input.required = false;
-                    }
-                    // Clear values
-                    if (input.type === 'checkbox' || input.type === 'radio') input.checked = false;
-                    else input.value = '';
+                // Optional: Clear fields when hidden to prevent accidental submission
+                targetSection.querySelectorAll('input, select, textarea').forEach(i => {
+                    if (i.type === 'checkbox' || i.type === 'radio') i.checked = false;
+                    else i.value = '';
                 });
             }
         });
@@ -685,13 +667,13 @@ async function submitBooking(e) {
     e.preventDefault();
     const form = e.target;
 
-    // --- 1. CONTACT CONSENT VALIDATION ---
+    // --- 1. EXISTING VALIDATION: CONTACT CONSENT ---
     if (!form.consentCalls.checked && !form.consentTexts.checked && !form.consentEmails.checked) {
         alert("Please consent to at least one method of contact to continue.");
         return; 
     }
 
-    // --- 2. SIGNATURE VALIDATION ---
+    // --- 2. EXISTING VALIDATION: SIGNATURE ---
     let signatureDataUrl = '';
     const isDrawTabActive = document.getElementById('draw-tab').classList.contains('active');
 
@@ -710,7 +692,101 @@ async function submitBooking(e) {
         signatureDataUrl = document.getElementById('typeCanvas').toDataURL();
     }
 
-    // --- 3. SERVICE SELECTION VALIDATION ---
+    showLoading("Preparing your files...");
+    clearInterval(timerInterval);
+
+    // --- 3. MEDICAL RECORDS ---
+    const medicalRecords = DOMElements.hasRecordsCheck.checked 
+        ? await readFilesAsBase64(DOMElements.medicalRecordsUpload) 
+        : [];
+
+    // --- 4. NEW: SCRAPE DYNAMIC ANSWERS WITH VALIDATION ---
+    const formResponses = [];
+    const dynamicInputs = DOMElements.dynamicFormsContainer.querySelectorAll('[data-question-id]');
+    
+    // We use a Set to keep track of groups we've already processed (like Radio buttons or Checkboxes)
+    // to prevent adding the same answer multiple times.
+    const processedGroups = new Set();
+    
+    // Validation flags
+    let isFormValid = true;
+    let firstInvalidElement = null;
+
+    // We use a standard for-loop instead of forEach so we can break or handle control flow easier
+    for (const input of dynamicInputs) {
+        const qId = input.dataset.questionId;
+        const groupName = input.name; // This groups radios and checkboxes together
+
+        // NEW: Check if this question belongs to a selected service
+        const parentSection = input.closest('.d-none');
+        if (parentSection) continue; // Skip validation/scraping if the section is hidden
+
+        // Skip if the service section OR the specific question wrapper is hidden
+        const isHidden = input.closest('.d-none');
+        if (isHidden) continue;
+        
+        // If we have already processed this group (e.g. the 2nd checkbox in a list of 5), skip it
+        if (processedGroups.has(groupName)) continue;
+
+        let answer = '';
+        
+        // Look up the question definition to check if it is "Required"
+        // We assume 'allQuestions' is available globally (same as in renderDynamicForms)
+        const questionDef = allQuestions.find(q => q.QuestionID === qId);
+        const isRequired = questionDef && String(questionDef.IsRequired).trim().toLowerCase() === 'true';
+
+        // --- HANDLE RADIOS ---
+        if (input.type === 'radio') {
+            processedGroups.add(groupName);
+            const selected = DOMElements.dynamicFormsContainer.querySelector(`input[name="${groupName}"]:checked`);
+            answer = selected ? selected.value : '';
+
+            // Custom Validation for Radios
+            if (isRequired && !answer) {
+                isFormValid = false;
+                if (!firstInvalidElement) firstInvalidElement = input;
+            }
+
+        // --- HANDLE CHECKBOXES (Multi-Select) ---
+        } else if (input.type === 'checkbox') {
+            processedGroups.add(groupName);
+            
+            // Get ALL checked boxes for this specific question
+            const checkedBoxes = DOMElements.dynamicFormsContainer.querySelectorAll(`input[name="${groupName}"]:checked`);
+            
+            // Join values with a comma to create a SINGLE string (e.g., "Red, Blue, Green")
+            answer = Array.from(checkedBoxes).map(cb => cb.value).join(', ');
+
+            // Custom Validation for Checkboxes (Must have at least one selected if required)
+            if (isRequired && answer === '') {
+                isFormValid = false;
+                if (!firstInvalidElement) firstInvalidElement = input;
+            }
+
+        // --- HANDLE TEXT, DATE, TEXTAREA, SELECT ---
+        } else {
+            // These inputs are unique per question, so no grouping needed usually, 
+            // but we add to processedGroups just in case to be safe.
+            processedGroups.add(groupName); 
+            answer = input.value;
+
+            // Simple value check
+            if (isRequired && !answer.trim()) {
+                isFormValid = false;
+                if (!firstInvalidElement) firstInvalidElement = input;
+            }
+        }
+
+        // Add to responses array
+        if (qId) {
+            formResponses.push({
+                questionId: qId,
+                answer: answer
+            });
+        }
+    }
+
+    // Inside submitBooking function
     const selectedServices = Array.from(document.querySelectorAll('.service-selector:checked'))
         .map(cb => ({
             id: cb.value,
@@ -722,85 +798,23 @@ async function submitBooking(e) {
         return;
     }
 
-    showLoading("Preparing your files...");
-    clearInterval(timerInterval);
-
-    // --- 4. MEDICAL RECORDS ---
-    const medicalRecords = DOMElements.hasRecordsCheck.checked 
-        ? await readFilesAsBase64(DOMElements.medicalRecordsUpload) 
-        : [];
-
-    // --- 5. DYNAMIC ANSWERS & VALIDATION ---
-    const formResponses = [];
-    const dynamicInputs = DOMElements.dynamicFormsContainer.querySelectorAll('[data-question-id]');
-    const processedGroups = new Set();
-    let isFormValid = true;
-    let firstInvalidElement = null;
-
-    // Verify allQuestions is actually available before looping
-    if (!allQuestions || allQuestions.length === 0) {
-        handleError("Form data is still loading. Please wait a moment and try again.");
-        return;
-    }
-
-    for (const input of dynamicInputs) {
-        const qId = input.dataset.questionId;
-        const groupName = input.name; 
-
-        // FIX: Skip validation if the input is hidden by Conditional Logic or Service Selection
-        if (input.closest('.d-none')) continue; 
-
-        // FIX: Handle potential CSV header spaces when finding question definition
-        const questionDef = allQuestions.find(q => {
-            const cleanID = (q.QuestionID || q['QuestionID '] || "").trim();
-            return cleanID === qId;
-        });
-
-        if (!questionDef) continue;
-        if (processedGroups.has(groupName)) continue;
-
-        let answer = '';
-        const isRequired = String(questionDef.IsRequired || questionDef['IsRequired '] || "false").trim().toLowerCase() === 'true';
-
-        if (input.type === 'radio') {
-            processedGroups.add(groupName);
-            const selected = DOMElements.dynamicFormsContainer.querySelector(`input[name="${groupName}"]:checked`);
-            answer = selected ? selected.value : '';
-            if (isRequired && !answer) {
-                isFormValid = false;
-                if (!firstInvalidElement) firstInvalidElement = input;
-            }
-        } else if (input.type === 'checkbox') {
-            processedGroups.add(groupName);
-            const checkedBoxes = DOMElements.dynamicFormsContainer.querySelectorAll(`input[name="${groupName}"]:checked`);
-            answer = Array.from(checkedBoxes).map(cb => cb.value).join(', ');
-            if (isRequired && answer === '') {
-                isFormValid = false;
-                if (!firstInvalidElement) firstInvalidElement = input;
-            }
-        } else {
-            processedGroups.add(groupName); 
-            answer = input.value;
-            if (isRequired && !answer.trim()) {
-                isFormValid = false;
-                if (!firstInvalidElement) firstInvalidElement = input;
-            }
-        }
-
-        if (qId) {
-            formResponses.push({ questionId: qId, answer: answer });
-        }
-    }
-
-    // --- 6. STOP IF INVALID ---
+    // --- 5. STOP IF INVALID ---
     if (!isFormValid) {
-        hideLoading();
+        hideLoading(); // Hide the loading spinner
         alert("Please answer all required questions before submitting.");
-        if (firstInvalidElement) firstInvalidElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        return;
+        
+        // Optional: Scroll to the first missing question
+        if (firstInvalidElement) {
+            firstInvalidElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // If it's not a radio/checkbox, try to focus it
+            if (firstInvalidElement.type !== 'radio' && firstInvalidElement.type !== 'checkbox') {
+                firstInvalidElement.focus();
+            }
+        }
+        return; // Stop execution
     }
 
-    // --- 7. PREPARE DATA PACKAGE ---
+    // --- 6. PREPARE DATA PACKAGE ---
     const data = {
       eventId,
       slotTime: selectedSlotTime,
@@ -818,13 +832,9 @@ async function submitBooking(e) {
       vaxConsent: form.certifyConsent.checked
     };
 
-    // Gather demographics and insurance
-    ['firstName','middleName','lastName','dob','gender','race','ethnicity','street','city','state','zip','cell','home','email','ssn','parentName','parentRel','parentContact', 'school', 'grade'].forEach(id => {
-        if (form[id]) data.demographics[id] = form[id].value || '';
-    });
-    ['primaryIns','primaryPayer','primaryPlan','primaryId','primaryGroup','primaryPayerId','secondaryIns','secondaryPlan','secondaryId','secondaryGroup','secondaryPayerId'].forEach(id => {
-        if (form[id]) data.insurance[id] = form[id].value || '';
-    });
+    // Gather demographics and insurance (Same as before)
+    ['firstName','middleName','lastName','dob','gender','race','ethnicity','fullAddress','street','city','state','zip','cell','home','email','ssn','parentName','parentRel','parentContact', 'school', 'grade'].forEach(id => data.demographics[id] = form[id]?.value || '');
+    ['primaryIns','primaryPayer','primaryPlan','primaryId','primaryGroup','primaryPayerId','secondaryIns','secondaryPlan','secondaryId','secondaryGroup','secondaryPayerId'].forEach(id => data.insurance[id] = form[id]?.value || '');
 
     updateLoadingMessage("Submitting registration...");
     
@@ -832,7 +842,7 @@ async function submitBooking(e) {
         const response = await callAPI('submitForm', data);
         displayConfirmation(response, form);
     } catch (error) {
-        handleError("There was an error submitting your registration.", error);
+        handleError("There was an error submitting your registration. Please try again.", error);
     } finally {
         hideLoading();
     }
