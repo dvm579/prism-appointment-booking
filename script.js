@@ -470,6 +470,13 @@ function createQuestionElement(q) {
     const wrapper = document.createElement('div');
     wrapper.className = 'mb-3';
 
+    // NEW: Check for conditional triggers
+    if (q.TriggerID && q.TriggerID.trim() !== "") {
+        wrapper.classList.add('d-none', 'conditional-question');
+        wrapper.setAttribute('data-trigger-id', q.TriggerID.trim());
+        wrapper.setAttribute('data-trigger-value', q.TriggerValue ? q.TriggerValue.trim() : "Yes");
+    }
+    
     const isRequired = String(q.IsRequired || "false").trim().toLowerCase() === 'true';
     const reqAttr = isRequired ? 'required' : '';
 
@@ -534,6 +541,37 @@ function createQuestionElement(q) {
     inputWrapper.innerHTML = inputHtml;
     wrapper.appendChild(inputWrapper);
     return wrapper;
+}
+
+function initConditionalLogic() {
+    const container = DOMElements.dynamicFormsContainer;
+    
+    container.addEventListener('change', (e) => {
+        const changedInput = e.target;
+        const qId = changedInput.dataset.questionId;
+        if (!qId) return;
+
+        // Find all elements that depend on this question
+        const dependents = container.querySelectorAll(`[data-trigger-id="${qId}"]`);
+        
+        dependents.forEach(dep => {
+            const triggerVal = dep.getAttribute('data-trigger-value');
+            const isMatch = changedInput.type === 'radio' || changedInput.type === 'checkbox' 
+                ? (changedInput.checked && changedInput.value === triggerVal)
+                : (changedInput.value === triggerVal);
+
+            if (isMatch) {
+                dep.classList.remove('d-none');
+            } else {
+                dep.classList.add('d-none');
+                // Clear the value so it's not submitted if hidden
+                dep.querySelectorAll('input, select, textarea').forEach(input => {
+                    input.value = '';
+                    input.checked = false;
+                });
+            }
+        });
+    });
 }
 
 function renderDynamicForms(event) {
@@ -614,6 +652,7 @@ function renderDynamicForms(event) {
             }
         });
     });
+    initConditionalLogic();
 }
 
 async function submitBooking(e) {
@@ -673,6 +712,10 @@ async function submitBooking(e) {
         // NEW: Check if this question belongs to a selected service
         const parentSection = input.closest('.d-none');
         if (parentSection) continue; // Skip validation/scraping if the section is hidden
+
+        // Skip if the service section OR the specific question wrapper is hidden
+        const isHidden = input.closest('.d-none');
+        if (isHidden) continue;
         
         // If we have already processed this group (e.g. the 2nd checkbox in a list of 5), skip it
         if (processedGroups.has(groupName)) continue;
