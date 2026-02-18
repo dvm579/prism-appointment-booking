@@ -478,12 +478,12 @@ function createQuestionElement(q) {
     }
     
     const isRequired = String(q.IsRequired || "false").trim().toLowerCase() === 'true';
-    const reqAttr = isRequired ? 'required' : '';
+    // CHANGE: Don't set 'required' yet. Save it for later.
+    const wasReqAttr = isRequired ? 'data-was-required="true"' : 'data-was-required="false"';
 
     const label = document.createElement('label');
     label.className = 'form-label';
-    label.textContent = q.QuestionText;
-    label.setAttribute('for', q.QuestionID);
+    label.textContent = cleanQ.QuestionText;
     
     if (isRequired) {
         const asterisk = document.createElement('span');
@@ -493,8 +493,9 @@ function createQuestionElement(q) {
     }
     wrapper.appendChild(label);
 
+    // Add ${wasReqAttr} to every input/select/textarea below
     let inputHtml = '';
-    let optionsList = (q.Options || "").toString().split(',').map(opt => opt.trim());
+    let optionsList = (cleanQ.Options || "").toString().split(',').map(opt => opt.trim());
 
     switch (q.QuestionType) {
         case 'single_select':
