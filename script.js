@@ -296,8 +296,7 @@ function renderSlots() {
     }
 
     const now = new Date();
-    const dateParts = currentEvent.Date.split('/');
-    const eventDate = new Date(dateParts[2], dateParts[0] - 1, dateParts[1]);
+    const eventDate = new Date(currentEvent.Date);
 
     // First, determine which slots are actually available right now.
     const trulyAvailableSlots = eventSlots.filter(slot => {
@@ -781,7 +780,9 @@ async function submitBooking(e) {
         if (qId) {
             formResponses.push({
                 questionId: qId,
-                answer: answer
+                answer: answer,
+                // Send the FormID to the backend so it knows how to map it
+                formId: qDef ? qDef.FormID : ''
             });
         }
     }
