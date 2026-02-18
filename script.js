@@ -778,6 +778,9 @@ async function submitBooking(e) {
 
         // Add to responses array
         if (qId) {
+            // Find the question definition here, because 'allQuestions' exists in the frontend
+            const qDef = allQuestions.find(q => q.QuestionID === qId);
+            
             formResponses.push({
                 questionId: qId,
                 answer: answer,
