@@ -717,13 +717,19 @@ async function submitBooking(e) {
         const qId = input.dataset.questionId;
         const groupName = input.name; // This groups radios and checkboxes together
 
-        // NEW: Check if this question belongs to a selected service
-        const parentSection = input.closest('.d-none');
-        if (parentSection) continue; // Skip validation/scraping if the section is hidden
-
-        // Skip if the service section OR the specific question wrapper is hidden
-        const isHidden = input.closest('.d-none');
-        if (isHidden) continue;
+        // Check if the input is hidden (conditional logic)
+        if (input.closest('.d-none')) continue; 
+    
+        // Find the question definition from the global allQuestions array
+        const questionDef = allQuestions.find(q => {
+            // Handle potential hidden spaces in CSV headers by trimming keys
+            return (q.QuestionID || q['QuestionID ']) === qId;
+        });
+    
+        if (!questionDef) {
+            console.warn(`Question definition not found for ID: ${qId}`);
+            continue;
+        }
         
         // If we have already processed this group (e.g. the 2nd checkbox in a list of 5), skip it
         if (processedGroups.has(groupName)) continue;
