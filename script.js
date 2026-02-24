@@ -582,6 +582,13 @@ function initConditionalLogic() {
 }
 
 function renderDynamicForms(event) {
+    // A: Consent Accordion Logic
+    const consentContainer = document.getElementById('consent-body');
+    if (consentContainer) {
+        consentContainer.innerHTML = event && event['Consent HTML'] ? event['Consent HTML'] : '';
+    }
+
+    // B: Screening Forms Logic
     const container = DOMElements.dynamicFormsContainer;
     container.innerHTML = ''; 
 
