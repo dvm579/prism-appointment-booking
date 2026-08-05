@@ -1,0 +1,16 @@
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Apps Script tooling (credentials — must never be committed)
+.clasprc.json
+.clasp.json
+
+# Logs and scratch files
+*.log

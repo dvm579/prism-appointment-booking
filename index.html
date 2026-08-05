@@ -4,116 +4,118 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Register for Appointment | PRISM HEALTH</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="style.css" rel="stylesheet">
+    <meta name="description" content="Register for an upcoming Prism Health appointment: choose a time slot, complete your intake forms, and receive an emailed confirmation.">
+    <link rel="icon" href="assets/favicon.ico" sizes="any">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Caveat&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&family=Caveat&display=swap" rel="stylesheet">
+    <link href="assets/css/style.css" rel="stylesheet">
   </head>
   <body class="container-fluid container-md">
-<!--   LOADING OVERLAY     -->
-    <div id="loadingOverlay" style="
-        display: none;
-        position: fixed;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        background: rgba(255,255,255,0.8);
-        z-index: 9999;
-        align-items: center;
-        justify-content: center;
-    ">
+
+    <!-- LOADING OVERLAY -->
+    <div id="loadingOverlay" class="d-none" role="status" aria-live="polite">
       <div class="text-center">
-        <div class="spinner-border text-primary" role="status">
-          <span class="visually-hidden">Loading...</span>
+        <div class="spinner-border text-primary">
+          <span class="visually-hidden">Loading…</span>
         </div>
-        <div id="loadingMessage" class="mt-2" style="color: black;">Please wait…</div>
+        <div id="loadingMessage" class="mt-2">Please wait…</div>
       </div>
     </div>
 
-<!--     TRANSLATION BUTTONS     -->
-  <div class="row justify-content-center text-center mb-4">
+    <noscript>
+      <div class="alert alert-warning" role="alert">
+        This registration form needs JavaScript to run. Please enable JavaScript, or
+        call us at (800) 325-1812 and we will register you over the phone.
+      </div>
+    </noscript>
+
+    <!-- LANGUAGE SELECTION -->
+    <div class="row justify-content-center text-center mb-4">
       <div class="col-auto">
-          <div id="translation-buttons">
-              <button class="btn btn-outline-light btn-sm mx-1 notranslate" onclick="changeLanguage('en')">English</button>
-              <button class="btn btn-outline-light btn-sm mx-1 notranslate" onclick="changeLanguage('es')">Español</button>
-              <button class="btn btn-outline-light btn-sm mx-1 notranslate" onclick="changeLanguage('pl')">Polski</button>
-              <button class="btn btn-outline-light btn-sm mx-1 notranslate" onclick="changeLanguage('zh-CN')">中文</button>
-              <button class="btn btn-outline-light btn-sm mx-1 notranslate" onclick="changeLanguage('hi')">हिन्दी</button>
-              <button class="btn btn-outline-light btn-sm mx-1 notranslate" onclick="changeLanguage('ur')">اردو</button>
-              <button class="btn btn-outline-light btn-sm mx-1 notranslate" onclick="changeLanguage('ar')">العربية</button>
-          </div>
-          <div id="google_translate_element" style="display: none;"></div>
+        <div id="translationButtons">
+          <button type="button" class="btn btn-outline-light btn-sm mx-1 notranslate" data-lang="en">English</button>
+          <button type="button" class="btn btn-outline-light btn-sm mx-1 notranslate" data-lang="es">Español</button>
+          <button type="button" class="btn btn-outline-light btn-sm mx-1 notranslate" data-lang="pl">Polski</button>
+          <button type="button" class="btn btn-outline-light btn-sm mx-1 notranslate" data-lang="zh-CN">中文</button>
+          <button type="button" class="btn btn-outline-light btn-sm mx-1 notranslate" data-lang="hi">हिन्दी</button>
+          <button type="button" class="btn btn-outline-light btn-sm mx-1 notranslate" data-lang="ur">اردو</button>
+          <button type="button" class="btn btn-outline-light btn-sm mx-1 notranslate" data-lang="ar">العربية</button>
+        </div>
+        <div id="google_translate_element" class="d-none"></div>
       </div>
-  </div>
+    </div>
 
-<!--     PAGE HEADER     -->
+    <!-- PAGE HEADER -->
     <header class="container mb-5">
-        <div class="row align-items-center">
-            <div class="col-auto logo-wrapper">
-                <a href="https://www.prism.org/schoolhealth" target="_blank"><img id="logo" src="https://prism.org/wp-content/uploads/2021/01/1-03-1_white-2048x447.png" alt="Prism Health Logo" class="img-fluid" style="max-height:60px;"></a>
-            </div>
-            <div class="col text-center">
-                <h1 class="mb-0">Patient Registration</h1>
-            </div>
+      <div class="row align-items-center">
+        <div class="col-auto logo-wrapper">
+          <a href="https://www.prism.org/schoolhealth" target="_blank" rel="noopener">
+            <img id="logo" src="https://prism.org/wp-content/uploads/2021/01/1-03-1_white-2048x447.png" alt="Prism Health" class="img-fluid">
+          </a>
         </div>
+        <div class="col text-center">
+          <h1 class="mb-0">Patient Registration</h1>
+        </div>
+      </div>
     </header>
-    
-    <div>
-      <h2 class="d-flex justify-content-between align-items-center">
-        <span id="eventDetails"></span>
-      </h2>
+
+    <!-- STATUS MESSAGES -->
+    <div id="appAlert" class="d-none" role="alert">
+      <span id="appAlertMessage"></span>
+      <button type="button" class="btn-close" data-dismiss-alert aria-label="Dismiss message"></button>
     </div>
 
-<!-- EVENT SELECTION -->
-    <div id="eventSelectionSection" class="d-none">
+    <h2 class="d-flex justify-content-between align-items-center">
+      <span id="eventDetails"></span>
+    </h2>
+
+    <!-- EVENT SELECTION (campaignId / facilityId links) -->
+    <section id="eventSelectionSection" class="d-none">
       <h3 class="mb-4">Please Select an Event</h3>
-      <div id="eventCardsGrid" class="row">
-        </div>
-    </div>
+      <div id="eventCardsGrid" class="row"></div>
+    </section>
 
-<!--     SLOT SELECTION     -->
-    <div id="slotSection">
-      <h3 class="d-flex justify-content-between align-items-center">
-        <span>Select an Appointment Slot</span>
-      </h3>
+    <!-- SLOT SELECTION -->
+    <section id="slotSection">
+      <h3>Select an Appointment Slot</h3>
       <div id="slotsGrid"></div>
       <div id="waitlistSection" class="text-center my-4 d-none">
         <p>All appointment slots are currently full.</p>
-        <button id="joinWaitlistBtn" class="btn btn-primary">Join the Waitlist</button>
+        <button type="button" id="joinWaitlistBtn" class="btn btn-primary">Join the Waitlist</button>
       </div>
-    </div>
+    </section>
 
-<!--     FORM SECTION     -->
-    <div id="formSection" class="d-none">
-      <h3 class="d-flex justify-content-between align-items-center">
+    <!-- REGISTRATION FORM -->
+    <section id="formSection" class="d-none">
+      <div class="d-flex justify-content-between align-items-center mb-3">
         <button class="btn btn-outline-secondary" type="button" id="goBackButton">Back</button>
-        <span id="timer"></span>
-      </h3>
-      <h3 class="text-center">
-        <span>Complete Your Registration</span>
-      </h3>
-      <form id="regForm">
-        
+        <span id="timer" class="d-none" aria-live="off"></span>
+      </div>
+      <h3 class="text-center">Complete Your Registration</h3>
+
+      <form id="regForm" novalidate>
+
         <!-- Demographics -->
-        <div class="mb-4">
+        <fieldset class="mb-4">
           <h4>Patient Information</h4>
           <div class="row g-3">
             <div class="col-md-4">
               <label for="firstName" class="form-label">First Name<span class="text-danger">*</span></label>
-              <input type="text" class="form-control" id="firstName" name="firstName" required>
+              <input type="text" class="form-control" id="firstName" name="firstName" autocomplete="given-name" required>
             </div>
             <div class="col-md-4">
               <label for="middleName" class="form-label">Middle Name</label>
-              <input type="text" class="form-control" id="middleName" name="middleName">
+              <input type="text" class="form-control" id="middleName" name="middleName" autocomplete="additional-name">
             </div>
             <div class="col-md-4">
               <label for="lastName" class="form-label">Last Name<span class="text-danger">*</span></label>
-              <input type="text" class="form-control" id="lastName" name="lastName" required>
+              <input type="text" class="form-control" id="lastName" name="lastName" autocomplete="family-name" required>
             </div>
             <div class="col-md-4">
               <label for="dob" class="form-label">Date of Birth<span class="text-danger">*</span></label>
-              <input type="date" class="form-control" id="dob" name="dob" required>
+              <input type="date" class="form-control" id="dob" name="dob" autocomplete="bday" required>
             </div>
             <div class="col-md-4">
               <label for="gender" class="form-label">Gender<span class="text-danger">*</span></label>
@@ -157,38 +159,38 @@
               <input type="text" class="form-control" id="grade" name="grade">
             </div>
             <div id="parentFields" class="col-12 d-none">
-              <label class="form-label">Parent/Guardian Information<span class="text-danger">*</span></label>
+              <label for="parentName" class="form-label">Parent/Guardian Information<span class="text-danger">*</span></label>
               <div class="row g-3">
                 <div class="col-md-4">
-                  <input type="text" class="form-control" id="parentName" name="parentName" placeholder="Name">
+                  <input type="text" class="form-control" id="parentName" name="parentName" placeholder="Name" aria-label="Parent or guardian name">
                 </div>
                 <div class="col-md-4">
-                  <input type="text" class="form-control" id="parentRel" name="parentRel" placeholder="Relationship">
+                  <input type="text" class="form-control" id="parentRel" name="parentRel" placeholder="Relationship" aria-label="Relationship to patient">
                 </div>
                 <div class="col-md-4">
-                  <input type="tel" class="form-control" id="parentContact" name="parentContact" pattern="^(?:\(\d{3}\)\s*|\d{3}[.\-]?)\d{3}[.\-]?\d{4}$" placeholder="(XXX) XXX-XXXX">
+                  <input type="tel" class="form-control" id="parentContact" name="parentContact" placeholder="(XXX) XXX-XXXX" aria-label="Parent or guardian phone number" pattern="^(?:\(\d{3}\)\s*|\d{3}[.\-]?)\d{3}[.\-]?\d{4}$">
                 </div>
               </div>
             </div>
-            <div class="col-md-12">
+            <div class="col-12">
               <label for="street" class="form-label">Street Address</label>
-              <input type="text" class="form-control" id="street" name="street">
+              <input type="text" class="form-control" id="street" name="street" autocomplete="address-line1">
             </div>
             <div class="col-md-4">
               <label for="city" class="form-label">City</label>
-              <input type="text" class="form-control" id="city" name="city">
+              <input type="text" class="form-control" id="city" name="city" autocomplete="address-level2">
             </div>
             <div class="col-md-4">
               <label for="state" class="form-label">State</label>
-              <input type="text" class="form-control" id="state" name="state">
+              <input type="text" class="form-control" id="state" name="state" autocomplete="address-level1">
             </div>
             <div class="col-md-4">
               <label for="zip" class="form-label">Zip Code<span class="text-danger">*</span></label>
-              <input type="text" class="form-control" id="zip" name="zip" placeholder="12345" pattern="\d{5}" maxlength="5" inputmode="numeric" required>
+              <input type="text" class="form-control" id="zip" name="zip" placeholder="12345" pattern="\d{5}" maxlength="5" inputmode="numeric" autocomplete="postal-code" required>
             </div>
             <div class="col-md-6">
               <label for="cell" class="form-label">Cell Phone<span class="text-danger">*</span></label>
-              <input type="tel" class="form-control" id="cell" name="cell" placeholder="(XXX) XXX-XXXX" pattern="^(?:\(\d{3}\)\s*|\d{3}[.\-]?)\d{3}[.\-]?\d{4}$" required>
+              <input type="tel" class="form-control" id="cell" name="cell" placeholder="(XXX) XXX-XXXX" pattern="^(?:\(\d{3}\)\s*|\d{3}[.\-]?)\d{3}[.\-]?\d{4}$" autocomplete="tel" required>
             </div>
             <div class="col-md-6">
               <label for="home" class="form-label">Home Phone</label>
@@ -196,43 +198,54 @@
             </div>
             <div class="col-md-6">
               <label for="email" class="form-label">Email Address<span class="text-danger">*</span></label>
-              <input type="email" class="form-control" id="email" name="email" placeholder="user@example.com" pattern="^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$" required>
+              <input type="email" class="form-control" id="email" name="email" placeholder="user@example.com" pattern="^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$" autocomplete="email" required>
             </div>
             <div class="col-md-6">
               <label for="ssn" class="form-label">Social Security #</label>
-              <input type="text" class="form-control" id="ssn" name="ssn">
+              <input type="text" class="form-control" id="ssn" name="ssn" inputmode="numeric" autocomplete="off">
             </div>
           </div>
-        </div>
-        
+        </fieldset>
+
         <!-- Medical Records -->
         <div class="form-check mb-4">
-            <input class="form-check-input" type="checkbox" id="hasRecordsCheck">
-            <label class="form-check-label" for="hasRecordsCheck">
-                I have medical records to upload
-            </label>
+          <input class="form-check-input" type="checkbox" id="hasRecordsCheck">
+          <label class="form-check-label" for="hasRecordsCheck">I have medical records to upload</label>
         </div>
-        
-        <div class="mb-4 d-none" id="recordsSection">
-            <h4>Medical Records</h4>
-            <div class="row g-3">
-                <div class="col-12">
-                    <label for="medicalRecordsUpload" class="form-label">Upload Files</label>
-                    <input type="file" class="form-control" id="medicalRecordsUpload" name="medicalRecordsUpload" multiple accept=".pdf,image/*">
-                    <small class="form-text text-white-50">Accepts PDF and image files (25MB max).</small>
-                    <div id="fileList" class="mt-2 text-white-50"></div>
-                </div>
+        <fieldset class="mb-4 d-none" id="recordsSection">
+          <h4>Medical Records</h4>
+          <div class="col-12">
+            <label for="medicalRecordsUpload" class="form-label">Upload Files</label>
+            <input type="file" class="form-control" id="medicalRecordsUpload" name="medicalRecordsUpload" multiple accept=".pdf,image/*">
+            <small class="form-text text-white-50">Accepts PDF and image files, 15 MB total.</small>
+            <div id="fileList" class="mt-2 text-white-50"></div>
+          </div>
+        </fieldset>
+
+        <!-- Service selection and screening questionnaires (rendered from Service Types / Form Questions) -->
+        <div id="dynamicFormsContainer" class="mb-4"></div>
+
+        <!--
+          Insurance. Mounted from the template below only when a selected intake form
+          contains a `QuestionType = insurance` row. Kept in one fixed place so the
+          details survive a service being toggled off and back on.
+        -->
+        <div id="insuranceMount" class="mb-4 d-none"></div>
+        <template id="insuranceTemplate">
+          <fieldset>
+            <h4>Insurance</h4>
+            <div class="mb-3">
+              <span class="form-label d-block">Do you have health insurance?<span class="text-danger ms-1">*</span></span>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="hasInsurance" id="insuranceNone" value="no">
+                <label class="form-check-label" for="insuranceNone">I am uninsured</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="hasInsurance" id="insuranceYes" value="yes">
+                <label class="form-check-label" for="insuranceYes">I have insurance</label>
+              </div>
             </div>
-        </div>
-        
-        <!-- Insurance -->
-        <div class="form-check mb-4">
-          <input class="form-check-input" type="checkbox" id="hasInsuranceCheck">
-          <label class="form-check-label" for="hasInsuranceCheck"> I have insurance information to provide </label>
-        </div>
-        <div class="mb-4 d-none" id="insuranceSection">
-          <h4>Insurance</h4>
-          <div class="row g-3">
+            <div class="row g-3 d-none" id="insuranceDetails">
             <div class="col-md-6">
               <label for="primaryIns" class="form-label">Primary Insurance</label>
               <input type="text" class="form-control" id="primaryIns" name="primaryIns">
@@ -277,163 +290,142 @@
               <label for="secondaryPayerId" class="form-label">Secondary Insurance Payer ID</label>
               <input type="text" class="form-control" id="secondaryPayerId" name="secondaryPayerId">
             </div>
-          </div>
-        </div>
+            </div>
+          </fieldset>
+        </template>
 
-<!--         Screening Questionnaire       -->
-        <div id="dynamicFormsContainer" class="mb-4"></div>
-        
         <!-- Consent & Signature -->
-        <div class="mb-4">
+        <fieldset class="mb-4">
           <h4>Consent &amp; Signature</h4>
+
           <div class="mb-3">
-            <label class="form-label">
-              <b>How would you like to receive informational updates about this program?</b> We'll contact you for scheduling, reminders, results, and to collect necessary records. Please note that automated systems may be used. Please select all that apply: <span class="text-danger">*</span>
-            </label>
+            <span class="form-label d-block">
+              <b>How would you like to receive informational updates about this program?</b>
+              We'll contact you for scheduling, reminders, results, and to collect necessary
+              records. Please note that automated systems may be used. Please select all that
+              apply: <span class="text-danger">*</span>
+            </span>
             <div class="form-check">
-              <input class="form-check-input" type="checkbox" value="" id="consentEmails" name="consentEmails" checked>
-              <label class="form-check-label" for="consentEmails"> Emails </label>
+              <input class="form-check-input" type="checkbox" id="consentEmails" name="consentEmails" checked>
+              <label class="form-check-label" for="consentEmails">Emails</label>
             </div>
             <div class="form-check">
-              <input class="form-check-input" type="checkbox" value="" id="consentCalls" name="consentCalls" checked>
-              <label class="form-check-label" for="consentCalls"> Phone Calls </label>
+              <input class="form-check-input" type="checkbox" id="consentCalls" name="consentCalls" checked>
+              <label class="form-check-label" for="consentCalls">Phone Calls</label>
             </div>
             <div class="form-check">
-              <input class="form-check-input" type="checkbox" value="" id="consentTexts" name="consentTexts" checked>
-              <label class="form-check-label" for="consentTexts"> Text Messages <br><span style="font-size: 8pt; color: LightGray;"> I agree to receive numerous text messages regarding health services from Prism Health at the number I provided. Msg & data rates may apply. Reply STOP to no longer receive messages. Message frequency varies. Text HELP to (740) 847-1515 or email <a href="mailto:info@prism.org" target="_blank">info@prism.org</a> for assistance. View our <a href="https://prism.org/terms-and-conditions/" target="_blank">Terms of Service</a> and <a href="https://prism.org/Notice%20of%20Privacy%20Practices-%20Prism.pdf" target="_blank">Privacy Policy</a>.</span></label>
+              <input class="form-check-input" type="checkbox" id="consentTexts" name="consentTexts" checked>
+              <label class="form-check-label" for="consentTexts">
+                Text Messages
+                <br>
+                <span class="consent-fineprint">
+                  I agree to receive numerous text messages regarding health services from
+                  Prism Health at the number I provided. Msg &amp; data rates may apply. Reply
+                  STOP to no longer receive messages. Message frequency varies. Text HELP to
+                  (740) 847-1515 or email <a href="mailto:info@prism.org">info@prism.org</a>
+                  for assistance. View our
+                  <a href="https://prism.org/terms-and-conditions/" target="_blank" rel="noopener">Terms of Service</a>
+                  and
+                  <a href="https://prism.org/Notice%20of%20Privacy%20Practices-%20Prism.pdf" target="_blank" rel="noopener">Privacy Policy</a>.
+                </span>
+              </label>
             </div>
           </div>
+
           <div class="accordion mb-3" id="privacyAccordion">
             <div class="accordion-item">
-              <h2 class="accordion-header" id="headingTwo">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#privacyCollapse" aria-expanded="false" aria-controls="privacyCollapse">
                   <strong>Privacy Notice</strong>
                 </button>
               </h2>
-              <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#privacyAccordion">
+              <div id="privacyCollapse" class="accordion-collapse collapse" data-bs-parent="#privacyAccordion">
                 <div class="accordion-body">
-                  <div style="text-align: center;">
-                    <h2>PRISM HEALTH LAB NOTICE OF PRIVACY PRACTICES</h2>
-                    <p>
-                      <b>THIS NOTICE DESCRIBES HOW MEDICAL INFORMATION ABOUT YOU MAY BE USED AND DISCLOSED AND HOW YOU CAN GET ACCESS TO THIS INFORMATION.</b>
-                    </p>
-                    <p>
-                      <b>PLEASE REVIEW IT CAREFULLY.</b>
-                    </p>
+                  <div class="text-center">
+                    <h3>PRISM HEALTH LAB NOTICE OF PRIVACY PRACTICES</h3>
+                    <p><b>THIS NOTICE DESCRIBES HOW MEDICAL INFORMATION ABOUT YOU MAY BE USED AND DISCLOSED AND HOW YOU CAN GET ACCESS TO THIS INFORMATION.</b></p>
+                    <p><b>PLEASE REVIEW IT CAREFULLY.</b></p>
                   </div>
-                  <p>This Notice of Privacy Practices describes how we may use and disclose your protected health information to carry out treatment, payment or health care operations and for other purposes that are permitted or required by law. It also describes your rights to access and control your protected health information. 'Protected health information' is information about you, including demographic information, that may identify you and that relates to your past, present or future physical or mental health or condition and related health care services. We are required to abide by the terms of this Notice of Privacy Practices. We may change the terms of our notice, at any time. The new notice will be effective for all protected health information that we maintain at that time. Upon your request, we will provide you with any revised Notice of Privacy Practices. You may request a revised version by accessing our website, or calling the office and requesting that a revised copy be sent to you in the mail or asking for one at the time of your next appointment. </p>
+                  <p>This Notice of Privacy Practices describes how we may use and disclose your protected health information to carry out treatment, payment or health care operations and for other purposes that are permitted or required by law. It also describes your rights to access and control your protected health information. 'Protected health information' is information about you, including demographic information, that may identify you and that relates to your past, present or future physical or mental health or condition and related health care services. We are required to abide by the terms of this Notice of Privacy Practices. We may change the terms of our notice, at any time. The new notice will be effective for all protected health information that we maintain at that time. Upon your request, we will provide you with any revised Notice of Privacy Practices. You may request a revised version by accessing our website, or calling the office and requesting that a revised copy be sent to you in the mail or asking for one at the time of your next appointment.</p>
+
                   <h4>1. Uses and Disclosures of Protected Health Information</h4>
-                  <p>Your protected health information may be used and disclosed by your physician, our office staff and others outside our office who are involved in your care and treatment for the purpose of providing health care services to you. Your protected health information may also be used and disclosed to pay your health care bills and to support the operation of your physician's practice. Following are examples of the types of uses and disclosures of your protected health information that your physician's office is permitted to make. These examples are not meant to be exhaustive, but to describe the types of uses and disclosures that may be made by our office. </p>
-                  <p>
-                    <b>Treatment:</b> We will use and disclose your protected health information to provide, coordinate, or manage your health care and any related services. This includes the coordination or management of your health care with another provider. For example, we would disclose your protected health information, as necessary, to a home health agency that provides care to you. We will also disclose protected health information to other physicians who may be treating you. For example, your protected health information may be provided to a physician to whom you have been referred to ensure that the physician has the necessary information to diagnose or treat you. In addition, we may disclose your protected health information from time-to-time to another physician or health care provider (e.g., a specialist or laboratory) who, at the request of your physician, becomes involved in your care by providing assistance with your health care diagnosis or treatment to your physician.
-                  </p>
-                  <p>
-                    <b>Payment:</b> Your protected health information will be used and disclosed, as needed, to obtain payment for your health care services provided by us or by another provider. This may include certain activities that your health insurance plan may undertake before it approves or pays for the health care services we recommend for you such as: making a determination of eligibility or coverage for insurance benefits, reviewing services provided to you for medical necessity, and undertaking utilization review activities. For example, obtaining approval for a hospital stay may require that your relevant protected health information be disclosed to the health plan to obtain approval for the hospital admission.
-                  </p>
-                  <p>
-                    <b>Health Care Operations:</b> We may use or disclose, as needed, your protected health information in order to support the business activities of your physician's practice. These activities include, but are not limited to, quality assessment activities, employee review activities, training of medical students, licensing, fundraising activities, and conducting or arranging for other business activities. We will share your protected health information with third party 'business associates' that perform various activities (for example, billing or transcription services) for our practice. Whenever an arrangement between our office and a business associate involves the use or disclosure of your protected health information, we will have a written contract that contains terms that will protect the privacy of your protected health information. We may use or disclose your protected health information, as necessary, to provide you with information about treatment alternatives or other health-related benefits and services that may be of interest to you. You may contact our Privacy Officer to request that these materials not be sent to you.
-                  </p>
-                  <h4>Other Permitted and Required Uses and Disclosures That May Be Made Without Your Authorization or Opportunity to Agree or Object.</h4>
-                  <p>We may use or disclose your protected health information in the following situations without your authorization or providing you the opportunity to agree or object. These situations include.</p>
-                  <p>
-                    <b>Required By Law:</b> We may use or disclose your protected health information to the extent that the use or disclosure is required by law. The use or disclosure will be made in compliance with the law and will be limited to the relevant requirements of the law. You will be notified, if required by law, of any such uses or disclosures.
-                  </p>
-                  <p>
-                    <b>Public Health:</b> We may disclose your protected health information for public health activities and purposes to a public health authority that is permitted by law to collect or receive the information. For example, a disclosure may be made for the purpose of preventing or controlling disease, injury or disability.
-                  </p>
-                  <p>
-                    <b>Communicable Diseases:</b> We may disclose your protected health information, if authorized by law, to a person who may have been exposed to a communicable disease or may otherwise be at risk of contracting or spreading the disease or condition.
-                  </p>
-                  <p>
-                    <b>Health Oversight:</b> We may disclose protected health information to a health oversight agency for activities authorized by law, such as audits, investigations, and inspections. Oversight agencies seeking this information include government agencies that oversee the health care system, government benefit programs, other government regulatory programs and civil rights laws.
-                  </p>
-                  <p>
-                    <b>Abuse or Neglect:</b> We may disclose your protected health information to a public health authority that is authorized by law to receive reports of child abuse or neglect. In addition, we may disclose your protected health information if we believe that you have been a victim of abuse, neglect or domestic violence to the governmental entity or agency authorized to receive such information. In this case, the disclosure will be made consistent with the requirements of applicable federal and state laws.
-                  </p>
-                  <p>
-                    <b>Food and Drug Administration:</b> We may disclose your protected health information to a person or company required by the Food and Drug Administration for the purpose of quality, safety, or effectiveness of FDA-regulated products or activities including, to report adverse events, product defects or problems, biologic product deviations, to track products; to enable product recalls; to make repairs or replacements, or to conduct post marketing surveillance, as required. [cite: 50, 51]
-                  </p>
-                  <p>
-                    <b>Legal Proceedings:</b> We may disclose protected health information in the course of any judicial or administrative proceeding, in response to an order of a court or administrative tribunal (to the extent such disclosure is expressly authorized), or in certain conditions in response to a subpoena, discovery request or other lawful process.
-                  </p>
-                  <p>
-                    <b>Law Enforcement:</b> We may also disclose protected health information, so long as applicable legal requirements are met, for law enforcement purposes. These law enforcement purposes include (1) legal processes and otherwise required by law, (2) limited information requests for identification and location purposes, (3) pertaining to victims of a crime, (4) suspicion that death has occurred as a result of criminal conduct, (5) in the event that a crime occurs on the premises of our practice, and (6) medical emergency (not on our practice's premises) and it is likely that a crime has occurred.
-                  </p>
-                  <p>
-                    <b>Coroners, Funeral Directors, and Organ Donation:</b> We may disclose protected health information to a coroner or medical examiner for identification purposes, determining cause of death or for the coroner or medical examiner to perform other duties authorized by law. We may also disclose protected health information to a funeral director, as authorized by law, in order to permit the funeral director to carry out their duties. We may disclose such information in reasonable anticipation of death. Protected health information may be used and disclosed for cadaveric organ, eye or tissue donation purposes.
-                  </p>
-                  <p>
-                    <b>Research:</b> We may disclose your protected health information to researchers when their research has been approved by an institutional review board that has reviewed the research proposal and established protocols to ensure the privacy of your protected health information.
-                  </p>
-                  <p>
-                    <b>Criminal Activity:</b> Consistent with applicable federal and state laws, we may disclose your protected health information, if we believe that the use or disclosure is necessary to prevent or lessen a serious and imminent threat to the health or safety of a person or the public. We may also disclose protected health information if it is necessary for law enforcement authorities to identify or apprehend an individual.
-                  </p>
-                  <p>
-                    <b>Military Activity and National Security:</b> When the appropriate conditions apply, we may use or disclose protected health information of individuals who are Armed Forces personnel (1) for activities deemed necessary by appropriate military command authorities; (2) for the purpose of a determination by the Department of Veterans Affairs of your eligibility for benefits, or (3) to foreign military authority if you are a member of that foreign military services. [cite: 64, 65] We may also disclose your protected health information to authorized federal officials for conducting national security and intelligence activities, including for the provision of protective services to the President or others legally authorized.
-                  </p>
-                  <p>
-                    <b>Workers' Compensation:</b> We may disclose your protected health information as authorized to comply with workers' compensation laws and other similar legally-established programs.
-                  </p>
-                  <p>
-                    <b>Inmates:</b> We may use or disclose your protected health information if you are an inmate of a correctional facility and your physician created or received your protected health information in the course of providing care to you.
-                  </p>
-                  <h4>Uses and Disclosures of Protected Health Information Based upon Your Written Authorization:</h4>
-                  <p>Other uses and disclosures of your protected health information will be made only with your written authorization, unless otherwise permitted or required by law as described below. You may revoke this authorization in writing at any time. If you revoke your authorization, we will no longer use or disclose your protected health information for the reasons covered by your written authorization. Please understand that we are unable to take back any disclosures already made with your authorization. </p>
-                  <h4>Other Permitted and Required Uses and Disclosures That Require Providing You the Opportunity to Agree or Object:</h4>
-                  <p>We may use and disclose your protected health information in the following instances. You have the opportunity to agree or object to the use or disclosure of all or part of your protected health information. If you are not present or able to agree or object to the use or disclosure of the protected health information, then your physician may, using professional judgment, determine whether the disclosure is in your best interest. </p>
-                  <p>
-                    <b>Facility Directories:</b> Unless you object, we will use and disclose in our facility directory your name, the location at which you are receiving care, your general condition (such as fair or stable), and your religious affiliation. All of this information, except religious affiliation, will be disclosed to people that ask for you by name. Your religious affiliation will be only given to a member of the clergy, such as a priest or rabbi.
-                  </p>
-                  <p>
-                    <b>Others Involved in Your Health Care or Payment for your Care:</b> Unless you object, we may disclose to a member of your family, a relative, a close friend or any other person you identify, your protected health information that directly relates to that person's involvement in your health care. If you are unable to agree or object to such a disclosure, we may disclose such information as necessary if we determine that it is in your best interest based on our professional judgment. We may use or disclose protected health information to notify or assist in notifying a family member, personal representative or any other person that is responsible for your care of your location, general condition or death. Finally, we may use or disclose your protected health information to an authorized public or private entity to assist in disaster relief efforts and to coordinate uses and disclosures to family or other individuals involved in your health care.
-                  </p>
+                  <p>Your protected health information may be used and disclosed by your physician, our office staff and others outside our office who are involved in your care and treatment for the purpose of providing health care services to you. Your protected health information may also be used and disclosed to pay your health care bills and to support the operation of your physician's practice. Following are examples of the types of uses and disclosures of your protected health information that your physician's office is permitted to make. These examples are not meant to be exhaustive, but to describe the types of uses and disclosures that may be made by our office.</p>
+                  <p><b>Treatment:</b> We will use and disclose your protected health information to provide, coordinate, or manage your health care and any related services. This includes the coordination or management of your health care with another provider. For example, we would disclose your protected health information, as necessary, to a home health agency that provides care to you. We will also disclose protected health information to other physicians who may be treating you. For example, your protected health information may be provided to a physician to whom you have been referred to ensure that the physician has the necessary information to diagnose or treat you. In addition, we may disclose your protected health information from time-to-time to another physician or health care provider (e.g., a specialist or laboratory) who, at the request of your physician, becomes involved in your care by providing assistance with your health care diagnosis or treatment to your physician.</p>
+                  <p><b>Payment:</b> Your protected health information will be used and disclosed, as needed, to obtain payment for your health care services provided by us or by another provider. This may include certain activities that your health insurance plan may undertake before it approves or pays for the health care services we recommend for you such as: making a determination of eligibility or coverage for insurance benefits, reviewing services provided to you for medical necessity, and undertaking utilization review activities. For example, obtaining approval for a hospital stay may require that your relevant protected health information be disclosed to the health plan to obtain approval for the hospital admission.</p>
+                  <p><b>Health Care Operations:</b> We may use or disclose, as needed, your protected health information in order to support the business activities of your physician's practice. These activities include, but are not limited to, quality assessment activities, employee review activities, training of medical students, licensing, fundraising activities, and conducting or arranging for other business activities. We will share your protected health information with third party 'business associates' that perform various activities (for example, billing or transcription services) for our practice. Whenever an arrangement between our office and a business associate involves the use or disclosure of your protected health information, we will have a written contract that contains terms that will protect the privacy of your protected health information. We may use or disclose your protected health information, as necessary, to provide you with information about treatment alternatives or other health-related benefits and services that may be of interest to you. You may contact our Privacy Officer to request that these materials not be sent to you.</p>
+
+                  <h4>Other Permitted and Required Uses and Disclosures That May Be Made Without Your Authorization or Opportunity to Agree or Object</h4>
+                  <p>We may use or disclose your protected health information in the following situations without your authorization or providing you the opportunity to agree or object. These situations include:</p>
+                  <p><b>Required By Law:</b> We may use or disclose your protected health information to the extent that the use or disclosure is required by law. The use or disclosure will be made in compliance with the law and will be limited to the relevant requirements of the law. You will be notified, if required by law, of any such uses or disclosures.</p>
+                  <p><b>Public Health:</b> We may disclose your protected health information for public health activities and purposes to a public health authority that is permitted by law to collect or receive the information. For example, a disclosure may be made for the purpose of preventing or controlling disease, injury or disability.</p>
+                  <p><b>Communicable Diseases:</b> We may disclose your protected health information, if authorized by law, to a person who may have been exposed to a communicable disease or may otherwise be at risk of contracting or spreading the disease or condition.</p>
+                  <p><b>Health Oversight:</b> We may disclose protected health information to a health oversight agency for activities authorized by law, such as audits, investigations, and inspections. Oversight agencies seeking this information include government agencies that oversee the health care system, government benefit programs, other government regulatory programs and civil rights laws.</p>
+                  <p><b>Abuse or Neglect:</b> We may disclose your protected health information to a public health authority that is authorized by law to receive reports of child abuse or neglect. In addition, we may disclose your protected health information if we believe that you have been a victim of abuse, neglect or domestic violence to the governmental entity or agency authorized to receive such information. In this case, the disclosure will be made consistent with the requirements of applicable federal and state laws.</p>
+                  <p><b>Food and Drug Administration:</b> We may disclose your protected health information to a person or company required by the Food and Drug Administration for the purpose of quality, safety, or effectiveness of FDA-regulated products or activities including, to report adverse events, product defects or problems, biologic product deviations, to track products; to enable product recalls; to make repairs or replacements, or to conduct post marketing surveillance, as required.</p>
+                  <p><b>Legal Proceedings:</b> We may disclose protected health information in the course of any judicial or administrative proceeding, in response to an order of a court or administrative tribunal (to the extent such disclosure is expressly authorized), or in certain conditions in response to a subpoena, discovery request or other lawful process.</p>
+                  <p><b>Law Enforcement:</b> We may also disclose protected health information, so long as applicable legal requirements are met, for law enforcement purposes. These law enforcement purposes include (1) legal processes and otherwise required by law, (2) limited information requests for identification and location purposes, (3) pertaining to victims of a crime, (4) suspicion that death has occurred as a result of criminal conduct, (5) in the event that a crime occurs on the premises of our practice, and (6) medical emergency (not on our practice's premises) and it is likely that a crime has occurred.</p>
+                  <p><b>Coroners, Funeral Directors, and Organ Donation:</b> We may disclose protected health information to a coroner or medical examiner for identification purposes, determining cause of death or for the coroner or medical examiner to perform other duties authorized by law. We may also disclose protected health information to a funeral director, as authorized by law, in order to permit the funeral director to carry out their duties. We may disclose such information in reasonable anticipation of death. Protected health information may be used and disclosed for cadaveric organ, eye or tissue donation purposes.</p>
+                  <p><b>Research:</b> We may disclose your protected health information to researchers when their research has been approved by an institutional review board that has reviewed the research proposal and established protocols to ensure the privacy of your protected health information.</p>
+                  <p><b>Criminal Activity:</b> Consistent with applicable federal and state laws, we may disclose your protected health information, if we believe that the use or disclosure is necessary to prevent or lessen a serious and imminent threat to the health or safety of a person or the public. We may also disclose protected health information if it is necessary for law enforcement authorities to identify or apprehend an individual.</p>
+                  <p><b>Military Activity and National Security:</b> When the appropriate conditions apply, we may use or disclose protected health information of individuals who are Armed Forces personnel (1) for activities deemed necessary by appropriate military command authorities; (2) for the purpose of a determination by the Department of Veterans Affairs of your eligibility for benefits, or (3) to foreign military authority if you are a member of that foreign military services. We may also disclose your protected health information to authorized federal officials for conducting national security and intelligence activities, including for the provision of protective services to the President or others legally authorized.</p>
+                  <p><b>Workers' Compensation:</b> We may disclose your protected health information as authorized to comply with workers' compensation laws and other similar legally-established programs.</p>
+                  <p><b>Inmates:</b> We may use or disclose your protected health information if you are an inmate of a correctional facility and your physician created or received your protected health information in the course of providing care to you.</p>
+
+                  <h4>Uses and Disclosures of Protected Health Information Based upon Your Written Authorization</h4>
+                  <p>Other uses and disclosures of your protected health information will be made only with your written authorization, unless otherwise permitted or required by law as described below. You may revoke this authorization in writing at any time. If you revoke your authorization, we will no longer use or disclose your protected health information for the reasons covered by your written authorization. Please understand that we are unable to take back any disclosures already made with your authorization.</p>
+
+                  <h4>Other Permitted and Required Uses and Disclosures That Require Providing You the Opportunity to Agree or Object</h4>
+                  <p>We may use and disclose your protected health information in the following instances. You have the opportunity to agree or object to the use or disclosure of all or part of your protected health information. If you are not present or able to agree or object to the use or disclosure of the protected health information, then your physician may, using professional judgment, determine whether the disclosure is in your best interest.</p>
+                  <p><b>Facility Directories:</b> Unless you object, we will use and disclose in our facility directory your name, the location at which you are receiving care, your general condition (such as fair or stable), and your religious affiliation. All of this information, except religious affiliation, will be disclosed to people that ask for you by name. Your religious affiliation will be only given to a member of the clergy, such as a priest or rabbi.</p>
+                  <p><b>Others Involved in Your Health Care or Payment for your Care:</b> Unless you object, we may disclose to a member of your family, a relative, a close friend or any other person you identify, your protected health information that directly relates to that person's involvement in your health care. If you are unable to agree or object to such a disclosure, we may disclose such information as necessary if we determine that it is in your best interest based on our professional judgment. We may use or disclose protected health information to notify or assist in notifying a family member, personal representative or any other person that is responsible for your care of your location, general condition or death. Finally, we may use or disclose your protected health information to an authorized public or private entity to assist in disaster relief efforts and to coordinate uses and disclosures to family or other individuals involved in your health care.</p>
+
                   <h4>2. Your Rights</h4>
-                  <p>Following is a statement of your rights with respect to your protected health information and a brief description of how you may exercise these rights. </p>
-                  <p>
-                    <b>You have the right to inspect and copy your protected health information.</b> This means you may inspect and obtain a copy of protected health information about you for so long as we maintain the protected health information. [cite: 87, 88] You may obtain your medical record that contains medical and billing records and any other records that your physician and the practice uses for making decisions about you. As permitted by federal or state law, we may charge you a reasonable copy fee for a copy of your records. Under federal law, however, you may not inspect or copy the following records: psychotherapy notes; information compiled in reasonable anticipation of, or use in, a civil, criminal, or administrative action or proceeding; and laboratory results that are subject to law that prohibits access to protected health information. [cite: 91, 92, 93] Depending on the circumstances, a decision to deny access may be reviewable. [cite: 94, 97] In some circumstances, you may have a right to have this decision reviewed. Please contact our Privacy Officer if you have questions about access to your medical record.
-                  </p>
-                  <p>
-                    <b>You have the right to request a restriction of your protected health information.</b> This means you may ask us not to use or disclose any part of your protected health information for the purposes of treatment, payment or health care operations. [cite: 99, 100] You may also request that any part of your protected health information not be disclosed to family members or friends who may be involved in your care or for notification purposes as described in this Notice of Privacy Practices. Your request must state the specific restriction requested and to whom you want the restriction to apply. Your physician is not required to agree to a restriction that you may request. If your physician does agree to the requested restriction, we may not use or disclose your protected health information in violation of that restriction unless it is needed to provide emergency treatment. With this in mind, please discuss any restriction you wish to request with your physician.
-                  </p>
-                  <p>
-                    <b>You have the right to request to receive confidential communications from us by alternative means or at an alternative location.</b> We will accommodate reasonable requests. [cite: 106, 107] We may also condition this accommodation by asking you for information as to how payment will be handled or specification of an alternative address or other method of contact. We will not request an explanation from you as to the basis for the request. Please make this request in writing to our Privacy Officer.
-                  </p>
-                  <p>
-                    <b>You may have the right to have your physician amend your protected health information.</b> This means you may request an amendment of protected health information about you in a designated record set for so long as we maintain this information. [cite: 110, 111] In certain cases, we may deny your request for an amendment. If we deny your request for amendment, you have the right to file a statement of disagreement with us, and we may prepare a rebuttal to your statement and will provide you with a copy of any such rebuttal. Please contact our Privacy Officer if you have questions about amending your medical record.
-                  </p>
-                  <p>
-                    <b>You have the right to receive an accounting of certain disclosures we have made, if any, of your protected health information.</b> This right applies to disclosures for purposes other than treatment, payment or health care operations as described in this Notice of Privacy Practices. [cite: 115, 116] It excludes disclosures we may have made to you if you authorized us to make the disclosure, for a facility directory, to family members or friends involved in your care, or for notification purposes, for national security or intelligence, to law enforcement (as provided in the privacy rule) or correctional facilities, as part of a limited data set disclosure. You have the right to receive specific information regarding these disclosures that occur after April 14, 2003. The right to receive this information is subject to certain exceptions, restrictions and limitations.
-                  </p>
-                  <p>
-                    <b>You have the right to obtain a paper copy of this notice from us, upon request, even if you have agreed to accept this notice electronically.</b>
-                  </p>
+                  <p>Following is a statement of your rights with respect to your protected health information and a brief description of how you may exercise these rights.</p>
+                  <p><b>You have the right to inspect and copy your protected health information.</b> This means you may inspect and obtain a copy of protected health information about you for so long as we maintain the protected health information. You may obtain your medical record that contains medical and billing records and any other records that your physician and the practice uses for making decisions about you. As permitted by federal or state law, we may charge you a reasonable copy fee for a copy of your records. Under federal law, however, you may not inspect or copy the following records: psychotherapy notes; information compiled in reasonable anticipation of, or use in, a civil, criminal, or administrative action or proceeding; and laboratory results that are subject to law that prohibits access to protected health information. Depending on the circumstances, a decision to deny access may be reviewable. In some circumstances, you may have a right to have this decision reviewed. Please contact our Privacy Officer if you have questions about access to your medical record.</p>
+                  <p><b>You have the right to request a restriction of your protected health information.</b> This means you may ask us not to use or disclose any part of your protected health information for the purposes of treatment, payment or health care operations. You may also request that any part of your protected health information not be disclosed to family members or friends who may be involved in your care or for notification purposes as described in this Notice of Privacy Practices. Your request must state the specific restriction requested and to whom you want the restriction to apply. Your physician is not required to agree to a restriction that you may request. If your physician does agree to the requested restriction, we may not use or disclose your protected health information in violation of that restriction unless it is needed to provide emergency treatment. With this in mind, please discuss any restriction you wish to request with your physician.</p>
+                  <p><b>You have the right to request to receive confidential communications from us by alternative means or at an alternative location.</b> We will accommodate reasonable requests. We may also condition this accommodation by asking you for information as to how payment will be handled or specification of an alternative address or other method of contact. We will not request an explanation from you as to the basis for the request. Please make this request in writing to our Privacy Officer.</p>
+                  <p><b>You may have the right to have your physician amend your protected health information.</b> This means you may request an amendment of protected health information about you in a designated record set for so long as we maintain this information. In certain cases, we may deny your request for an amendment. If we deny your request for amendment, you have the right to file a statement of disagreement with us, and we may prepare a rebuttal to your statement and will provide you with a copy of any such rebuttal. Please contact our Privacy Officer if you have questions about amending your medical record.</p>
+                  <p><b>You have the right to receive an accounting of certain disclosures we have made, if any, of your protected health information.</b> This right applies to disclosures for purposes other than treatment, payment or health care operations as described in this Notice of Privacy Practices. It excludes disclosures we may have made to you if you authorized us to make the disclosure, for a facility directory, to family members or friends involved in your care, or for notification purposes, for national security or intelligence, to law enforcement (as provided in the privacy rule) or correctional facilities, as part of a limited data set disclosure. You have the right to receive specific information regarding these disclosures that occur after April 14, 2003. The right to receive this information is subject to certain exceptions, restrictions and limitations.</p>
+                  <p><b>You have the right to obtain a paper copy of this notice from us, upon request, even if you have agreed to accept this notice electronically.</b></p>
+
                   <h4>3. Complaints</h4>
-                  <p>You may complain to us or to the Secretary of Health and Human Services if you believe your privacy rights have been violated by us. You may file a complaint with us by notifying our Privacy Officer of your complaint. We will not retaliate against you for filing a complaint. You may contact your doctor if you have any other questions about privacy practices. </p>
+                  <p>You may complain to us or to the Secretary of Health and Human Services if you believe your privacy rights have been violated by us. You may file a complaint with us by notifying our Privacy Officer of your complaint. We will not retaliate against you for filing a complaint. You may contact your doctor if you have any other questions about privacy practices.</p>
                 </div>
               </div>
             </div>
-              <div class="accordion mb-3" id="consentAccordion">
-                <div class="accordion-item">
-                  <h2 class="accordion-header" id="headingOne">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
-                      <strong>Consent</strong>
-                    </button>
-                  </h2>
-                  <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#consentAccordion">
-                    <div id="consent-body" class="accordion-body">
-                    </div>
-                  </div>
-                </div>
+          </div>
+
+          <!-- Consent text, assembled from the selected services' Consent Blocks. -->
+          <div class="accordion mb-3 d-none" id="consentAccordion">
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#consentCollapse" aria-expanded="false" aria-controls="consentCollapse">
+                  <strong>Consent</strong>
+                </button>
+              </h2>
+              <div id="consentCollapse" class="accordion-collapse collapse" data-bs-parent="#consentAccordion">
+                <div id="consent-body" class="accordion-body"></div>
               </div>
             </div>
-            <div class="mb-3 form-check" style="padding-top: 20px;">
-              <input type="checkbox" class="form-check-input" id="electronicConsent" name="electronicConsent" required>
-              <label class="form-check-label" for="electronicConsent">I agree to the use of electronic records and electronic signatures.<span class="text-danger">*</span></label>
-            </div>
-            <div class="mb-3 form-check">
-              <input type="checkbox" class="form-check-input" id="certifyConsent" name="certifyConsent" required>
-              <label class="form-check-label" for="certifyConsent">I certify that I am the Parent/Legal Guardian, the individual receiving services and at least 18 years of age/emancipated, or a Legally Authorized Representative, and that I have read and agree to the Consent & Authorizations above. <span class="text-danger">*</span></label>
-            </div>
+          </div>
+
+          <div class="form-check mb-3 pt-3">
+            <input type="checkbox" class="form-check-input" id="electronicConsent" name="electronicConsent" required>
+            <label class="form-check-label" for="electronicConsent">
+              I agree to the use of electronic records and electronic signatures.<span class="text-danger">*</span>
+            </label>
+          </div>
+          <div class="form-check mb-3 d-none" id="certifyConsentRow">
+            <input type="checkbox" class="form-check-input" id="certifyConsent" name="certifyConsent">
+            <label class="form-check-label" for="certifyConsent">
+              I certify that I am the Parent/Legal Guardian, the individual receiving services and
+              at least 18 years of age/emancipated, or a Legally Authorized Representative, and that
+              I have read and agree to the Consent &amp; Authorizations above.<span class="text-danger">*</span>
+            </label>
+          </div>
+
+          <!-- Consent signature. Hidden when no selected service requires consent. -->
+          <div id="consentSignatureBlock" class="d-none">
             <ul class="nav nav-tabs" id="signatureTabs" role="tablist">
               <li class="nav-item" role="presentation">
                 <button class="nav-link active" id="draw-tab" data-bs-toggle="tab" data-bs-target="#draw-pane" type="button" role="tab" aria-controls="draw-pane" aria-selected="true">Draw Signature</button>
@@ -445,116 +437,104 @@
             <div class="tab-content border border-top-0 p-3" id="signatureTabContent">
               <div class="tab-pane fade show active" id="draw-pane" role="tabpanel" aria-labelledby="draw-tab">
                 <p>Use your mouse or finger to draw your signature:</p>
-                <canvas id="sigPad" class="border"></canvas>
-                <br>
-                <button class="btn btn-outline-secondary btn-sm mt-2" type="button" id="clearSignatureBtn">Clear</button>
+                <canvas id="sigPad" class="signature-canvas border" aria-label="Signature drawing area"></canvas>
+                <div>
+                  <button class="btn btn-outline-secondary btn-sm mt-2" type="button" id="clearSignatureBtn">Clear</button>
+                </div>
               </div>
               <div class="tab-pane fade" id="type-pane" role="tabpanel" aria-labelledby="type-tab">
                 <p>Type your name and it will be converted into a signature:</p>
-                <input type="text" class="form-control" id="typedName" style="font-family: 'Caveat', cursive; font-size: 2.5rem; border: none; border-bottom: 1px solid #ccc;">
-                <canvas id="typeCanvas" style="display: none;"></canvas>
+                <label class="visually-hidden" for="typedName">Type your full name as your signature</label>
+                <input type="text" class="form-control typed-signature" id="typedName" autocomplete="off">
+                <canvas id="typeCanvas" class="d-none"></canvas>
               </div>
             </div>
           </div>
-          <button class="btn btn-primary" type="submit">Submit Registration</button>
-      </form>
-    </div>
 
-<!--     Confirmation Page   -->
-    <div id="confirmationSection" class="container d-none mt-5">
+          <!-- One pad per signature question answered "Yes", added by src/signature.js. -->
+          <div id="additionalSignatures" class="d-none"></div>
+        </fieldset>
+
+        <button class="btn btn-primary btn-lg" type="submit" id="submitButton">Submit Registration</button>
+      </form>
+    </section>
+
+    <!-- CONFIRMATION -->
+    <section id="confirmationSection" class="container d-none mt-5">
       <h2>Registration Confirmed</h2>
-      <p>
-        <strong>Event:</strong>
-        <span id="confEventName"></span>
-      </p>
-      <p>
-        <strong>Date:</strong>
-        <span id="confEventDate"></span>
-      </p>
-      <p>
-        <strong>Patient:</strong>
-        <span id="confPatientName"></span>
-      </p>
-      <p>
-        <strong>Date of Birth:</strong>
-        <span id="confPatientDob"></span>
-      </p>
-      <p>
-        <strong>Appointment ID:</strong>
-        <span id="confApptId"></span>
+      <p><strong>Event:</strong> <span id="confEventName"></span></p>
+      <p id="confEventDateRow"><strong>Date:</strong> <span id="confEventDate"></span></p>
+      <p><strong>Patient:</strong> <span id="confPatientName"></span></p>
+      <p><strong>Date of Birth:</strong> <span id="confPatientDob"></span></p>
+      <p id="confApptIdRow"><strong>Appointment ID:</strong> <span id="confApptId"></span></p>
+      <p id="confWaitlistMessage" class="d-none">
+        Thanks for your registration! We'll update your chart in the background and reach out
+        soon with next steps.
       </p>
       <div class="mt-3">
-        <img id="confQrCode" alt="QR code for Appointment ID" />
+        <img id="confQrCode" class="d-none" alt="QR code for your appointment ID">
       </div>
-      <p>
-        <i>A confirmation has been emailed to you. Please feel free to take a screenshot.</i>
-      </p>
-    </div>
+      <p><i>A confirmation has been emailed to you. Please feel free to take a screenshot.</i></p>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="mt-5 py-5 text-white">
+      <div class="container">
+        <ul class="nav justify-content-center mb-4">
+          <li class="nav-item"><a href="https://prism.org/about-us/" class="nav-link px-2 text-white">About Us</a></li>
+          <li class="nav-item"><a href="https://prism.org/contact/" class="nav-link px-2 text-white">Contact</a></li>
+          <li class="nav-item"><a href="https://prism.org/careers/" class="nav-link px-2 text-white">Careers</a></li>
+          <li class="nav-item"><a rel="privacy-policy" href="https://prism.org/privacy-policy/" class="nav-link px-2 text-white">Privacy Policy</a></li>
+          <li class="nav-item"><a href="https://prism.org/terms-and-conditions/" class="nav-link px-2 text-white">Terms And Conditions</a></li>
+        </ul>
+
+        <hr>
+
+        <div class="row align-items-center my-4">
+          <div class="col-md-4 text-center text-md-start mb-3 mb-md-0">
+            <a href="https://www.prism.org/schoolhealth" target="_blank" rel="noopener">
+              <img src="https://prism.org/wp-content/uploads/2021/01/1-03-1_white-300x65.png" alt="Prism Health" class="footer-logo">
+            </a>
+          </div>
+          <div class="col-md-4 text-center mb-3 mb-md-0">
+            <p class="mb-1"><strong>Contact Us:</strong></p>
+            <p class="mb-0">Email: info@prism.org<br>Phone: (800) 325-1812</p>
+          </div>
+          <div class="col-md-4 text-center text-md-end">
+            <a href="https://www.facebook.com/prismhealthlab/" target="_blank" rel="noopener" class="text-white me-3" aria-label="Prism Health on Facebook">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 320 512" aria-hidden="true"><path d="M279.14 288l14.22-92.66h-88.91v-60.13c0-25.35 12.42-50.06 52.24-50.06h40.42V6.26S260.43 0 225.36 0C123.08 0 121.08 44.38 121.08 124.72v70.62H22.89V288h81.39v224h100.17V288z"/></svg>
+            </a>
+            <a href="https://instagram.com/prismhealthlab" target="_blank" rel="noopener" class="text-white me-3" aria-label="Prism Health on Instagram">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 448 512" aria-hidden="true"><path d="M224.1 141c-63.6 0-114.9 51.3-114.9 114.9s51.3 114.9 114.9 114.9S339 319.5 339 255.9 287.7 141 224.1 141zm0 189.6c-41.1 0-74.7-33.5-74.7-74.7s33.5-74.7 74.7-74.7 74.7 33.5 74.7 74.7-33.6 74.7-74.7 74.7zm146.4-194.3c0 14.9-12 26.8-26.8 26.8-14.9 0-26.8-12-26.8-26.8s12-26.8 26.8-26.8 26.8 12 26.8 26.8zm76.1 27.2c-1.7-35.9-9.9-67.7-36.2-93.9-26.2-26.2-58-34.4-93.9-36.2-37-2.1-147.9-2.1-184.9 0-35.8 1.7-67.6 9.9-93.9 36.1s-34.4 58-36.2 93.9c-2.1 37-2.1 147.9 0 184.9 1.7 35.9 9.9 67.7 36.2 93.9s58 34.4 93.9 36.2c37 2.1 147.9 2.1 184.9 0 35.9-1.7 67.7-9.9 93.9-36.2 26.2-26.2 34.4-58 36.2-93.9 2.1-37 2.1-147.8 0-184.8zM398.8 388c-7.8 19.6-22.9 34.7-42.6 42.6-29.5 11.7-99.5 9-132.1 9s-102.7 2.6-132.1-9c-19.6-7.8-34.7-22.9-42.6-42.6-11.7-29.5-9-99.5-9-132.1s-2.6-102.7 9-132.1c7.8-19.6 22.9-34.7 42.6-42.6 29.5-11.7 99.5-9 132.1-9s102.7-2.6 132.1 9c19.6 7.8 34.7 22.9 42.6 42.6 11.7 29.5 9 99.5 9 132.1s2.7 102.7-9 132.1z"/></svg>
+            </a>
+            <a href="https://www.linkedin.com/company/prismhealthorg" target="_blank" rel="noopener" class="text-white" aria-label="Prism Health on LinkedIn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 448 512" aria-hidden="true"><path d="M416 32H31.9C14.3 32 0 46.5 0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6 0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3 0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2 0 38.5 17.3 38.5 38.5 0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6 0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2 0 79.7 44.3 79.7 101.9V416z"/></svg>
+            </a>
+          </div>
+        </div>
+
+        <hr>
+
+        <p class="text-center mt-4 mb-0">© <span id="copyright-year"></span> Copyright Prism Health Lab</p>
+      </div>
+    </footer>
+
+    <!-- Third-party libraries (globals consumed by src/) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-    <script src="script.js"></script>
 
-    <script type="text/javascript">
-        function googleTranslateElementInit() {
-          new google.translate.TranslateElement({pageLanguage: 'en'}, 'google_translate_element');
-        }
-    </script>
-    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
-
-<!--     FOOTER     -->
-    <footer class="mt-5 py-5 text-white" style="background-color: #002855;">
-        <div class="container">
-            <div class="row">
-                <div class="col-12 mb-4">
-                    <ul class="nav justify-content-center">
-                        <li class="nav-item"><a href="https://prism.org/about-us/" class="nav-link px-2 text-white">About Us</a></li>
-                        <li class="nav-item"><a href="https://prism.org/contact/" class="nav-link px-2 text-white">Contact</a></li>
-                        <li class="nav-item"><a href="https://prism.org/careers/" class="nav-link px-2 text-white">Careers</a></li>
-                        <li class="nav-item"><a rel="privacy-policy" href="https://prism.org/privacy-policy/" class="nav-link px-2 text-white">Privacy Policy</a></li>
-                        <li class="nav-item"><a href="https://prism.org/terms-and-conditions/" class="nav-link px-2 text-white">Terms And Conditions</a></li>
-                    </ul>
-                </div>
-            </div>
-    
-            <hr>
-    
-            <div class="row align-items-center my-4">
-                <div class="col-md-4 text-center text-md-start mb-3 mb-md-0">
-                    <a href="https://www.prism.org/schoolhealth" target="_blank"><img src="https://prism.org/wp-content/uploads/2021/01/1-03-1_white-300x65.png" alt="PRISM logo - White" style="max-height: 50px;"></a>
-                </div>
-    
-                <div class="col-md-4 text-center mb-3 mb-md-0">
-                    <p class="mb-1"><strong>Contact Us:</strong></p>
-                    <p class="mb-0">Email: info@prism.org<br>Phone: (800) 325-1812</p>
-                </div>
-    
-                <div class="col-md-4 text-center text-md-end">
-                    <a href="https://www.facebook.com/prismhealthlab/" target="_blank" class="text-white me-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 320 512"><path d="M279.14 288l14.22-92.66h-88.91v-60.13c0-25.35 12.42-50.06 52.24-50.06h40.42V6.26S260.43 0 225.36 0C123.08 0 121.08 44.38 121.08 124.72v70.62H22.89V288h81.39v224h100.17V288z"/></svg>
-                    </a>
-                    <a href="https://instagram.com/prismhealthlab" target="_blank" class="text-white me-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 448 512"><path d="M224.1 141c-63.6 0-114.9 51.3-114.9 114.9s51.3 114.9 114.9 114.9S339 319.5 339 255.9 287.7 141 224.1 141zm0 189.6c-41.1 0-74.7-33.5-74.7-74.7s33.5-74.7 74.7-74.7 74.7 33.5 74.7 74.7-33.6 74.7-74.7 74.7zm146.4-194.3c0 14.9-12 26.8-26.8 26.8-14.9 0-26.8-12-26.8-26.8s12-26.8 26.8-26.8 26.8 12 26.8 26.8zm76.1 27.2c-1.7-35.9-9.9-67.7-36.2-93.9-26.2-26.2-58-34.4-93.9-36.2-37-2.1-147.9-2.1-184.9 0-35.8 1.7-67.6 9.9-93.9 36.1s-34.4 58-36.2 93.9c-2.1 37-2.1 147.9 0 184.9 1.7 35.9 9.9 67.7 36.2 93.9s58 34.4 93.9 36.2c37 2.1 147.9 2.1 184.9 0 35.9-1.7 67.7-9.9 93.9-36.2 26.2-26.2 34.4-58 36.2-93.9 2.1-37 2.1-147.8 0-184.8zM398.8 388c-7.8 19.6-22.9 34.7-42.6 42.6-29.5 11.7-99.5 9-132.1 9s-102.7 2.6-132.1-9c-19.6-7.8-34.7-22.9-42.6-42.6-11.7-29.5-9-99.5-9-132.1s-2.6-102.7 9-132.1c7.8-19.6 22.9-34.7 42.6-42.6 29.5-11.7 99.5-9 132.1-9s102.7-2.6 132.1 9c19.6 7.8 34.7 22.9 42.6 42.6 11.7 29.5 9 99.5 9 132.1s2.7 102.7-9 132.1z"/></svg>
-                    </a>
-                    <a href="https://www.linkedin.com/company/prismhealthorg" target="_blank" class="text-white">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 448 512"><path d="M416 32H31.9C14.3 32 0 46.5 0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6 0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3 0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2 0 38.5 17.3 38.5 38.5 0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6 0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2 0 79.7 44.3 79.7 101.9V416z"/></svg>
-                    </a>
-                </div>
-            </div>
-    
-            <hr>
-    
-            <div class="row mt-4">
-                <div class="col text-center">
-                    <p class="mb-0">© <span id="copyright-year"></span> Copyright Prism Health Lab</p>
-                </div>
-            </div>
-        </div>
-    </footer>
+    <script type="module" src="src/main.js"></script>
 
     <script>
-        document.getElementById('copyright-year').textContent = new Date().getFullYear();
-    </script>
+      document.getElementById('copyright-year').textContent = new Date().getFullYear();
 
+      // Callback name is referenced by the Google Translate loader below, so it
+      // has to live on `window` rather than inside a module.
+      function googleTranslateElementInit() {
+        new google.translate.TranslateElement({ pageLanguage: 'en' }, 'google_translate_element');
+      }
+    </script>
+    <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
   </body>
 </html>
