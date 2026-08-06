@@ -23,9 +23,6 @@ export const DEMOGRAPHIC_FIELDS = [
  */
 export const AGE_BANDS = ['0-12', '12-18', '18+'];
 
-/** Gender answers that bypass gender gating entirely, leaving every service available. */
-export const UNGATED_GENDERS = ['Other', 'Decline to Answer'];
-
 /** Whole years between a date of birth and today. */
 function ageInYears(dob) {
     const today = new Date();
@@ -58,12 +55,6 @@ export function ageBand() {
  */
 export function gender() {
     return dom.gender.value || null;
-}
-
-/** True when gender must not restrict what is offered. */
-export function genderIsUngated() {
-    const value = gender();
-    return value === null || UNGATED_GENDERS.includes(value);
 }
 
 /** Shows the guardian fields for minors, and only marks them required while visible. */

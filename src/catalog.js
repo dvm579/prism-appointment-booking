@@ -69,22 +69,19 @@ export function servicesForEvent(event) {
  * blank date of birth would hide every service before the patient has filled the
  * form in.
  *
- * Gender gating is skipped entirely for patients who answered Other or Decline to
- * Answer, so choosing either never narrows what is available to them.
+ * Both columns are plain membership tests, matching how `@age` and `@gender`
+ * question triggers behave. A gender-restricted service is therefore hidden from
+ * patients who answered Other or Decline to Answer unless those values are listed
+ * too, so include them whenever they should still be offered.
  *
  * @param {Service} service
- * @param {{band: string|null, genderUngated: boolean, gender: string|null}} patient
+ * @param {{band: string|null, gender: string|null}} patient
  */
 export function isServiceEligible(service, patient) {
     if (service.ageBands.length && patient.band && !service.ageBands.includes(patient.band)) {
         return false;
     }
-    if (
-        service.genders.length &&
-        !patient.genderUngated &&
-        patient.gender &&
-        !service.genders.includes(patient.gender)
-    ) {
+    if (service.genders.length && patient.gender && !service.genders.includes(patient.gender)) {
         return false;
     }
     return true;

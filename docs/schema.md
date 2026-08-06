@@ -108,8 +108,11 @@ form in.
 
 Two rules worth knowing:
 
-- **Other and Decline to Answer bypass gender gating entirely.** Choosing either
-  never narrows what a patient is offered.
+- **Eligibility is a plain membership test**, exactly like an `@age` or `@gender`
+  question trigger. There is no special handling for Other or Decline to Answer:
+  a service listing `Female` is hidden from them. Whenever a gender-restricted
+  service should still be offered to those patients, list the values —
+  `Female, Other, Decline to Answer`.
 - **Changing the date of birth or gender re-evaluates immediately.** A service
   that becomes ineligible while ticked is unticked, which withdraws its forms and
   consent too. If a correction leaves nothing eligible, the picker says so rather

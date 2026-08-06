@@ -19,7 +19,7 @@ import {
 } from './catalog.js';
 import { setInsuranceVisible } from './insurance.js';
 import { setConsentSignatureVisible, syncAdditionalSignatures } from './signature.js';
-import { ageBand, gender, genderIsUngated } from './patient.js';
+import { ageBand, gender } from './patient.js';
 import { escapeHtml, isTruthyFlag } from './utils.js';
 
 /** Question types handled specially rather than rendered as a plain field. */
@@ -290,7 +290,7 @@ function selectedServices() {
  * @returns {boolean} true when the selection changed and callers must recompute.
  */
 export function applyServiceEligibility() {
-    const patient = { band: ageBand(), gender: gender(), genderUngated: genderIsUngated() };
+    const patient = { band: ageBand(), gender: gender() };
     const rows = dom.dynamicFormsContainer.querySelectorAll('.service-option');
     if (rows.length === 0) return false;
 
