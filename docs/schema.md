@@ -99,7 +99,9 @@ computed from the date of birth in the demographics section — it is never aske
 for separately.
 
 `Age Eligibility` and `Gender Eligibility` on Service Types hide services the
-patient cannot receive. Both are empty by default, meaning no restriction, and a
+patient cannot receive. Both are comma-separated lists — `0-12, 12-18` for any
+minor, `12-18, 18+` for 12 and over — and a service is offered if the patient
+matches any entry. Both are empty by default, meaning no restriction, and a
 restriction only applies once the demographic it depends on is known: gating on a
 blank date of birth would hide every service before the patient has filled the
 form in.
@@ -161,6 +163,12 @@ value keep their sheet position, at the end.
 
 `@`-prefixed triggers read the demographics section instead of a question, so a
 form can branch on age or gender without asking for it twice.
+
+`TriggerValue` is **comma-separated**, so one row can list several values and the
+question appears if *any* of them matches — `0-12, 12-18` for any minor,
+`12-18, 18+` for 12 and over, or `Yes, Not sure` to catch both answers. As with
+`Options`, a value therefore cannot itself contain a comma. A blank `TriggerValue`
+alongside a `TriggerID` means `Yes`.
 
 While the demographic is still blank the question stays hidden — we cannot tell
 whether it applies, and hidden questions are neither validated nor submitted. Date

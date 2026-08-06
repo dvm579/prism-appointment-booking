@@ -69,7 +69,8 @@ function createQuestionElement(question) {
     if (triggerId) {
         wrapper.classList.add('d-none', 'conditional-question');
         wrapper.dataset.triggerId = triggerId;
-        wrapper.dataset.triggerValue = String(question.TriggerValue ?? 'Yes').trim();
+        // Stored raw; `triggerValues()` splits the list and defaults a blank to "Yes".
+        wrapper.dataset.triggerValue = String(question.TriggerValue ?? '').trim();
         // `@age` / `@gender` are evaluated against the demographics section rather
         // than against another question, so they are re-checked whenever those
         // fields change instead of on a change inside this container.
@@ -174,6 +175,22 @@ function createQuestionElement(question) {
     inputWrapper.innerHTML = inputHtml;
     wrapper.appendChild(inputWrapper);
     return wrapper;
+}
+
+/**
+ * The values that reveal a conditional question.
+ *
+ * `TriggerValue` is comma-separated, so one row can list several — `0-12, 12-18`
+ * for any minor, or `Yes, Not sure` to catch both. A blank cell means "Yes",
+ * which is what a bare `TriggerID` on a yes/no question is always meant to say.
+ *
+ * As with `Options`, a value therefore cannot itself contain a comma.
+ *
+ * @returns {string[]}
+ */
+function triggerValues(wrapper) {
+    const values = splitList(wrapper.dataset.triggerValue);
+    return values.length ? values : ['Yes'];
 }
 
 /** Clears every control inside a container that is being hidden. */
@@ -329,7 +346,6 @@ function applyDemographicConditionals() {
 
     dom.dynamicFormsContainer.querySelectorAll('[data-demographic-trigger]').forEach(wrapper => {
         const field = wrapper.dataset.demographicTrigger;
-        const expected = wrapper.dataset.triggerValue;
         const actual = values[field];
 
         if (!(field in values)) {
@@ -338,7 +354,7 @@ function applyDemographicConditionals() {
             );
         }
 
-        const matches = actual !== null && actual !== undefined && actual === expected;
+        const matches = actual !== null && actual !== undefined && triggerValues(wrapper).includes(actual);
         if (matches === !wrapper.classList.contains('d-none')) return;
 
         wrapper.classList.toggle('d-none', !matches);
@@ -440,7 +456,7 @@ function applyConditionalLogic(input, questionId) {
     if (dependents.length === 0) return;
 
     dependents.forEach(dependent => {
-        const expected = dependent.dataset.triggerValue;
+        const expected = triggerValues(dependent);
         let matches;
 
         if (input.type === 'radio' || input.type === 'checkbox') {
@@ -449,9 +465,9 @@ function applyConditionalLogic(input, questionId) {
             const selected = dom.dynamicFormsContainer.querySelectorAll(
                 `input[name="${CSS.escape(input.name)}"]:checked`
             );
-            matches = Array.from(selected).some(option => option.value === expected);
+            matches = Array.from(selected).some(option => expected.includes(option.value));
         } else {
-            matches = input.value === expected;
+            matches = expected.includes(input.value);
         }
 
         if (matches) {
