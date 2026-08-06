@@ -27,6 +27,7 @@ export const dom = {
     goBackButton: byId('goBackButton'),
     timer: byId('timer'),
     dob: byId('dob'),
+    gender: byId('gender'),
     parentFields: byId('parentFields'),
     parentName: byId('parentName'),
     parentRel: byId('parentRel'),

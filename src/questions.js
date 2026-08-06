@@ -12,17 +12,25 @@ import {
     findQuestion,
     formName,
     formsForServices,
+    isServiceEligible,
     questionsForForm,
     servicesForEvent,
     splitList
 } from './catalog.js';
 import { setInsuranceVisible } from './insurance.js';
 import { setConsentSignatureVisible, syncAdditionalSignatures } from './signature.js';
+import { ageBand, gender, genderIsUngated } from './patient.js';
 import { escapeHtml, isTruthyFlag } from './utils.js';
 
 /** Question types handled specially rather than rendered as a plain field. */
 const INSURANCE_TYPE = 'insurance';
 const SIGNATURE_TYPE = 'signature';
+
+/**
+ * Prefix marking a TriggerID as referring to a demographic field rather than
+ * another question in the same form — `@age` or `@gender`.
+ */
+const DEMOGRAPHIC_TRIGGER = '@';
 
 /** Services offered at the current event, keyed by ServiceTypeID. */
 const offered = new Map();
@@ -62,6 +70,12 @@ function createQuestionElement(question) {
         wrapper.classList.add('d-none', 'conditional-question');
         wrapper.dataset.triggerId = triggerId;
         wrapper.dataset.triggerValue = String(question.TriggerValue ?? 'Yes').trim();
+        // `@age` / `@gender` are evaluated against the demographics section rather
+        // than against another question, so they are re-checked whenever those
+        // fields change instead of on a change inside this container.
+        if (triggerId.startsWith(DEMOGRAPHIC_TRIGGER)) {
+            wrapper.dataset.demographicTrigger = triggerId.slice(1).toLowerCase();
+        }
     }
 
     const label = document.createElement('label');
@@ -193,19 +207,27 @@ export function renderDynamicForms(event) {
         return;
     }
 
-    // 1. Service picker.
+    // 1. Service picker. Every service the event offers gets a row; eligibility
+    //    then hides the ones that do not apply to this patient.
     const picker = document.createElement('div');
     picker.className = 'service-picker mb-4 p-3 border border-primary rounded';
     picker.innerHTML = '<h5 class="mb-3">Please select the services you would like to receive:</h5>';
     services.forEach(service => {
         const row = document.createElement('div');
-        row.className = 'form-check form-switch mb-2';
+        row.className = 'form-check form-switch mb-2 service-option';
+        row.dataset.serviceId = service.id;
         row.innerHTML = `
             <input class="form-check-input service-selector" type="checkbox"
                    id="select_${escapeHtml(service.id)}" value="${escapeHtml(service.id)}">
             <label class="form-check-label" for="select_${escapeHtml(service.id)}">${escapeHtml(service.name)}</label>`;
         picker.appendChild(row);
     });
+
+    const note = document.createElement('p');
+    note.id = 'serviceEligibilityNote';
+    note.className = 'small mb-0 mt-3 d-none';
+    picker.appendChild(note);
+
     container.appendChild(picker);
 
     // 2. One section per form used by any service at this event, hidden until the
@@ -229,6 +251,7 @@ export function renderDynamicForms(event) {
     });
 
     attachListeners();
+    applyServiceEligibility();
     applySelection();
 }
 
@@ -237,6 +260,96 @@ function selectedServices() {
     return Array.from(dom.dynamicFormsContainer.querySelectorAll('.service-selector:checked'))
         .map(checkbox => offered.get(checkbox.value))
         .filter(Boolean);
+}
+
+/**
+ * Hides services the patient is not eligible for, based on the demographics above.
+ *
+ * Called whenever date of birth or gender changes, so a corrected date of birth
+ * immediately corrects what is on offer. A service that becomes ineligible while
+ * selected is unticked, which then cascades through `applySelection` to withdraw
+ * its forms and consent.
+ *
+ * @returns {boolean} true when the selection changed and callers must recompute.
+ */
+export function applyServiceEligibility() {
+    const patient = { band: ageBand(), gender: gender(), genderUngated: genderIsUngated() };
+    const rows = dom.dynamicFormsContainer.querySelectorAll('.service-option');
+    if (rows.length === 0) return false;
+
+    let hidden = 0;
+    let unticked = false;
+
+    rows.forEach(row => {
+        const service = offered.get(row.dataset.serviceId);
+        if (!service) return;
+
+        const eligible = isServiceEligible(service, patient);
+        row.classList.toggle('d-none', !eligible);
+        if (eligible) return;
+
+        hidden += 1;
+        const checkbox = row.querySelector('.service-selector');
+        if (checkbox.checked) {
+            checkbox.checked = false;
+            unticked = true;
+        }
+    });
+
+    const note = document.getElementById('serviceEligibilityNote');
+    if (note) {
+        if (hidden === rows.length) {
+            note.textContent =
+                'None of the services at this event are available for the date of birth and ' +
+                'gender entered above. Please check those details, or speak to our team.';
+            note.className = 'small mb-0 mt-3 text-warning';
+        } else if (hidden > 0) {
+            note.textContent =
+                'Some services are not listed because they do not apply to the age or gender ' +
+                'entered above.';
+            note.className = 'small mb-0 mt-3 text-white-50';
+        } else {
+            note.className = 'small mb-0 mt-3 d-none';
+        }
+    }
+
+    return unticked;
+}
+
+/**
+ * Shows or hides questions gated on a demographic field.
+ *
+ * While the demographic is still unknown the question stays hidden: we cannot tell
+ * whether it applies, and hidden questions are neither validated nor submitted.
+ * Date of birth and gender are both required, so the correct set is always
+ * revealed before the form can be submitted.
+ */
+function applyDemographicConditionals() {
+    const values = { age: ageBand(), gender: gender() };
+
+    dom.dynamicFormsContainer.querySelectorAll('[data-demographic-trigger]').forEach(wrapper => {
+        const field = wrapper.dataset.demographicTrigger;
+        const expected = wrapper.dataset.triggerValue;
+        const actual = values[field];
+
+        if (!(field in values)) {
+            console.warn(
+                `Unknown demographic trigger "@${field}" on a question; expected @age or @gender.`
+            );
+        }
+
+        const matches = actual !== null && actual !== undefined && actual === expected;
+        if (matches === !wrapper.classList.contains('d-none')) return;
+
+        wrapper.classList.toggle('d-none', !matches);
+        if (!matches) clearInputs(wrapper);
+    });
+}
+
+/** Re-runs everything that depends on the demographics section. */
+export function refreshForDemographics() {
+    applyServiceEligibility();
+    applySelection();
 }
 
 /**
@@ -254,6 +367,10 @@ function applySelection() {
         section.classList.toggle('d-none', !needed);
         if (!needed) clearInputs(section);
     });
+
+    // Evaluated after sections are shown, so questions inside a newly revealed
+    // form are gated on the demographics straight away.
+    applyDemographicConditionals();
 
     // Consent: union of the selected services' blocks, deduplicated by id.
     const blocks = consentForServices(services);

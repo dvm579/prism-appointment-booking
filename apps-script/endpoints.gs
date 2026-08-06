@@ -407,7 +407,10 @@ function submitForm1(data) {
     '', sigFile ? sigFile.getUrl() : '', '',
     data.consentCalls, data.consentTexts, data.consentEmails,
     data.electronicConsent, data.vaxConsent,
-    demographics.school, demographics.grade
+    // School and grade moved to the school-physical and sports-physical intake
+    // forms, so they now arrive as question responses. These two columns are kept
+    // blank rather than removed so existing Patients rows keep their shape.
+    '', ''
   ]);
 
   // 2. Waitlist entries stop here.

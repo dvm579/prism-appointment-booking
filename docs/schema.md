@@ -39,6 +39,8 @@ share one publish id and differ only by gid (see `src/config.js`).
 | `Service Name` | Patient-facing label. The only place it is written. |
 | `Intake Form` | Comma-separated FormIDs. Singular name, read as a **list**, so a service can require several forms. May be empty. |
 | `ConsentIDs` | Comma-separated ConsentIDs. **Empty means no consent and no signature.** |
+| `Age Eligibility` | Comma-separated age bands. Empty means any age. |
+| `Gender Eligibility` | Comma-separated gender values. Empty means any gender. |
 | `AppSheet Form View` | AppSheet only; unused by the page. |
 | `Active` | Governs authoring, **not** rendering — see below. |
 
@@ -82,10 +84,40 @@ signature.
 `Campaigns`, `Appointment Waitlist` and `Registration Queue` are **not** published:
 nothing on the page reads them and the last two hold patient data.
 
+## Age bands and eligibility
+
+Three bands, half-open so the labels never overlap:
+
+| Band | Means |
+| --- | --- |
+| `0-12` | under 12 |
+| `12-18` | 12 up to but not including 18 |
+| `18+` | 18 and over |
+
+A patient turning 12 or 18 therefore falls in exactly one band. The band is
+computed from the date of birth in the demographics section — it is never asked
+for separately.
+
+`Age Eligibility` and `Gender Eligibility` on Service Types hide services the
+patient cannot receive. Both are empty by default, meaning no restriction, and a
+restriction only applies once the demographic it depends on is known: gating on a
+blank date of birth would hide every service before the patient has filled the
+form in.
+
+Two rules worth knowing:
+
+- **Other and Decline to Answer bypass gender gating entirely.** Choosing either
+  never narrows what a patient is offered.
+- **Changing the date of birth or gender re-evaluates immediately.** A service
+  that becomes ineligible while ticked is unticked, which withdraws its forms and
+  consent too. If a correction leaves nothing eligible, the picker says so rather
+  than showing an empty box.
+
 ## How a registration is assembled
 
-1. **Services** — one checkbox per code in `Events.Services`, labelled from
-   `Service Name`. A service with no intake form still gets a checkbox.
+1. **Services** — one checkbox per code in `Events.Services` the patient is
+   eligible for, labelled from `Service Name`. A service with no intake form
+   still gets a checkbox.
 2. **Forms** — the union of `Intake Form` across the ticked services, deduplicated
    by FormID in order of first appearance. A form needed by two services is shown
    once. Sections are titled with `Form Name`, not a service name, because a shared
@@ -113,9 +145,32 @@ their current selection actually requires.
 | anything else | Text input |
 
 `Options` is comma-separated, so option labels cannot contain commas.
-`TriggerID` / `TriggerValue` hide a question until the referenced question is
-answered with that value. `DisplayOrder` sorts questions within a form; rows
-without one keep their sheet position, at the end.
+`DisplayOrder` sorts questions within a form and accepts decimals, so `0.1` puts a
+question first without renumbering everything after it; rows without a usable
+value keep their sheet position, at the end.
+
+### Triggers
+
+`TriggerID` / `TriggerValue` hide a question until something else has a given value.
+
+| `TriggerID` | Meaning |
+| --- | --- |
+| a QuestionID | Show when that question in the same form is answered with `TriggerValue` |
+| `@age` | Show when the patient's age band equals `TriggerValue` (`0-12`, `12-18`, `18+`) |
+| `@gender` | Show when the selected gender equals `TriggerValue` |
+
+`@`-prefixed triggers read the demographics section instead of a question, so a
+form can branch on age or gender without asking for it twice.
+
+While the demographic is still blank the question stays hidden — we cannot tell
+whether it applies, and hidden questions are neither validated nor submitted. Date
+of birth and gender are both required, so the right set is always revealed before
+the form can be submitted.
+
+**Chained triggers are not supported.** A question whose `TriggerID` points at
+another *conditional* question can be left visible after its parent is cleared.
+Point triggers at an unconditional question. A question must never trigger on
+itself — that hides it permanently, since it can never be answered.
 
 Generated inputs carry **no** `required` attribute. A required control inside a
 hidden section makes the browser abort submission with "An invalid form control is
@@ -163,6 +218,18 @@ submission payload changed in two ways the old backend mishandles:
   The old backend looked up `serviceMap[formId]`, so question responses would be
   written with a blank ServiceID.
 - `signature` may be an empty string. The old backend rejected that outright.
+
+## School and grade
+
+These are asked by the school-physical and sports-physical intake forms rather
+than by the demographics section, so only the patients who need them see them.
+They therefore land in **Question Responses**, not in the `Patients` row — the two
+`Patients` columns that used to hold them are now written blank so the row keeps
+its shape. Anything reporting off those columns needs repointing.
+
+A patient booking both physicals is asked twice, once per form, because the two
+questionnaires are independent. Moving the pair into a small shared form listed on
+both services would ask once instead.
 
 ## Remaining items
 

@@ -22,6 +22,8 @@ export function splitList(value) {
  * @property {string} name Patient-facing label from Service Types
  * @property {string[]} formIds Intake forms, in sheet order
  * @property {string[]} consentIds Consent blocks this service requires
+ * @property {string[]} ageBands Age bands eligible for it; empty means any age
+ * @property {string[]} genders Genders eligible for it; empty means any gender
  */
 
 /**
@@ -51,10 +53,41 @@ export function servicesForEvent(event) {
                 // Column is singular in the sheet but read as a list, so a service
                 // can require several intake forms.
                 formIds: splitList(row['Intake Form']),
-                consentIds: splitList(row.ConsentIDs)
+                consentIds: splitList(row.ConsentIDs),
+                ageBands: splitList(row['Age Eligibility']),
+                genders: splitList(row['Gender Eligibility'])
             };
         })
         .filter(Boolean);
+}
+
+/**
+ * Whether a service should be offered to this patient.
+ *
+ * An empty eligibility column means "no restriction". A restriction is only
+ * applied once the demographic it depends on is actually known — gating on a
+ * blank date of birth would hide every service before the patient has filled the
+ * form in.
+ *
+ * Gender gating is skipped entirely for patients who answered Other or Decline to
+ * Answer, so choosing either never narrows what is available to them.
+ *
+ * @param {Service} service
+ * @param {{band: string|null, genderUngated: boolean, gender: string|null}} patient
+ */
+export function isServiceEligible(service, patient) {
+    if (service.ageBands.length && patient.band && !service.ageBands.includes(patient.band)) {
+        return false;
+    }
+    if (
+        service.genders.length &&
+        !patient.genderUngated &&
+        patient.gender &&
+        !service.genders.includes(patient.gender)
+    ) {
+        return false;
+    }
+    return true;
 }
 
 /** Display name for a form, from the Forms sheet. */

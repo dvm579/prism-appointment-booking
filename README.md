@@ -84,7 +84,8 @@ Header whitespace is trimmed on load, but spelling and case must match.
 **Events** — `EventID`, `Event Name`, `Date`, `Start Time`, `End Time`,
 `CampaignID`, `FacilityID`, `Services`
 
-**Service Types** — `ServiceTypeID`, `Service Name`, `Intake Form`, `ConsentIDs`
+**Service Types** — `ServiceTypeID`, `Service Name`, `Intake Form`, `ConsentIDs`,
+`Age Eligibility`, `Gender Eligibility`
 
 **Forms** — `FormID`, `Form Name`
 
@@ -97,9 +98,10 @@ Header whitespace is trimmed on load, but spelling and case must match.
 (`Open` / `Pending` / `Booked`)
 
 `Events.Services` names service codes and nothing else. Which intake forms and
-consent those pull in — and whether a signature is required at all — is resolved
-through **Service Types**. See [docs/schema.md](docs/schema.md) for the full model,
-including the `insurance` and `signature` question types.
+consent those pull in, who is eligible for them, and whether a signature is
+required at all is resolved through **Service Types**. See
+[docs/schema.md](docs/schema.md) for the full model, including age bands, the
+`@age` / `@gender` triggers, and the `insurance` and `signature` question types.
 
 ## Local development
 

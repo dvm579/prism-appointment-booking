@@ -4,7 +4,7 @@ import { dom } from './dom.js';
 import { state, currentEvent } from './state.js';
 import { displayEventDetails, renderEventCards } from './events.js';
 import { joinWaitlist, renderSlots, returnToSlotPicker } from './slots.js';
-import { renderDynamicForms } from './questions.js';
+import { refreshForDemographics, renderDynamicForms } from './questions.js';
 import { initSignaturePad, setupSignatureListeners } from './signature.js';
 import { checkAge, handleFileSelection, toggleRecordsSection } from './patient.js';
 import { submitBooking } from './submit.js';
@@ -30,7 +30,13 @@ function setupEventListeners() {
     dom.goBackButton.addEventListener('click', returnToSlotPicker);
     dom.joinWaitlistBtn.addEventListener('click', joinWaitlist);
 
-    dom.dob.addEventListener('change', checkAge);
+    // Date of birth and gender gate which services are offered and which questions
+    // apply, so both re-run the dependent logic as soon as they change.
+    dom.dob.addEventListener('change', () => {
+        checkAge();
+        refreshForDemographics();
+    });
+    dom.gender.addEventListener('change', refreshForDemographics);
     dom.hasRecordsCheck.addEventListener('change', toggleRecordsSection);
     dom.medicalRecordsUpload.addEventListener('change', handleFileSelection);
 
