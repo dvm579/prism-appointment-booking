@@ -3,6 +3,12 @@ const PDF_GENERATORS = {
   'pedvax25': generatePedVax25PDF,
   'adultvax25': generateAdultVax25PDF,
   'schlphys26': generateSchoolPhys26PDF,
+  // Wellness on Wheels / mobile health. The keys are opaque FormIDs, so each
+  // generator lives in a file named after the id it serves.
+  '99be5397': generateWowSignupPDF,
+  '6f25fcaa': generateWowTestingConsentPDF,
+  '63948c3e': generateMobileHealthAdultPDF,
+  'c2e4d150': generateMobileHealthPediatricPDF,
   // Add new forms here as you create them
 };
 
