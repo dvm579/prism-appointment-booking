@@ -447,12 +447,13 @@ function submitForm1(data) {
   });
 
   // 5. Questionnaire answers, with any requested signatures stored alongside.
+  //    `formToService` is keyed by FormID, which is what both the response rows
+  //    and the document generators look up.
+  const formToService = buildFormServiceMap_(selectedServices, serviceMap);
   const signatureUrls = saveAdditionalSignatures_(
     uploadFolder, data.additionalSignatures, data.eventId, now
   );
-  writeFormResponses_(
-    data.formResponses, patientID, buildFormServiceMap_(selectedServices, serviceMap), signatureUrls
-  );
+  writeFormResponses_(data.formResponses, patientID, formToService, signatureUrls);
 
   // 6. Best-effort extras. None of these may fail the registration.
   const qrBase64 = tryFetchQrCode_(appointmentID);
@@ -462,11 +463,14 @@ function submitForm1(data) {
 
   delete data.medicalRecords;
   delete data.signature;
+  // The document queue dispatches on FormID (PDF_GENERATORS in pdfHandler.gs) and
+  // its generators look up `info.serviceMap[<formId>]`, so both arguments are
+  // keyed by form — NOT by ServiceTypeID.
   tryEnqueueDocJob_(
     data, patientID, appointmentID, event.facilityID, event.facilityName,
     event.dateOfService, sigFile,
-    selectedServices.map(function (service) { return service.id; }).join(','),
-    serviceMap
+    formsUsedFor_(selectedServices),
+    formToService
   );
 
   const result = {
@@ -489,6 +493,34 @@ function submitForm1(data) {
  * Falls back to keying by `service.id` for older clients that sent the form id as
  * the service id and no `formIds` list.
  */
+/**
+ * Comma-separated list of every intake form this registration used.
+ *
+ * This is what pdfHandler.gs dispatches on, so it must contain **FormIDs**. A
+ * service with several forms contributes all of them, and a form shared by two
+ * services appears once so its document is not generated twice.
+ *
+ * Falls back to `service.id` for older clients that sent the form id as the
+ * service id and no `formIds` list.
+ */
+function formsUsedFor_(selectedServices) {
+  const seen = {};
+  const forms = [];
+
+  selectedServices.forEach(function (service) {
+    const ids = service.formIds && service.formIds.length ? service.formIds : [service.id];
+    ids.forEach(function (formId) {
+      const key = String(formId).trim();
+      if (key && !seen[key]) {
+        seen[key] = true;
+        forms.push(key);
+      }
+    });
+  });
+
+  return forms.join(',');
+}
+
 function buildFormServiceMap_(selectedServices, serviceMap) {
   const formToService = {};
 
