@@ -9,9 +9,12 @@ also contains files that are *not* in this repo:
 
 | Referenced from `endpoints.gs` | What it is |
 | --- | --- |
-| `enqueueDocJob_(...)` | Queues PDF/document generation for a registration |
 | `ConfirmationEmail` | HTML template for booked appointments |
 | `WaitlistEmail` | HTML template for waitlist entries |
+
+Document generation *is* tracked here: `pdfHandler.gs` (the queue and the
+FormID → generator table), `pdfHelper.gs` (shared rendering and logging), and
+one file per form, named after the FormID it serves.
 
 Editing this copy changes nothing in production. To deploy, paste it into the
 Apps Script editor and publish a **new version** of the web app.
@@ -78,6 +81,43 @@ so the artefact is recorded without needing an extra column.
 Answers are attributed to a ServiceID through `buildFormServiceMap_`, which walks
 each selected service's `formIds`. When a form is shared by two selected services
 the first one wins, so a shared questionnaire is recorded once.
+
+## The document queue
+
+`processDocQueue` needs its own time-driven trigger. Each registration enqueues
+one job; the trigger drains them oldest first, within a five-minute budget.
+
+**One Script Property per job**, keyed `docJob:<uuid>`. It used to be a single
+`docQueueV1` property holding the whole queue as a JSON array, which capped the
+*queue* at PropertiesService's 9 KB per-value limit rather than capping a job.
+A job carries the whole submission — an ENMADULT registration answers 61
+questions across three forms, about 4.5 KB — so the array overflowed on the
+**second** such registration. `setProperty` threw, `tryEnqueueDocJob_` swallowed
+it, and the only trace was a log line and a missing PDF.
+
+**Jobs over 8 KB spill to Drive.** Per-job properties raise the ceiling but do
+not remove it, and one job can still pass 9 KB alone: `additionalSignatures`
+carries a base64 PNG per signature pad, which `6f25fcaa` collects. Oversized
+payloads are written to a `_PRISM doc queue spill` folder — created on first use
+— and the property holds only a pointer. The file is trashed once the job runs.
+
+**Claiming is destructive and locked.** A job's property is read and deleted in
+one critical section, then generated outside it. Two overlapping executions
+therefore cannot both take the same job and file every document twice. The
+trade is that a job cut off by the execution limit is lost rather than repeated;
+that is deliberate, because duplicate EMR rows are much harder to unpick than a
+missing PDF the log names. The five-minute budget stops a minute early to make
+that unlikely.
+
+**Failures retry twice, then stop.** A job that throws before any generator runs
+is requeued with an incremented `attempts`; after three it moves to
+`docJobDead:<uuid>` and stays there. Run `listDeadDocJobs` to see them. A
+*generator* throwing is not a job failure — it is logged and the remaining forms
+still generate, which is what keeps retries from duplicating a document that was
+already filed.
+
+Jobs left in `docQueueV1` by an older deploy are migrated into per-job
+properties on the next pass, so deploying mid-queue strands nothing.
 
 ## Operational notes
 

@@ -12,8 +12,46 @@ const PDF_GENERATORS = {
   // Add new forms here as you create them
 };
 
+/**
+ * The document queue: one Script Property per job.
+ *
+ * It used to be a single `docQueueV1` property holding the whole queue as one
+ * JSON array. PropertiesService caps a value at 9 KB, and a job carries the
+ * entire submission — an ENMADULT registration answers 61 questions across
+ * three forms, so its job alone is around 5 KB. Two of those in the array
+ * exceeded the cap, `setProperty` threw, and because `tryEnqueueDocJob_`
+ * swallows the error the only trace was a log line and a missing PDF.
+ *
+ * One property per job means the cap applies per job instead of per queue, so
+ * queue depth no longer has a ceiling — only the 500 KB store does. Enqueueing
+ * also stops needing the script lock: every writer touches a key nobody else
+ * has.
+ */
+var DOC_JOB_PREFIX = 'docJob:';
+var DOC_DEAD_PREFIX = 'docJobDead:';
+
+/** The old single-array queue. Drained into per-job properties on sight. */
 var DOC_QUEUE_KEY = 'docQueueV1';
-var DOC_OVERFLOW_PREFIX = 'docJob:'; // per-job props to avoid blocking
+
+/**
+ * Largest job kept inline in a property.
+ *
+ * Per-job properties raise the ceiling but do not remove it, and one job can
+ * still pass 9 KB on its own: `additionalSignatures` carries a base64 PNG per
+ * signature pad, which `6f25fcaa` collects. Anything over this spills to a
+ * Drive file and the property holds a pointer, so no payload size can fail an
+ * enqueue.
+ *
+ * Well under 9 KB because the cap counts bytes and this counts characters
+ * before the check converts.
+ */
+var DOC_JOB_MAX_BYTES = 8000;
+var DOC_SPILL_FOLDER_NAME = '_PRISM doc queue spill';
+
+/** Attempts before a job is set aside rather than retried again. */
+var DOC_JOB_MAX_ATTEMPTS = 3;
+
+// --- Enqueue ----------------------------------------------------------------
 
 function enqueueDocJob_(data, patientID, appointmentID, facilityID, facilityName, dos, sigFile, formsUsed, serviceMap) {
   // sigFile is null when none of the selected services required consent, so a
@@ -21,6 +59,7 @@ function enqueueDocJob_(data, patientID, appointmentID, facilityID, facilityName
   var job = {
     id: Utilities.getUuid(),
     created: Date.now(),
+    attempts: 0,
     sigFileId: sigFile ? sigFile.getId() : '',
     data: data,
     info: {
@@ -35,113 +74,284 @@ function enqueueDocJob_(data, patientID, appointmentID, facilityID, facilityName
     }
   };
 
-  var lock = LockService.getScriptLock();
-  if (lock.tryLock(300)) { // << short cap so the web request doesn't stall
-    try {
-      var props = PropertiesService.getScriptProperties();
-      var queue = JSON.parse(props.getProperty(DOC_QUEUE_KEY) || '[]');
-      queue.push(job);
-      props.setProperty(DOC_QUEUE_KEY, JSON.stringify(queue));
-      return true; // enqueued in main queue
-    } finally {
-      lock.releaseLock();
+  storeDocJob_(DOC_JOB_PREFIX, job);
+  return job.id;
+}
+
+/** What a spilled job leaves in the property: everything but the payload. */
+function docJobPointer_(job) {
+  return {
+    id: job.id,
+    created: job.created,
+    attempts: job.attempts || 0,
+    spillFileId: job.spillFileId,
+    error: job.error
+  };
+}
+
+/**
+ * Writes one job to its own property, spilling the payload to Drive if it is
+ * too big to sit in one.
+ *
+ * A job that has already spilled keeps its file: `data` and `info` never change
+ * between attempts, so a retry only rewrites the pointer.
+ */
+function storeDocJob_(prefix, job) {
+  var props = PropertiesService.getScriptProperties();
+
+  if (!job.spillFileId) {
+    var payload = JSON.stringify(job);
+    if (Utilities.newBlob(payload).getBytes().length <= DOC_JOB_MAX_BYTES) {
+      props.setProperty(prefix + job.id, payload);
+      return;
     }
-  } else {
-    // No lock? No wait. Drop into overflow so we don't block the user.
-    PropertiesService.getScriptProperties()
-      .setProperty(DOC_OVERFLOW_PREFIX + job.id, JSON.stringify(job));
-    return false; // enqueued in overflow
+    job.spillFileId = docSpillFolder_()
+      .createFile(job.id + '.json', payload, 'application/json')
+      .getId();
+  }
+
+  props.setProperty(prefix + job.id, JSON.stringify(docJobPointer_(job)));
+}
+
+/** The spill folder, created on first use so there is nothing to set up. */
+function docSpillFolder_() {
+  var found = DriveApp.getFoldersByName(DOC_SPILL_FOLDER_NAME);
+  return found.hasNext() ? found.next() : DriveApp.createFolder(DOC_SPILL_FOLDER_NAME);
+}
+
+/** Reads a stored job, pulling the payload back from Drive if it spilled. */
+function loadDocJob_(raw) {
+  var stored = JSON.parse(raw);
+  if (!stored.spillFileId) return stored;
+
+  var job = JSON.parse(DriveApp.getFileById(stored.spillFileId).getBlob().getDataAsString());
+  job.id = stored.id;
+  job.created = stored.created;
+  job.attempts = stored.attempts || 0;
+  job.spillFileId = stored.spillFileId;
+  return job;
+}
+
+function discardDocSpill_(job) {
+  if (!job.spillFileId) return;
+  try {
+    DriveApp.getFileById(job.spillFileId).setTrashed(true);
+  } catch (error) {
+    console.warn('Could not clean up spill file %s: %s', job.spillFileId, error.message);
   }
 }
 
-function processDocQueue() {
-  var props = PropertiesService.getScriptProperties();
+// --- Processing -------------------------------------------------------------
 
-  // 1) Sweep overflow without any locks
-  var all = props.getProperties();
-  var overflow = [];
-  Object.keys(all).forEach(function(k){
-    if (k.indexOf(DOC_OVERFLOW_PREFIX) === 0) {
-      overflow.push(JSON.parse(all[k]));
-      props.deleteProperty(k);
+function processDocQueue() {
+  migrateLegacyDocQueue_();
+
+  var start = Date.now();
+  var budget = 5 * 60 * 1000;
+  // Room for the longest single job. Claiming is destructive, so a job cut off
+  // by the execution limit is a document that never gets made — the margin
+  // matters more than squeezing in one more job.
+  var safety = 60 * 1000;
+
+  var pending = pendingDocJobs_();
+
+  for (var i = 0; i < pending.length; i++) {
+    if (Date.now() - start > budget - safety) {
+      console.log('Doc queue: out of time with %s job(s) still pending.', pending.length - i);
+      return;
     }
+    runDocJob_(pending[i].key);
+  }
+}
+
+/** Every queued job's property key, oldest first. */
+function pendingDocJobs_() {
+  var all = PropertiesService.getScriptProperties().getProperties();
+  var jobs = [];
+
+  Object.keys(all).forEach(function (key) {
+    // 'docJobDead:…' does not match: the prefix includes the colon.
+    if (key.indexOf(DOC_JOB_PREFIX) !== 0) return;
+
+    var created = 0;
+    try {
+      created = JSON.parse(all[key]).created || 0;
+    } catch (error) {
+      // Unreadable, so it sorts first and `runDocJob_` sets it aside.
+    }
+    jobs.push({ key: key, created: created });
   });
 
-  // 2) Merge overflow into the main queue under a short lock
+  jobs.sort(function (a, b) { return a.created - b.created; });
+  return jobs;
+}
+
+/**
+ * Deletes a job's property and returns what it held.
+ *
+ * Read and delete are one critical section so two overlapping executions
+ * cannot both take the same job and file every document twice. Deleting
+ * *before* the work rather than after makes a job lost if the execution is cut
+ * off mid-run — the deliberate trade, because duplicate EMR rows are far harder
+ * to unpick than a missing PDF the log names.
+ *
+ * @return {string|null} null when another execution got there first.
+ */
+function claimDocJob_(key) {
   var lock = LockService.getScriptLock();
-  if (lock.tryLock(1000)) {
-    try {
-      var queue = JSON.parse(props.getProperty(DOC_QUEUE_KEY) || '[]');
-      // put overflow at the front so oldest jobs run first
-      queue = overflow.concat(queue);
-      props.setProperty(DOC_QUEUE_KEY, JSON.stringify(queue));
-    } finally {
-      lock.releaseLock();
-    }
-  } else {
-    // couldn't merge now; re-stash overflow back to props so it's not lost
-    overflow.forEach(function(job){ props.setProperty(DOC_OVERFLOW_PREFIX + job.id, JSON.stringify(job)); });
+  if (!lock.tryLock(10000)) return null;
+
+  try {
+    var props = PropertiesService.getScriptProperties();
+    var raw = props.getProperty(key);
+    if (raw) props.deleteProperty(key);
+    return raw;
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function runDocJob_(key) {
+  var raw = claimDocJob_(key);
+  if (!raw) return;
+
+  var job;
+  try {
+    job = loadDocJob_(raw);
+  } catch (error) {
+    // Nothing to retry with — a job we cannot read cannot be run.
+    console.error('Doc job %s could not be read (%s); setting it aside.', key, error.message);
+    PropertiesService.getScriptProperties()
+      .setProperty(key.replace(DOC_JOB_PREFIX, DOC_DEAD_PREFIX), raw);
     return;
   }
 
-  // // 3) Process with your existing loop/budget
-  // var start = Date.now(), budget = 5*60*1000, safety = 20000;
-  // var queue = JSON.parse(props.getProperty(DOC_QUEUE_KEY) || '[]');
-  // while (queue.length && (Date.now() - start) < (budget - safety)) {
-  //   var job = queue.shift();
-  //   try {
-  //     var sigBlob = DriveApp.getFileById(job.sigFileId).getBlob();
-  //     generateVaccinationPDF(job.data, sigBlob, job.info);
-  //   } catch (e) {
-  //     // optional retry policy
-  //   }
-  // }
-  // props.setProperty(DOC_QUEUE_KEY, JSON.stringify(queue));
-
-  // 3) Process Queue
-  var start = Date.now(), budget = 5*60*1000, safety = 20000;
-  var queue = JSON.parse(props.getProperty(DOC_QUEUE_KEY) || '[]');
-
-  while (queue.length && (Date.now() - start) < (budget - safety)) {
-    var job = queue.shift();
-    try {
-      var sigBlob = job.sigFileId ? DriveApp.getFileById(job.sigFileId).getBlob() : null;
-
-      // --- DYNAMIC DISPATCHER LOGIC ---
-      // 1. Forms actually used by this registration, as FormIDs (e.g. "pedvax25,schlphys26")
-      var formsList = (job.info.forms || "").split(',').map(s => s.trim()).filter(String);
-
-      // 2. Run the generator for each one. A form with no generator is normal -
-      //    plenty of intake forms have no clinical sheet behind them.
-      formsList.forEach(formId => {
-         var generatorFunc = PDF_GENERATORS[formId];
-
-         if (generatorFunc) {
-             console.log(`Generating PDF for form: ${formId}`);
-             try {
-               generatorFunc(job.data, sigBlob, job.info);
-             } catch (genError) {
-               // One bad generator must not take down the rest of the job.
-               console.error(`Generator for ${formId} failed: ${genError.message}`);
-             }
-         } else {
-             console.log(`No PDF generator found for FormID: ${formId}`);
-         }
-      });
-
-    } catch (e) {
-      console.error("Job failed:", e);
-      // Optional: Add retry logic or dead-letter queue here
-    }
+  try {
+    generateDocsFor_(job);
+    discardDocSpill_(job);
+  } catch (error) {
+    retryOrBuryDocJob_(job, error);
   }
-  props.setProperty(DOC_QUEUE_KEY, JSON.stringify(queue));
 }
 
+/**
+ * Runs the generator for each form this registration used.
+ *
+ * A generator that throws is logged and skipped: one bad template must not cost
+ * the patient the rest of their paperwork. That also keeps job-level retries
+ * safe — the only failures that reach `runDocJob_` happen before any generator
+ * runs, so a retry cannot duplicate a document that was already filed.
+ */
+function generateDocsFor_(job) {
+  var sigBlob = job.sigFileId ? DriveApp.getFileById(job.sigFileId).getBlob() : null;
 
-// Optional helper if you want to see how many are waiting
+  // FormIDs, e.g. "99be5397,6f25fcaa,63948c3e".
+  var formsList = String(job.info.forms || '')
+    .split(',')
+    .map(function (formId) { return formId.trim(); })
+    .filter(String);
+
+  formsList.forEach(function (formId) {
+    var generator = PDF_GENERATORS[formId];
+
+    // A form with no generator is normal — plenty of intake forms have no
+    // clinical sheet behind them.
+    if (!generator) {
+      console.log('No PDF generator for FormID: %s', formId);
+      return;
+    }
+
+    console.log('Generating PDF for form: %s', formId);
+    try {
+      generator(job.data, sigBlob, job.info);
+    } catch (error) {
+      console.error('Generator for %s failed: %s', formId, error.message);
+    }
+  });
+}
+
+/**
+ * Puts a failed job back for another pass, or sets it aside once it has had
+ * enough.
+ *
+ * The old loop dropped a failed job on the floor, so a transient Drive error
+ * silently cost the patient their documents.
+ */
+function retryOrBuryDocJob_(job, error) {
+  job.attempts = (job.attempts || 0) + 1;
+
+  if (job.attempts < DOC_JOB_MAX_ATTEMPTS) {
+    console.error('Doc job %s failed (attempt %s): %s', job.id, job.attempts, error.message);
+    storeDocJob_(DOC_JOB_PREFIX, job);
+    return;
+  }
+
+  console.error(
+    'Doc job %s failed %s times, setting it aside: %s', job.id, job.attempts, error.message
+  );
+  job.error = error.message;
+  storeDocJob_(DOC_DEAD_PREFIX, job);
+}
+
+/**
+ * Drains the old single-array queue into per-job properties.
+ *
+ * Cheap once the property is gone, and it means deploying this mid-queue does
+ * not strand whatever was already in it.
+ */
+function migrateLegacyDocQueue_() {
+  var props = PropertiesService.getScriptProperties();
+  if (!props.getProperty(DOC_QUEUE_KEY)) return;
+
+  var lock = LockService.getScriptLock();
+  // Without the lock a second execution could re-add jobs this one has already
+  // claimed and run.
+  if (!lock.tryLock(10000)) return;
+
+  try {
+    var raw = props.getProperty(DOC_QUEUE_KEY);
+    if (!raw) return;
+
+    var queue;
+    try {
+      queue = JSON.parse(raw) || [];
+    } catch (error) {
+      console.error('Legacy doc queue is unreadable, leaving it in place: %s', error.message);
+      return;
+    }
+
+    queue.forEach(function (job) {
+      job.attempts = job.attempts || 0;
+      storeDocJob_(DOC_JOB_PREFIX, job);
+    });
+    props.deleteProperty(DOC_QUEUE_KEY);
+    console.log('Migrated %s job(s) out of the legacy queue.', queue.length);
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+// --- Inspection -------------------------------------------------------------
+
+/** How many jobs are waiting. */
 function getDocQueueLength_() {
-  var raw = PropertiesService.getScriptProperties().getProperty(DOC_QUEUE_KEY) || '[]';
-  return JSON.parse(raw).length;
+  return pendingDocJobs_().length;
+}
+
+/**
+ * Jobs that failed `DOC_JOB_MAX_ATTEMPTS` times, for the Executions log.
+ *
+ * Nothing clears these — a buried job is a real failure worth looking at, and
+ * a spilled one keeps its Drive file so the payload can still be read.
+ */
+function listDeadDocJobs() {
+  var all = PropertiesService.getScriptProperties().getProperties();
+  var dead = Object.keys(all)
+    .filter(function (key) { return key.indexOf(DOC_DEAD_PREFIX) === 0; })
+    .map(function (key) { return all[key]; });
+
+  console.log(dead.length ? dead.join('\n') : 'No jobs have been set aside.');
+  return dead;
 }
 
 /**
