@@ -142,3 +142,40 @@ this file is deployed.
 **Quotas worth knowing.** `MailApp.sendEmail` is capped daily (1,500/day on
 Workspace, 100/day on consumer accounts). A single execution is capped at 6
 minutes, which is why the upload budget is limited client-side.
+
+## Building the Slides templates
+
+`tools/makeWowSlidesTemplates.gs` is a one-off builder, not part of the deployed
+project. Run `buildWowSlidesTemplates()` from any Apps Script project and it
+creates the four templates — one presentation per form, US Letter portrait, a
+blank slide per printed page, and a text box at all 354 placeholder positions.
+It logs each presentation's id and URL at the end.
+
+Positions were measured off the source PDFs rather than eyeballed: every
+checkbox mark is centred on the printed square (worst drift 0.09pt) and every
+value box starts clear of its printed label, measured with Helvetica metrics.
+
+Two things it cannot do for you:
+
+- **Page size.** Neither SlidesApp nor the Slides API can resize a presentation,
+  and doing it in the UI *afterwards* rescales everything on the slide, which
+  would undo the measurements. Make one blank presentation, set
+  File → Page setup → Custom to 8.5 × 11 inches, and put its id in
+  `BLANK_TEMPLATE_ID`. The script checks the result and says so if it is wrong.
+- **The artwork.** Put page PNGs in a folder named `<key>-<page>.png`
+  (`wowsu-1.png`, `wowtc-1.png`, `wowtc-2.png`, `mhqa-1.png` … `mhqp-3.png`) and
+  set `BACKGROUND_FOLDER_ID`; each becomes its slide's background. Paste them in
+  by hand instead if you prefer — but send each to the back, or it covers the
+  placeholders.
+
+If the text sits slightly off the printed rules, adjust `NUDGE_X` / `NUDGE_Y`
+and re-run rather than dragging boxes. Slides text boxes carry an internal
+padding the API does not expose, so a uniform offset is the only correction
+available.
+
+Some placeholders have nowhere to go on the printed forms; the script lists them
+when it finishes. Most are office-use ids the forms never printed. The three
+that matter are `%wowtc.declines.{hpv,covid,flu}_vaccination_if_indicated%` —
+the consent's opt-out line prints only HIV, Hep C and PCR sharing, so a patient
+declining a vaccination has it recorded in Question Responses but not on the
+page. That needs a change to the artwork, not to the script.
