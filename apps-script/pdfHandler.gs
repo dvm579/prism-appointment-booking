@@ -53,7 +53,7 @@ var DOC_JOB_MAX_ATTEMPTS = 3;
 
 // --- Enqueue ----------------------------------------------------------------
 
-function enqueueDocJob_(data, patientID, appointmentID, facilityID, facilityName, dos, sigFile, formsUsed, serviceMap) {
+function enqueueDocJob_(data, patientID, appointmentID, facilityID, facilityName, dos, sigFile, formsUsed, serviceMap, services) {
   // sigFile is null when none of the selected services required consent, so a
   // signature was never collected. The job still runs; generators just get no image.
   var job = {
@@ -70,7 +70,11 @@ function enqueueDocJob_(data, patientID, appointmentID, facilityID, facilityName
         fname: facilityName,
         forms: formsUsed, // comma-separated FormIDs — the dispatcher keys on these
         sigUrl: sigFile ? "Attachments_Files_/" + sigFile.getName() : '',
-        serviceMap: serviceMap    // FormID -> ServiceID, for column logging
+        serviceMap: serviceMap,   // FormID -> ServiceID (first service using the form)
+        // [{serviceId, typeId, name, formIds}] for every service rendered. A PDF is
+        // built once per form, but Attachments and the clinical sheets need a row
+        // per service, so the fan-out needs the whole list.
+        services: services || []
     }
   };
 

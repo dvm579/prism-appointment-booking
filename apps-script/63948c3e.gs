@@ -162,7 +162,6 @@ function mobileHealthAdultMap_(data, info) {
 
 function generateMobileHealthAdultPDF(data, sigBlob, info) {
   const map = mobileHealthAdultMap_(data, info);
-  const serviceId = serviceIdFor_(info, '63948c3e');
 
   const pdf = renderTemplateToPdf_({
     templateId: MHQA_TEMPLATE_ID,
@@ -177,7 +176,7 @@ function generateMobileHealthAdultPDF(data, sigBlob, info) {
   logAttachment_({
     data: data,
     info: info,
-    serviceId: serviceId,
+    formId: '63948c3e',
     description: 'Mobile Health Screening Questionnaire - Adult',
     path: MHQA_DRIVE_PATH + pdf.getName()
   });

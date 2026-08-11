@@ -185,7 +185,6 @@ function mobileHealthPediatricMap_(data, info) {
 
 function generateMobileHealthPediatricPDF(data, sigBlob, info) {
   const map = mobileHealthPediatricMap_(data, info);
-  const serviceId = serviceIdFor_(info, 'c2e4d150');
 
   const pdf = renderTemplateToPdf_({
     templateId: MHQP_TEMPLATE_ID,
@@ -200,7 +199,7 @@ function generateMobileHealthPediatricPDF(data, sigBlob, info) {
   logAttachment_({
     data: data,
     info: info,
-    serviceId: serviceId,
+    formId: 'c2e4d150',
     description: 'Mobile Health Screening Questionnaire - Minor',
     path: MHQP_DRIVE_PATH + pdf.getName()
   });

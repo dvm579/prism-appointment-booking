@@ -132,7 +132,6 @@ function wowTestingConsentMap_(data, info) {
 
 function generateWowTestingConsentPDF(data, sigBlob, info) {
   const map = wowTestingConsentMap_(data, info);
-  const serviceId = serviceIdFor_(info, '6f25fcaa');
 
   // `6f25fcaa-9` collects a pad of its own. Fall back to the consent signature:
   // both attest to the same block, and a payload trimmed of its signature array
@@ -156,7 +155,7 @@ function generateWowTestingConsentPDF(data, sigBlob, info) {
   logAttachment_({
     data: data,
     info: info,
-    serviceId: serviceId,
+    formId: '6f25fcaa',
     description: 'WOW Testing Consent',
     path: WOWTC_DRIVE_PATH + pdf.getName()
   });

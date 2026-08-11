@@ -275,36 +275,75 @@ function pdfFileName_(data, label, dateStr) {
 // --- EMR logging ------------------------------------------------------------
 
 /**
- * Appends the generated document to the EMR's Attachments sheet.
+ * Every service rendered that requires the given form.
+ *
+ * A form shared by several services produces one PDF, but each of those services
+ * needs its own Attachments row pointing at it — otherwise clicking into a service
+ * in AppSheet shows none of its paperwork.
+ *
+ * @returns {Array<{serviceId: string, typeId: string, name: string}>}
+ */
+function servicesForForm_(info, formId) {
+  var services = (info && info.services) || [];
+  var matches = services.filter(function (service) {
+    return (service.formIds || []).some(function (id) {
+      return String(id).trim() === String(formId).trim();
+    });
+  });
+
+  // Older jobs predate info.services and only carry the FormID -> ServiceID map.
+  if (!matches.length) {
+    var fallback = serviceIdFor_(info, formId);
+    return [{ serviceId: fallback, typeId: '', name: '' }];
+  }
+  return matches;
+}
+
+/**
+ * Appends the generated document to the EMR's Attachments sheet, once per service
+ * that required it.
  *
  * Column order matches what the sheet already holds: the Drive path lands in
  * column 18 and the columns between the file marker and it stay blank.
  *
  * @param {Object} spec
- * @param {Object} spec.data        The submission payload.
- * @param {Object} spec.info        The job's info block.
- * @param {string} spec.serviceId   ServiceID this document belongs to.
- * @param {string} spec.description Human-readable document type.
- * @param {string} spec.path        Drive path recorded for the file.
+ * @param {Object} spec.data          The submission payload.
+ * @param {Object} spec.info          The job's info block.
+ * @param {string} [spec.formId]      Form this document was built from. Preferred:
+ *                                    one row is written per service using it.
+ * @param {string} [spec.serviceId]   Single ServiceID, when there is no formId.
+ * @param {string} spec.description   Human-readable document type.
+ * @param {string} spec.path          Drive path recorded for the file.
  */
 function logAttachment_(spec) {
   var data = spec.data;
-  SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('Attachments').appendRow([
-    spec.info.pid,
-    spec.info.aid,
-    spec.serviceId,
-    Utilities.getUuid(),
-    new Date(),
-    spec.info.fname,
-    get(data, 'demographics.firstName', ''),
-    get(data, 'demographics.lastName', ''),
-    get(data, 'demographics.dob', ''),
-    spec.info.ds,
-    spec.description,
-    'File',
-    '', '', '', '', '',
-    spec.path
-  ]);
+  var serviceIds = spec.formId
+    ? servicesForForm_(spec.info, spec.formId).map(function (s) { return s.serviceId; })
+    : [spec.serviceId];
+
+  var sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('Attachments');
+  var rows = serviceIds.filter(String).map(function (serviceId) {
+    return [
+      spec.info.pid,
+      spec.info.aid,
+      serviceId,
+      Utilities.getUuid(),
+      new Date(),
+      spec.info.fname,
+      get(data, 'demographics.firstName', ''),
+      get(data, 'demographics.lastName', ''),
+      get(data, 'demographics.dob', ''),
+      spec.info.ds,
+      spec.description,
+      'File',
+      '', '', '', '', '',
+      spec.path
+    ];
+  });
+
+  if (!rows.length) return;
+  // One batched write rather than an appendRow per service.
+  sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, rows[0].length).setValues(rows);
 }
 
 /** The ServiceID a form's answers were attributed to, for the log rows. */

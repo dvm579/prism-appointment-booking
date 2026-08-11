@@ -66,7 +66,6 @@ function wowSignupMap_(data, info) {
 
 function generateWowSignupPDF(data, sigBlob, info) {
   const map = wowSignupMap_(data, info);
-  const serviceId = serviceIdFor_(info, '99be5397');
 
   const pdf = renderTemplateToPdf_({
     templateId: WOWSU_TEMPLATE_ID,
@@ -81,7 +80,7 @@ function generateWowSignupPDF(data, sigBlob, info) {
   logAttachment_({
     data: data,
     info: info,
-    serviceId: serviceId,
+    formId: '99be5397',
     description: 'WOW Participant Sign-Up',
     path: WOWSU_DRIVE_PATH + pdf.getName()
   });

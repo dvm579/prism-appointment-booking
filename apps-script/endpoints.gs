@@ -436,9 +436,19 @@ function submitForm1(data) {
   //    answers are attributed through.
   const servicesSheet = sheet_(mainBook, 'Services Rendered');
   const serviceMap = {};
+  // Self-contained record of what was rendered, carried into the document job so
+  // it can log one clinical row and one attachment row per service.
+  const renderedServices = [];
+
   selectedServices.forEach(function (service) {
     const serviceID = Utilities.getUuid();
     serviceMap[service.id] = serviceID;
+    renderedServices.push({
+      serviceId: serviceID,
+      typeId: service.serviceTypeId || service.id,
+      name: service.name,
+      formIds: service.formIds && service.formIds.length ? service.formIds : [service.id]
+    });
     servicesSheet.appendRow([
       serviceID, appointmentID, event.facilityID, event.facilityName, patientID,
       demographics.firstName, demographics.lastName, demographics.dob,
@@ -470,7 +480,8 @@ function submitForm1(data) {
     data, patientID, appointmentID, event.facilityID, event.facilityName,
     event.dateOfService, sigFile,
     formsUsedFor_(selectedServices),
-    formToService
+    formToService,
+    renderedServices
   );
 
   const result = {
@@ -642,10 +653,11 @@ function trySendConfirmationEmail_(data, patientID, appointmentID, qrBase64, eve
   }
 }
 
-function tryEnqueueDocJob_(data, patientID, appointmentID, facilityID, facilityName, dos, sigFile, formsUsed, serviceMap) {
+function tryEnqueueDocJob_(data, patientID, appointmentID, facilityID, facilityName, dos, sigFile, formsUsed, serviceMap, services) {
   try {
     enqueueDocJob_(
-      data, patientID, appointmentID, facilityID, facilityName, dos, sigFile, formsUsed, serviceMap
+      data, patientID, appointmentID, facilityID, facilityName, dos, sigFile, formsUsed,
+      serviceMap, services
     );
   } catch (error) {
     console.error('Could not queue document generation for %s: %s', appointmentID, error.message);
