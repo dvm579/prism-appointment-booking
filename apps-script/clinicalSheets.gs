@@ -34,6 +34,18 @@ const SPORTS_PHYS_INTAKE_OFFSET = 6;
 const SPORTS_PHYS_INTAKE_QUESTIONS = 42;
 
 /**
+ * 0-based columns 48 and 49: "Signature - student" then "Signature -
+ * Parent/Guardian".
+ *
+ * Filled from the form's `signature` questions in question order rather than by a
+ * hardcoded QuestionID, so adding the guardian signature to the sheet needs no
+ * code change — the second signature question on sprtphys26 lands in the second
+ * column. Each signature is already its own Drive file, so the two columns hold
+ * two distinct urls.
+ */
+const SPORTS_PHYS_SIGNATURE_COLUMNS = [47, 48];
+
+/**
  * ServiceTypeID -> how to build its clinical row.
  *
  * VAXADMIN, ADULTVAX, PHYSICAL and SPRTPHYS are NOT here: their rows are still
@@ -140,22 +152,40 @@ function buildSportsPhysicalRow_(ctx) {
 
   for (var n = 1; n <= SPORTS_PHYS_INTAKE_QUESTIONS; n++) {
     var questionId = 'sprtphys26-' + n;
-    var answer = answers[questionId];
     var column = SPORTS_PHYS_INTAKE_OFFSET + n - 1;
-
-    // A signature question's image is not in formResponses — the answer there is
-    // just the Yes/No — so it comes from the job's stored signature urls.
-    if (signatures[questionId]) {
-      row[column] = signatures[questionId];
-      continue;
-    }
-    row[column] = coerceClinicalAnswer_(answer);
+    // Signature columns are filled below; a signature question's answer in
+    // formResponses is only the Yes/No, not the image.
+    if (signatures[questionId]) continue;
+    row[column] = coerceClinicalAnswer_(answers[questionId]);
   }
+
+  // Signature urls in question order -> the sheet's signature columns in order.
+  signatureUrlsForForm_(signatures, 'sprtphys26').forEach(function (url, index) {
+    var column = SPORTS_PHYS_SIGNATURE_COLUMNS[index];
+    if (column !== undefined) row[column] = url;
+  });
 
   // Column 50, under the patient attestation, is the date they signed.
   row[49] = ctx.info.ds;
 
   return row;
+}
+
+/**
+ * A form's signature urls, ordered by the question's number.
+ *
+ * `sprtphys26-42` sorts before `sprtphys26-45`, so the student signature reaches
+ * the student column and a later guardian question reaches the guardian column.
+ * Numeric, not lexicographic — otherwise `-5` would sort after `-42`.
+ */
+function signatureUrlsForForm_(signatures, formId) {
+  var prefix = formId + '-';
+  return Object.keys(signatures)
+    .filter(function (questionId) { return questionId.indexOf(prefix) === 0; })
+    .sort(function (a, b) {
+      return Number(a.slice(prefix.length)) - Number(b.slice(prefix.length));
+    })
+    .map(function (questionId) { return signatures[questionId]; });
 }
 
 /**

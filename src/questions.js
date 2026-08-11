@@ -333,35 +333,6 @@ export function applyServiceEligibility() {
     return unticked;
 }
 
-/**
- * Shows or hides questions gated on a demographic field.
- *
- * While the demographic is still unknown the question stays hidden: we cannot tell
- * whether it applies, and hidden questions are neither validated nor submitted.
- * Date of birth and gender are both required, so the correct set is always
- * revealed before the form can be submitted.
- */
-function applyDemographicConditionals() {
-    const values = { age: ageBand(), gender: gender() };
-
-    dom.dynamicFormsContainer.querySelectorAll('[data-demographic-trigger]').forEach(wrapper => {
-        const field = wrapper.dataset.demographicTrigger;
-        const actual = values[field];
-
-        if (!(field in values)) {
-            console.warn(
-                `Unknown demographic trigger "@${field}" on a question; expected @age or @gender.`
-            );
-        }
-
-        const matches = actual !== null && actual !== undefined && triggerValues(wrapper).includes(actual);
-        if (matches === !wrapper.classList.contains('d-none')) return;
-
-        wrapper.classList.toggle('d-none', !matches);
-        if (!matches) clearInputs(wrapper);
-    });
-}
-
 /** Re-runs everything that depends on the demographics section. */
 export function refreshForDemographics() {
     applyServiceEligibility();
@@ -385,8 +356,8 @@ function applySelection() {
     });
 
     // Evaluated after sections are shown, so questions inside a newly revealed
-    // form are gated on the demographics straight away.
-    applyDemographicConditionals();
+    // form are gated on their triggers and the demographics straight away.
+    applyConditionals();
 
     // Consent: union of the selected services' blocks, deduplicated by id.
     const blocks = consentForServices(services);
@@ -438,10 +409,10 @@ function attachListeners() {
             return;
         }
 
-        const questionId = input.dataset?.questionId;
-        if (!questionId) return;
+        if (!input.dataset?.questionId) return;
 
-        applyConditionalLogic(input, questionId);
+        // One cascading pass: an answer can gate a question that gates another.
+        applyConditionals();
 
         // A signature question's Yes/No decides whether its pad exists.
         if (input.closest('[data-signature-question]')) syncRequestedSignatures();
@@ -449,34 +420,83 @@ function attachListeners() {
 }
 
 /** Shows or hides questions that depend on the answer just given. */
-function applyConditionalLogic(input, questionId) {
-    const dependents = dom.dynamicFormsContainer.querySelectorAll(
-        `[data-trigger-id="${CSS.escape(questionId)}"]`
+/** The answer currently held by a question, as an array of selected values. */
+function answerValues(questionId) {
+    const inputs = dom.dynamicFormsContainer.querySelectorAll(
+        `[data-question-id="${CSS.escape(questionId)}"]`
     );
-    if (dependents.length === 0) return;
+    if (inputs.length === 0) return [];
 
-    dependents.forEach(dependent => {
-        const expected = triggerValues(dependent);
-        let matches;
+    const first = inputs[0];
+    if (first.type === 'radio' || first.type === 'checkbox') {
+        return Array.from(inputs)
+            .filter(input => input.checked)
+            .map(input => input.value);
+    }
+    return first.value ? [first.value] : [];
+}
 
-        if (input.type === 'radio' || input.type === 'checkbox') {
-            // Read the group's state rather than the clicked input, so unchecking
-            // also collapses the dependent question.
-            const selected = dom.dynamicFormsContainer.querySelectorAll(
-                `input[name="${CSS.escape(input.name)}"]:checked`
-            );
-            matches = Array.from(selected).some(option => expected.includes(option.value));
-        } else {
-            matches = expected.includes(input.value);
-        }
+/** True when a question is on screen, so its answer can gate something else. */
+function questionIsVisible(questionId) {
+    const inputs = dom.dynamicFormsContainer.querySelectorAll(
+        `[data-question-id="${CSS.escape(questionId)}"]`
+    );
+    return Array.from(inputs).some(input => !input.closest('.d-none'));
+}
 
-        if (matches) {
-            dependent.classList.remove('d-none');
-        } else {
-            dependent.classList.add('d-none');
-            clearInputs(dependent);
-        }
-    });
+/**
+ * Re-evaluates every conditional question until nothing more changes.
+ *
+ * A single pass is not enough once triggers chain: `sprtphys26-38` depends on
+ * `-37`, which itself depends on `-2`. Answering the grandparent has to collapse
+ * the whole branch, and a dependent whose parent is hidden must hide too —
+ * otherwise clearing the parent (which fires no change event) left the child on
+ * screen holding an answer nobody was asked for.
+ *
+ * Iterating to a fixed point handles chains of any depth in either direction. The
+ * pass cap only guards against a cycle in the sheet's trigger data.
+ */
+function applyConditionals() {
+    const demographics = { age: ageBand(), gender: gender() };
+    const conditionals = dom.dynamicFormsContainer.querySelectorAll('[data-trigger-id]');
+    if (conditionals.length === 0) return;
+
+    for (let pass = 0; pass < 10; pass += 1) {
+        let changed = false;
+
+        conditionals.forEach(dependent => {
+            const triggerId = dependent.dataset.triggerId;
+            const expected = triggerValues(dependent);
+            let matches;
+
+            if (dependent.dataset.demographicTrigger) {
+                const field = dependent.dataset.demographicTrigger;
+                if (!(field in demographics)) {
+                    console.warn(
+                        `Unknown demographic trigger "@${field}"; expected @age or @gender.`
+                    );
+                }
+                const actual = demographics[field];
+                matches = actual !== null && actual !== undefined && expected.includes(actual);
+            } else if (!questionIsVisible(triggerId)) {
+                // The question this depends on is not being asked, so neither is this.
+                matches = false;
+            } else {
+                matches = answerValues(triggerId).some(value => expected.includes(value));
+            }
+
+            // A hidden ancestor already hides this; leave its answers alone so they
+            // survive a service being toggled off and back on.
+            if (dependent.parentElement.closest('.d-none')) return;
+
+            if (matches === !dependent.classList.contains('d-none')) return;
+            dependent.classList.toggle('d-none', !matches);
+            if (!matches) clearInputs(dependent);
+            changed = true;
+        });
+
+        if (!changed) break;
+    }
 
     // A revealed or collapsed question may itself be a signature request.
     syncRequestedSignatures();
