@@ -232,6 +232,13 @@ function runDocJob_(key) {
 
   try {
     generateDocsFor_(job);
+    // Per-service clinical rows, after the documents exist. Guarded separately so
+    // a sheet problem cannot trigger a job retry that would regenerate every PDF.
+    try {
+      writeClinicalRows_(job);
+    } catch (error) {
+      console.error('Clinical rows failed for appointment %s: %s', job.info.aid, error.message);
+    }
     discardDocSpill_(job);
   } catch (error) {
     retryOrBuryDocJob_(job, error);
