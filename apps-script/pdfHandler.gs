@@ -226,10 +226,19 @@ function runDocJob_(key) {
   try {
     job = loadDocJob_(raw);
   } catch (error) {
-    // Nothing to retry with — a job we cannot read cannot be run.
+    // Nothing to retry with — a job we cannot read cannot be run. Record why on
+    // the buried job: without it the dead letter shows attempts 0 and no reason,
+    // which is indistinguishable from a job that was never tried.
     console.error('Doc job %s could not be read (%s); setting it aside.', key, error.message);
+    var buried;
+    try {
+      buried = JSON.parse(raw);
+    } catch (parseError) {
+      buried = { raw: String(raw).slice(0, 500) };
+    }
+    buried.error = 'unreadable: ' + error.message;
     PropertiesService.getScriptProperties()
-      .setProperty(key.replace(DOC_JOB_PREFIX, DOC_DEAD_PREFIX), raw);
+      .setProperty(key.replace(DOC_JOB_PREFIX, DOC_DEAD_PREFIX), JSON.stringify(buried));
     return;
   }
 
