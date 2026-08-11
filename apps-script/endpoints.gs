@@ -481,7 +481,8 @@ function submitForm1(data) {
     event.dateOfService, sigFile,
     formsUsedFor_(selectedServices),
     formToService,
-    renderedServices
+    renderedServices,
+    signatureUrls
   );
 
   const result = {
@@ -653,11 +654,11 @@ function trySendConfirmationEmail_(data, patientID, appointmentID, qrBase64, eve
   }
 }
 
-function tryEnqueueDocJob_(data, patientID, appointmentID, facilityID, facilityName, dos, sigFile, formsUsed, serviceMap, services) {
+function tryEnqueueDocJob_(data, patientID, appointmentID, facilityID, facilityName, dos, sigFile, formsUsed, serviceMap, services, signatureUrls) {
   try {
     enqueueDocJob_(
       data, patientID, appointmentID, facilityID, facilityName, dos, sigFile, formsUsed,
-      serviceMap, services
+      serviceMap, services, signatureUrls
     );
   } catch (error) {
     console.error('Could not queue document generation for %s: %s', appointmentID, error.message);

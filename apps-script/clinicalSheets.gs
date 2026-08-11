@@ -16,18 +16,22 @@
  * measures, decides, or attests to is deliberately left blank.
  */
 
-/**
- * Spreadsheet holding the "WOW Documentation" and "Mobile EM" tabs.
- *
- * Defaults to the main EMR book. If those tabs live in their own spreadsheet, put
- * its id here — a wrong guess fails loudly with MISSING_SHEET rather than writing
- * rows into the wrong book.
- */
-const CLINICAL_DOC_SPREADSHEET_ID = SPREADSHEET_ID;
+/** The "Clinical Documentation" spreadsheet, which AppSheet reads its forms from. */
+const CLINICAL_DOC_SPREADSHEET_ID = '1h45EaaeXK7c-6ggcWrAoDRl2lyS-dNr7K-YHXP91EfY';
 
 /** Column counts, so a row is always padded to the sheet's full width. */
 const WOW_DOC_COLUMNS = 37;
 const MOBILE_EM_COLUMNS = 82;
+const SPORTS_PHYS_COLUMNS = 83;
+
+/**
+ * Sports Physicals columns 7-48 hold sprtphys26-1 .. sprtphys26-42 in order, so
+ * the intake block starts at this 0-based index. Verified against the sheet's
+ * header row; if a column is ever inserted before "What sports are you seeking
+ * this physical for?", this offset moves with it.
+ */
+const SPORTS_PHYS_INTAKE_OFFSET = 6;
+const SPORTS_PHYS_INTAKE_QUESTIONS = 42;
 
 /**
  * ServiceTypeID -> how to build its clinical row.
@@ -39,6 +43,7 @@ const MOBILE_EM_COLUMNS = 82;
 const CLINICAL_SHEETS = {
   VITALCHK: { sheet: 'WOW Documentation', build: buildWowDocumentationRow_ },
   HIV12HCV: { sheet: 'WOW Documentation', build: buildWowDocumentationRow_ },
+  SPRTPHYS: { sheet: 'Sports Physicals', build: buildSportsPhysicalRow_ },
   ENMADULT: {
     sheet: 'Mobile EM',
     build: function (ctx) { return buildMobileEmRow_(ctx, '63948c3e'); }
@@ -107,6 +112,69 @@ function buildMobileEmRow_(ctx, formId) {
   row[16] = answers[prefill.medications] || '';    // 17 Current Medications
 
   return row;
+}
+
+/**
+ * Sports Physicals: identity plus the whole sprtphys26 questionnaire.
+ *
+ * Unlike the other two sheets this one has no AppointmentID or Facility Name, and
+ * carries the patient's name in a single column.
+ *
+ * Answer formats differ from how intake stores them, so values are coerced:
+ * yes/no questions become real booleans (the sheet's sample rows hold TRUE/FALSE),
+ * and the PHQ-4 items become numbers.
+ */
+function buildSportsPhysicalRow_(ctx) {
+  var data = ctx.data;
+  var answers = createAnswerMap(data);
+  var signatures = (ctx.info && ctx.info.signatureUrls) || {};
+
+  var row = padRow_([
+    ctx.service.serviceId,
+    ctx.info.fid,
+    ctx.info.pid,
+    fullName(data),
+    get(data, 'demographics.dob', ''),
+    ctx.info.ds
+  ], SPORTS_PHYS_COLUMNS);
+
+  for (var n = 1; n <= SPORTS_PHYS_INTAKE_QUESTIONS; n++) {
+    var questionId = 'sprtphys26-' + n;
+    var answer = answers[questionId];
+    var column = SPORTS_PHYS_INTAKE_OFFSET + n - 1;
+
+    // A signature question's image is not in formResponses — the answer there is
+    // just the Yes/No — so it comes from the job's stored signature urls.
+    if (signatures[questionId]) {
+      row[column] = signatures[questionId];
+      continue;
+    }
+    row[column] = coerceClinicalAnswer_(answer);
+  }
+
+  // Column 50, under the patient attestation, is the date they signed.
+  row[49] = ctx.info.ds;
+
+  return row;
+}
+
+/**
+ * Normalises an intake answer for a clinical sheet.
+ *
+ * Yes/No becomes a boolean and a numeric string becomes a number, so AppSheet's
+ * Yes/No and Number column types read them natively. Anything unanswered stays
+ * blank rather than becoming `false`, which would assert an answer never given.
+ */
+function coerceClinicalAnswer_(answer) {
+  if (answer === null || answer === undefined) return '';
+  var text = String(answer).trim();
+  if (text === '') return '';
+
+  var lower = text.toLowerCase();
+  if (lower === 'yes') return true;
+  if (lower === 'no') return false;
+  if (/^-?\d+(\.\d+)?$/.test(text)) return Number(text);
+  return text;
 }
 
 // --- Writing ----------------------------------------------------------------
