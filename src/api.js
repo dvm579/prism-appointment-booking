@@ -136,8 +136,11 @@ export async function callAPI(action, payload) {
  * `sendBeacon` survives navigation where `fetch` would be cancelled. It cannot
  * report success, so the backend's pending-slot sweep remains the real safety net.
  */
-export function releaseSlotOnUnload(eventId, startTime) {
+export function releaseSlotOnUnload(eventId, startTime, holdToken) {
     if (!eventId || !startTime || !navigator.sendBeacon) return;
-    const body = JSON.stringify({ action: 'releaseSlot', payload: { eventId, startTime } });
+    const body = JSON.stringify({
+        action: 'releaseSlot',
+        payload: { eventId, startTime, holdToken }
+    });
     navigator.sendBeacon(GAS_API_URL, new Blob([body], { type: 'text/plain;charset=utf-8' }));
 }

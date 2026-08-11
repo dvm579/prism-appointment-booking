@@ -3,7 +3,7 @@ import { fetchCSV, releaseSlotOnUnload } from './api.js';
 import { dom } from './dom.js';
 import { state, currentEvent } from './state.js';
 import { displayEventDetails, renderEventCards } from './events.js';
-import { joinWaitlist, renderSlots, returnToSlotPicker } from './slots.js';
+import { currentHoldToken, joinWaitlist, renderSlots, returnToSlotPicker } from './slots.js';
 import { refreshForDemographics, renderDynamicForms } from './questions.js';
 import { initSignaturePad, setupSignatureListeners } from './signature.js';
 import { checkAge, handleFileSelection, toggleRecordsSection } from './patient.js';
@@ -55,7 +55,9 @@ function setupEventListeners() {
     // someone simply closes the tab. A persisted page may still be restored from
     // the back/forward cache, so leave that hold to the backend's sweep.
     window.addEventListener('pagehide', event => {
-        if (!event.persisted) releaseSlotOnUnload(state.eventId, state.heldSlotTime);
+        if (!event.persisted) {
+            releaseSlotOnUnload(state.eventId, state.heldSlotTime, currentHoldToken());
+        }
     });
 }
 

@@ -14,11 +14,27 @@ import {
     showLoading,
     slotDateTime,
     toSlotKey,
-    updateLoadingMessage
+    updateLoadingMessage,
+    uuid
 } from './utils.js';
 
 /** Guards against a second booking request while the first is still in flight. */
 let bookingInFlight = false;
+
+/**
+ * Identifies this client's claim on the slot it is holding.
+ *
+ * Sent with every bookSlot/releaseSlot call so the backend can tell a retry of our
+ * own request apart from someone else taking the slot. Apps Script sometimes
+ * answers with an HTML error page even though the script ran, and without this the
+ * retry reported the slot as "just taken" by the patient who had in fact got it.
+ */
+let holdToken = null;
+
+/** The token for the hold currently in place, for the unload beacon. */
+export function currentHoldToken() {
+    return holdToken;
+}
 
 // --- Slot grid --------------------------------------------------------------
 
@@ -113,7 +129,12 @@ async function selectSlot(slot, pill) {
     showLoading('Checking availability…');
 
     try {
-        await callAPI('bookSlot', { eventId: state.eventId, startTime: slot.wire });
+        holdToken = uuid();
+        await callAPI('bookSlot', {
+            eventId: state.eventId,
+            startTime: slot.wire,
+            holdToken
+        });
         state.heldSlotTime = slot.wire;
         updateLoadingMessage('Slot reserved.');
         openRegistrationForm(`<br>Selected Time Slot: ${escapeHtml(slot.key ?? slot.wire)}`);
@@ -196,13 +217,20 @@ export async function returnToSlotPicker() {
     if (held) showLoading('Releasing your time slot…');
 
     try {
-        if (held) await callAPI('releaseSlot', { eventId: state.eventId, startTime: held });
+        if (held) {
+            await callAPI('releaseSlot', {
+                eventId: state.eventId,
+                startTime: held,
+                holdToken
+            });
+        }
     } catch (error) {
         // The backend sweeps stale pending slots on a timer, so a failed release
         // is not worth blocking the user over.
         console.error('Failed to release the slot; continuing with UI reset.', error);
     } finally {
         state.heldSlotTime = null;
+        holdToken = null;
         state.isWaitlist = false;
         dom.formSection.classList.add('d-none');
         dom.slotSection.classList.remove('d-none');

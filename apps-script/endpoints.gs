@@ -209,7 +209,20 @@ function findSlotRow_(rows, eventId, startTime, status) {
 
 // --- Slot reservation -------------------------------------------------------
 
-/** Marks an open slot as pending so the patient can fill in the form. */
+/** Cache key recording which client currently holds a pending slot. */
+function holdKey_(eventId, startTime) {
+  return 'hold:' + eventId + '|' + normalizeTime_(startTime);
+}
+
+/**
+ * Marks an open slot as pending so the patient can fill in the form.
+ *
+ * Idempotent per `holdToken`. Apps Script occasionally answers a request with an
+ * HTML error page even though the script ran, so the client retries — and without
+ * this the retry found the slot already 'Pending' and told the patient it had just
+ * been taken, by them, moments earlier. A retry carrying the token that took the
+ * hold is treated as the success it is.
+ */
 function bookSlot1(payload) {
   if (!payload.eventId || !payload.startTime) {
     throw coded_('BAD_REQUEST', 'An event and a start time are required to reserve a slot.');
@@ -217,23 +230,57 @@ function bookSlot1(payload) {
 
   return withScriptLock_(function () {
     const sheet = sheet_(bookingBook_(), 'Appointment Slots');
-    const row = findSlotRow_(
-      sheet.getDataRange().getDisplayValues(),
-      payload.eventId,
-      payload.startTime,
-      'Open'
-    );
+    const rows = sheet.getDataRange().getDisplayValues();
+    const open = findSlotRow_(rows, payload.eventId, payload.startTime, 'Open');
 
-    if (!row) {
+    if (!open) {
+      // Already pending for this same client? Then their first attempt landed and
+      // only the response was lost.
+      const pending = findSlotRow_(rows, payload.eventId, payload.startTime, 'Pending');
+      if (pending && payload.holdToken && holdTokenFor_(payload) === payload.holdToken) {
+        return { status: 'success', message: 'Slot already reserved.', replayed: true };
+      }
       throw coded_('SLOT_UNAVAILABLE', 'That slot is no longer available. Please choose another.');
     }
 
-    sheet.getRange(row, SLOT_COL.status, 1, 2).setValues([['Pending', new Date()]]);
+    sheet.getRange(open, SLOT_COL.status, 1, 2).setValues([['Pending', new Date()]]);
+    rememberHold_(payload);
     // Commit before releasing the lock so the next request sees the change.
     SpreadsheetApp.flush();
 
     return { status: 'success', message: 'Slot reserved.' };
   });
+}
+
+/** The token that took the current hold, if we still have it. */
+function holdTokenFor_(payload) {
+  try {
+    return CacheService.getScriptCache().get(holdKey_(payload.eventId, payload.startTime));
+  } catch (error) {
+    console.warn('Could not read the slot hold cache: %s', error.message);
+    return null;
+  }
+}
+
+function rememberHold_(payload) {
+  if (!payload.holdToken) return;
+  try {
+    CacheService.getScriptCache().put(
+      holdKey_(payload.eventId, payload.startTime),
+      payload.holdToken,
+      Math.ceil(PENDING_GRACE_MS / 1000)
+    );
+  } catch (error) {
+    console.warn('Could not record the slot hold: %s', error.message);
+  }
+}
+
+function forgetHold_(payload) {
+  try {
+    CacheService.getScriptCache().remove(holdKey_(payload.eventId, payload.startTime));
+  } catch (error) {
+    console.warn('Could not clear the slot hold: %s', error.message);
+  }
 }
 
 /** Returns a pending slot to the pool. Safe to call more than once. */
@@ -251,9 +298,13 @@ function releaseSlot1(payload) {
       'Pending'
     );
 
-    if (!row) return { status: 'success', message: 'Slot was not in a pending state.' };
+    if (!row) {
+      forgetHold_(payload);
+      return { status: 'success', message: 'Slot was not in a pending state.' };
+    }
 
     sheet.getRange(row, SLOT_COL.status, 1, 2).setValues([['Open', new Date()]]);
+    forgetHold_(payload);
     SpreadsheetApp.flush();
     return { status: 'success', message: 'Slot released.' };
   });
