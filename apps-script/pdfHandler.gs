@@ -226,19 +226,26 @@ function runDocJob_(key) {
   try {
     job = loadDocJob_(raw);
   } catch (error) {
-    // Nothing to retry with — a job we cannot read cannot be run. Record why on
-    // the buried job: without it the dead letter shows attempts 0 and no reason,
-    // which is indistinguishable from a job that was never tried.
-    console.error('Doc job %s could not be read (%s); setting it aside.', key, error.message);
-    var buried;
+    // Reading a spilled payload back is the most transient step in the pipeline —
+    // Drive does not always serve a file the moment after it is created — and it
+    // used to be the one step with no retry, so a momentary hiccup buried the job
+    // for good. Both jobs lost this way read back perfectly once inspected.
+    var pointer = null;
     try {
-      buried = JSON.parse(raw);
+      pointer = JSON.parse(raw);
     } catch (parseError) {
-      buried = { raw: String(raw).slice(0, 500) };
+      // The property itself is not JSON. No later attempt can fix that.
+      console.error('Doc job %s has an unreadable pointer; setting it aside.', key);
+      PropertiesService.getScriptProperties().setProperty(
+        key.replace(DOC_JOB_PREFIX, DOC_DEAD_PREFIX),
+        JSON.stringify({ raw: String(raw).slice(0, 500), error: 'unreadable pointer' })
+      );
+      return;
     }
-    buried.error = 'unreadable: ' + error.message;
-    PropertiesService.getScriptProperties()
-      .setProperty(key.replace(DOC_JOB_PREFIX, DOC_DEAD_PREFIX), JSON.stringify(buried));
+
+    // Put it back for another pass; `retryOrBuryDocJob_` buries it only once the
+    // attempts run out, and rewrites the pointer without re-spilling the payload.
+    retryOrBuryDocJob_(pointer, new Error('could not read payload: ' + error.message));
     return;
   }
 
