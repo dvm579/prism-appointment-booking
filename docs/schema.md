@@ -153,9 +153,18 @@ their current selection actually requires.
 | `multi_select` | Checkbox list from `Options`; answers joined with `, ` |
 | `text_area` | Two-row textarea |
 | `date` | Date input |
+| `scored` | One item of a clinical instrument — see below |
 | `insurance` | The insurance block — see below |
 | `signature` | Inline Yes / No, with a pad at the end — see below |
 | anything else | Text input |
+
+The sheet's own **data validation on `QuestionType` has to list every type in
+use**, or a write fails part way: Sheets applies a `setValues` row by row and
+rejects the offending cell, leaving the sheet half-loaded.
+`tools/importSchoolHealthForms.gs` widens that rule before it writes, adding only
+what is missing. `radio_custom` appears in the rule but is used by no question
+and implemented nowhere — treat it as vestigial rather than as something to build
+on.
 
 `Options` splits on `|` when the cell contains one and on `,` otherwise. Comma
 alone could not express an option whose label has a comma in it, and the School
@@ -200,6 +209,25 @@ Generated inputs carry **no** `required` attribute. A required control inside a
 hidden section makes the browser abort submission with "An invalid form control is
 not focusable" — no message, submit handler never runs, page looks frozen.
 Required-ness is enforced in `collectResponses()`, which knows what is visible.
+
+### `scored`
+
+One item of a clinical instrument — PSC-17, the Illinois lead risk set,
+PHQ-2/GAD-2. Consecutive `scored` questions sharing an option set are taken to be
+the same instrument and render as a single matrix: an item per row, an option per
+column, with the options named once in the header rather than once per item.
+Below tablet width the matrix restacks into a block per item, the header hidden
+from sight but not from screen readers, which get the item and the option
+together from each radio's `aria-label`.
+
+Only **ungated** items group. A row that could disappear on its own would leave a
+hole in the table under a header still describing it, so a `scored` question
+carrying a `TriggerID` renders on its own as an ordinary radio row.
+
+Nothing is scored. The answer stored is the label the patient chose, not a
+number. Where the instrument's published values are numeric the labels are the
+instrument's own words — `Never / Sometimes / Often` for PSC-17 — which map onto
+its digits positionally, so totalling is a lookup rather than a rewrite.
 
 ### `insurance`
 

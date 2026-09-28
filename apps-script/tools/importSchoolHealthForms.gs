@@ -31,6 +31,9 @@ var WORKBOOK_ID = '17226ud6cLY7gbLyv0IS_3k1mylHeWuoHHKyr96hoy1I';
  */
 var REQUIRED_SHEETS = ['Forms', 'Form Questions', 'Service Types', 'Consent Blocks'];
 
+/** 1-based QuestionType column on Form Questions. */
+var QUESTION_TYPE_COL = 5;
+
 /**
  * Age bands changed from {0-12, 12-18, 18+} to {0-3, 4-11, 12-17, 18+}.
  *
@@ -631,6 +634,7 @@ function runImport_(dryRun) {
   var log = ['Workbook: ' + book.getName(), ''];
 
   log.push(upsert_(book, 'Forms', FORMS, 0, 2, dryRun));
+  log.push(allowQuestionTypes_(book, dryRun));
   log.push(upsert_(book, 'Form Questions', QUESTIONS, 1, 9, dryRun));
   log.push(upsert_(book, 'Service Types', SERVICE_TYPES, 0, 8, dryRun));
   log.push(upsert_(book, 'Consent Blocks', [CONSENT_BLOCK], 0, 4, dryRun));
@@ -642,6 +646,47 @@ function runImport_(dryRun) {
   var report = (dryRun ? 'PREVIEW - nothing written\n\n' : 'IMPORT COMPLETE\n\n') + log.join('\n');
   console.log(report);
   return report;
+}
+
+/**
+ * Widens the QuestionType column's data validation to accept the types being
+ * written.
+ *
+ * The column carries a value-in-list rule, and `scored` is new, so without this
+ * the Form Questions write dies part way through on the first instrument item -
+ * Sheets applies a setValues row by row and rejects the offending cell, which
+ * leaves the sheet half-loaded.
+ *
+ * Only ever adds. The existing entries are kept exactly as they are, including
+ * ones nothing uses yet.
+ */
+function allowQuestionTypes_(book, dryRun) {
+  var sheet = book.getSheetByName('Form Questions');
+  var label = 'QuestionType validation: ';
+
+  var wanted = {};
+  QUESTIONS.forEach(function (row) { wanted[row[4]] = true; });
+
+  var rule = sheet.getRange(2, QUESTION_TYPE_COL).getDataValidation();
+  if (!rule) return label + 'no rule set, nothing to widen.';
+  if (rule.getCriteriaType() !== SpreadsheetApp.DataValidationCriteria.VALUE_IN_LIST) {
+    return label + 'not a value-in-list rule, left alone.';
+  }
+
+  var allowed = rule.getCriteriaValues()[0];
+  var missing = Object.keys(wanted).filter(function (type) {
+    return allowed.indexOf(type) === -1;
+  });
+  if (!missing.length) return label + 'already accepts every type used.';
+  if (dryRun) return label + 'would add ' + missing.join(', ');
+
+  var widened = SpreadsheetApp.newDataValidation()
+    .requireValueInList(allowed.concat(missing), true)
+    .setAllowInvalid(rule.getAllowInvalid())
+    .build();
+  sheet.getRange(2, QUESTION_TYPE_COL, Math.max(sheet.getMaxRows() - 1, 1))
+    .setDataValidation(widened);
+  return label + 'added ' + missing.join(', ');
 }
 
 /**
