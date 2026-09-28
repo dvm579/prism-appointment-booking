@@ -398,15 +398,18 @@ so their triggers were read off the printed forms and written by hand in
 They are deliberately sparse. **A wrong trigger hides a question and its answer
 is never collected; a missing one only shows something that did not apply.** The
 two failures are not comparable, so anything ambiguous is left showing. Of 328
-questions, 24 carry a conditional trigger and the rest are always asked.
+questions, 14 carry a conditional trigger and the rest are always asked.
 
 Two things are worth knowing about the ones that exist:
 
-- Gating a whole section follows the printed form's own wording. *If you came for
-  pregnancy or after-baby care* hangs off the reason for the visit, exactly as the
-  paper does, so somebody who came for a check-up is not asked about a pregnancy.
-  The self-harm item inside that section is a duplicate — `shccore-61` asks every
-  adult the same question regardless — so gating it costs nothing clinically.
+- **A section heading that reads like a condition is not necessarily one.** The
+  printed form heads the pregnancy block *If you came for pregnancy or after-baby
+  care*, but it is **not** gated on the reason for the visit: somebody who books
+  a check-up and is pregnant would otherwise never be asked. Nothing in it is
+  required, and the heading already tells anyone it does not apply to that they
+  can move on — which costs an adult one step and answers nothing wrongly. The
+  age-based ones (*For children 8 to 11*, *If you are 65 or older*) are real
+  conditions and are gated.
 - A chain needs no extra gating at its tail. A question whose parent is hidden is
   hidden too, so "If none, check any that fit" only has to name the work-rule
   question; the age gating on that question's own parents carries down.
