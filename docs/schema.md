@@ -203,9 +203,27 @@ value keep their sheet position, at the end.
 
 | `TriggerID` | Meaning |
 | --- | --- |
-| a QuestionID | Show when that question in the same form is answered with `TriggerValue` |
-| `@age` | Show when the patient's age band equals `TriggerValue` (`0-3`, `4-11`, `12-17`, `18+`) |
+| a QuestionID | Show when that question is answered with `TriggerValue` |
+| several QuestionIDs | Show when **any** of them is both asked and answered with `TriggerValue` |
+| `@age` | Show when the patient's age matches `TriggerValue` — a band name or a range |
 | `@gender` | Show when the selected gender equals `TriggerValue` |
+
+**`TriggerID` may name several questions**, split the same way as `Options`.
+A question hangs off whichever of them is on screen, which is what lets one row
+follow either the child or the adult variant of a question rather than needing a
+copy per age band — "If Medicaid, which plan?" follows both. A list is either
+all question ids or a single `@` trigger; the two cannot be mixed.
+
+**`@age` accepts a plain range** — `8-11`, `65+` — as well as a band name. Both
+are read the same way, because the band names are themselves exactly those
+ranges: `0-3` is 0 to 3, `18+` is 18 and over. Ranges exist because sections like
+*For children 8 to 11* and *If you are 65 or older* do not line up with the
+bands, and inventing bands for them would change what every service's
+`Age Eligibility` means. Reading them as ranges also means a value left behind by
+an older band vocabulary lands roughly where it was meant to rather than matching
+nothing and hiding its question for good — which is how eight rows on
+`c2e4d150`, including a self-harm question, were silently hidden by the band
+change until the importer restated them.
 
 `@`-prefixed triggers read the demographics section instead of a question, so a
 form can branch on age or gender without asking for it twice.
@@ -370,3 +388,25 @@ the same failure that `collectResponses` exists to avoid.
 Submission validation can still reject something answered several steps back, so
 `reject()` surfaces that element's step before scrolling to it. Scrolling to an
 element on a step that is not showing scrolls to nothing.
+
+## Writing triggers
+
+The Data Dictionary behind the School Health forms carries no conditional logic,
+so their triggers were read off the printed forms and written by hand in
+`tools/importSchoolHealthForms.gs`.
+
+They are deliberately sparse. **A wrong trigger hides a question and its answer
+is never collected; a missing one only shows something that did not apply.** The
+two failures are not comparable, so anything ambiguous is left showing. Of 328
+questions, 24 carry a conditional trigger and the rest are always asked.
+
+Two things are worth knowing about the ones that exist:
+
+- Gating a whole section follows the printed form's own wording. *If you came for
+  pregnancy or after-baby care* hangs off the reason for the visit, exactly as the
+  paper does, so somebody who came for a check-up is not asked about a pregnancy.
+  The self-harm item inside that section is a duplicate — `shccore-61` asks every
+  adult the same question regardless — so gating it costs nothing clinically.
+- A chain needs no extra gating at its tail. A question whose parent is hidden is
+  hidden too, so "If none, check any that fit" only has to name the work-rule
+  question; the age gating on that question's own parents carries down.

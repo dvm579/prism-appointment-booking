@@ -39,6 +39,21 @@ function ageInYears(dob) {
 }
 
 /**
+ * The patient's age in whole years.
+ *
+ * `@age` triggers accept a plain range as well as a band name, and a range has
+ * to be measured against years rather than against the band it falls in.
+ *
+ * @returns {number|null} null while the date of birth is blank or unparseable.
+ */
+export function ageYears() {
+    const dob = parseSheetDate(dom.dob.value);
+    if (dob === null) return null;
+    const age = ageInYears(dob);
+    return age < 0 ? null : age;
+}
+
+/**
  * The patient's age band from the date of birth entered.
  *
  * @returns {string|null} null while the date of birth is blank or unparseable.

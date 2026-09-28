@@ -21,7 +21,7 @@ import { setInsuranceVisible } from './insurance.js';
 import { setConsentSignatureVisible, syncAdditionalSignatures } from './signature.js';
 import { renderConsentDeclines, attachConsentDeclineListeners } from './consent.js';
 import { refreshSteps, attachStepListeners } from './steps.js';
-import { ageBand, gender } from './patient.js';
+import { ageBand, ageYears, gender } from './patient.js';
 import { escapeHtml, isTruthyFlag } from './utils.js';
 
 /** Question types handled specially rather than rendered as a plain field. */
@@ -625,6 +625,30 @@ function answerValues(questionId) {
     return first.value ? [first.value] : [];
 }
 
+/**
+ * True when the patient matches one `@age` trigger value.
+ *
+ * A value is a band name or a plain range — `8-11`, `65+`. Both are read the
+ * same way, because the four band names are themselves exactly those ranges:
+ * `0-3` is 0 to 3, `18+` is 18 and over. Ranges exist because sections like
+ * "For children 8 to 11" and "If you are 65 or older" do not line up with the
+ * bands, and inventing bands for them would change what every service's
+ * eligibility means.
+ *
+ * Reading them as ranges also means a value left behind by an older band
+ * vocabulary still lands roughly where it was meant to, instead of matching
+ * nothing and hiding its question for good.
+ */
+function matchesAge(value, band, years) {
+    const range = /^(\d+)\s*(?:-\s*(\d+)|\+)$/.exec(String(value).trim());
+    if (!range) return value === band;
+    if (years === null) return false;
+
+    const low = Number(range[1]);
+    const high = range[2] === undefined ? Infinity : Number(range[2]);
+    return years >= low && years <= high;
+}
+
 /** True when a question is on screen, so its answer can gate something else. */
 function questionIsVisible(questionId) {
     const inputs = dom.dynamicFormsContainer.querySelectorAll(
@@ -647,6 +671,7 @@ function questionIsVisible(questionId) {
  */
 function applyConditionals() {
     const demographics = { age: ageBand(), gender: gender() };
+    const years = ageYears();
     const conditionals = dom.dynamicFormsContainer.querySelectorAll('[data-trigger-id]');
     if (conditionals.length === 0) return;
 
@@ -666,12 +691,20 @@ function applyConditionals() {
                     );
                 }
                 const actual = demographics[field];
-                matches = actual !== null && actual !== undefined && expected.includes(actual);
-            } else if (!questionIsVisible(triggerId)) {
-                // The question this depends on is not being asked, so neither is this.
-                matches = false;
+                matches = field === 'age'
+                    ? expected.some(value => matchesAge(value, actual, years))
+                    : actual !== null && actual !== undefined && expected.includes(actual);
             } else {
-                matches = answerValues(triggerId).some(value => expected.includes(value));
+                // A question can name several parents. Only one has to be both
+                // asked and answered as expected — that is what lets one row
+                // hang off whichever of the child and adult variants is on
+                // screen, rather than needing a copy per age band.
+                const parents = splitList(triggerId);
+                matches = parents.some(
+                    parent =>
+                        questionIsVisible(parent) &&
+                        answerValues(parent).some(value => expected.includes(value))
+                );
             }
 
             // A hidden ancestor already hides this; leave its answers alone so they

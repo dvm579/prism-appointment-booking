@@ -58,6 +58,27 @@ var AGE_MIGRATION = [
   ["ENMMINOR", "0-12, 12-18", "0-3,4-11,12-17"]
 ];
 
+/**
+ * `@age` triggers left behind by the old band vocabulary.
+ *
+ * The band change restated Age Eligibility on Service Types but not the `@age`
+ * triggers inside Form Questions, so these eight rows on the WOW pediatric form
+ * were left asking for bands `ageBand()` no longer returns - which hid them
+ * outright, including the teen self-harm question.
+ *
+ * QuestionID, the value expected there, the value it should be.
+ */
+var TRIGGER_MIGRATION = [
+  ['c2e4d150-34', '0-12', '0-3|4-11'],
+  ['c2e4d150-35', '0-12', '0-3|4-11'],
+  ['c2e4d150-36', '0-12', '0-3|4-11'],
+  ['c2e4d150-37', '0-12', '0-3|4-11'],
+  ['c2e4d150-38', '12-18', '12-17'],
+  ['c2e4d150-39', '12-18', '12-17'],
+  ['c2e4d150-40', '12-18', '12-17'],
+  ['c2e4d150-41', '12-18', '12-17']
+];
+
 var FORMS = [
   ["shccore", "School Health - shared core"],
   ["shc0003", "School Health Parent Form (ages 0-3)"],
@@ -321,7 +342,7 @@ var QUESTIONS = [
   ["shccore", "shccore-25", 340, "Patient portal:", "single_select", "Sign me up; email: ______________|Already have it|No thank you", "N", "@age", "0-3|4-11|12-17", "Parent or guardian filling this out"],
   ["shccore", "shccore-26", 350, "Type:", "single_select", "Medicaid / All Kids|Private|None or not sure|Prefer not to say", "Y", "@age", "0-3|4-11|12-17", "Insurance"],
   ["shccore", "shccore-27", 360, "Type:", "single_select", "Medicare|Medicaid|CHIP / All Kids|VA / TriCare|Private|None or not sure|Prefer not to say", "Y", "@age", "18+", "Insurance"],
-  ["shccore", "shccore-28", 370, "If Medicaid, which plan?", "single_select", "CountyCare|Meridian|Molina|Aetna Better Health|BCBS Community|YouthCare|Not sure", "N", "", "", "Insurance"],
+  ["shccore", "shccore-28", 370, "If Medicaid, which plan?", "single_select", "CountyCare|Meridian|Molina|Aetna Better Health|BCBS Community|YouthCare|Not sure", "N", "shccore-26|shccore-27", "Medicaid / All Kids|Medicaid|CHIP / All Kids", "Insurance"],
   ["shccore", "shccore-29", 380, "Plan name:", "text", "", "N", "", "", "Insurance"],
   ["shccore", "shccore-30", 390, "Member ID:", "text", "", "N", "", "", "Insurance"],
   ["shccore", "shccore-31", 400, "Medicaid recipient ID (RIN), if different:", "text", "", "N", "", "", "Insurance"],
@@ -334,8 +355,8 @@ var QUESTIONS = [
   ["shccore", "shccore-38", 470, "Moved or new phone this year?", "single_select", "No|Yes, please help me update the State", "N", "", "", "Keeping Medicaid coverage"],
   ["shccore", "shccore-39", 480, "ABE Manage My Case account?", "single_select", "No|Yes|Not sure", "N", "", "", "Keeping Medicaid coverage"],
   ["shccore", "shccore-40", 490, "Parent's Medicaid letter says the group is:", "single_select", "FamilyCare|ACA Adult|Other group or none|Not sure", "N", "@age", "0-3|4-11|12-17", "Keeping Medicaid coverage"],
-  ["shccore", "shccore-41", 500, "If ACA Adult: in any one month since your last renewal, did you:", "single_select", "Earn $580 or more|Work, volunteer, or school 80 hours|Attend school at least half time|None of these", "N", "", "", "Keeping Medicaid coverage"],
-  ["shccore", "shccore-42", 510, "If none, check any that fit:", "multi_select", "Caring for a child or a disabled person|Pregnant, or had a baby (or lost a pregnancy) in last 12 months|Medical condition, disability, or serious mental illness limits work|In drug or alcohol treatment|Veteran with 100% disability|Former foster youth under 26|Turned 19, or left jail, in last 3 months|Hospital or nursing home stay recently", "N", "", "", "Keeping Medicaid coverage"],
+  ["shccore", "shccore-41", 500, "If ACA Adult: in any one month since your last renewal, did you:", "single_select", "Earn $580 or more|Work, volunteer, or school 80 hours|Attend school at least half time|None of these", "N", "shccore-40|shccore-60", "ACA Adult", "Keeping Medicaid coverage"],
+  ["shccore", "shccore-42", 510, "If none, check any that fit:", "multi_select", "Caring for a child or a disabled person|Pregnant, or had a baby (or lost a pregnancy) in last 12 months|Medical condition, disability, or serious mental illness limits work|In drug or alcohol treatment|Veteran with 100% disability|Former foster youth under 26|Turned 19, or left jail, in last 3 months|Hospital or nursing home stay recently", "N", "shccore-41", "None of these", "Keeping Medicaid coverage"],
   ["shccore", "shccore-43", 520, "If Medicaid ends, help you would like:", "multi_select", "HFS Family Planning Program (STI and HIV tests, birth control, vaccines, Paps, mammograms)|Community health center with a sliding fee|Hospital charity care|Marketplace plan|Not needed", "N", "", "", "Keeping Medicaid coverage"],
   ["shccore", "shccore-59", 530, "Your Medicaid renewal due:", "single_select", "Don't know|Date: ______|No Medicaid", "N", "@age", "18+", "Keeping Medicaid coverage"],
   ["shccore", "shccore-60", 540, "Your Medicaid letter says the group is:", "single_select", "ACA Adult|FamilyCare, AABD, Moms & Babies, or other|Not sure", "N", "@age", "18+", "Keeping Medicaid coverage"],
@@ -460,9 +481,9 @@ var QUESTIONS = [
   ["shc0411", "shc0411-56", 1256, "Distracts easily", "scored", "Never|Sometimes|Often", "N", "", "", "How your child is doing: Pediatric Symptom Checklist (PSC-17)"],
   ["shc0411", "shc0411-57", 1257, "Any big changes at home (move, new baby, separation, loss)?", "single_select", "No|Yes", "N", "", "", "How your child is doing: Pediatric Symptom Checklist (PSC-17)"],
   ["shc0411", "shc0411-58", 1258, "Sleeping and eating:", "single_select", "Fine|Some issues|I have concerns", "N", "", "", "How your child is doing: Pediatric Symptom Checklist (PSC-17)"],
-  ["shc0411", "shc0411-59", 1359, "Nervous, anxious, or on edge", "scored", "Not at all|Several days|More than half the days|Nearly every day", "N", "", "", "For children 8 to 11"],
-  ["shc0411", "shc0411-60", 1360, "Down, sad, or not interested in things", "scored", "Not at all|Several days|More than half the days|Nearly every day", "N", "", "", "For children 8 to 11"],
-  ["shc0411", "shc0411-61", 1361, "Anything you'd like the provider to know?", "text", "", "N", "", "", "For children 8 to 11"],
+  ["shc0411", "shc0411-59", 1359, "Nervous, anxious, or on edge", "scored", "Not at all|Several days|More than half the days|Nearly every day", "N", "@age", "8-11", "For children 8 to 11"],
+  ["shc0411", "shc0411-60", 1360, "Down, sad, or not interested in things", "scored", "Not at all|Several days|More than half the days|Nearly every day", "N", "@age", "8-11", "For children 8 to 11"],
+  ["shc0411", "shc0411-61", 1361, "Anything you'd like the provider to know?", "text", "", "N", "@age", "8-11", "For children 8 to 11"],
   ["shc0411", "shc0411-62", 1462, "Any of these in the last 30 days?", "multi_select", "No|Hospital stay: mental health|ER visit: mental health|Hospital or ER: alcohol or drugs|Detox or live-in program|Mobile crisis team came|Hospital or ER: medical or surgical", "N", "", "", "Recent hospital, ER, or crisis care"],
   ["shc0411", "shc0411-63", 1463, "Date left, or date of the visit:", "text", "", "N", "", "", "Recent hospital, ER, or crisis care"],
   ["shc0411", "shc0411-64", 1464, "Hospital name and city:", "text", "", "N", "", "", "Recent hospital, ER, or crisis care"],
@@ -544,7 +565,7 @@ var QUESTIONS = [
   ["shcadult", "shcadult-26", 826, "Age 40 and older: last mammogram:", "single_select", "Never|N/A|When: ______", "N", "", "", "Your care so far this year"],
   ["shcadult", "shcadult-27", 827, "Age 65 and older (or at risk): bone density (DEXA):", "single_select", "Never|Not sure|When: ______", "N", "", "", "Your care so far this year"],
   ["shcadult", "shcadult-28", 828, "Plan to get pregnant in the next year?", "single_select", "Not planning|Planning|N/A", "N", "", "", "Your care so far this year"],
-  ["shcadult", "shcadult-29", 829, "If planning: taking folic acid?", "single_select", "No|Yes", "N", "", "", "Your care so far this year"],
+  ["shcadult", "shcadult-29", 829, "If planning: taking folic acid?", "single_select", "No|Yes", "N", "shcadult-28", "Planning", "Your care so far this year"],
   ["shcadult", "shcadult-30", 830, "Flu this season? COVID this season? Tdap in 10 years?", "multi_select", "Flu|COVID|Tdap|Not sure", "N", "", "", "Your care so far this year"],
   ["shcadult", "shcadult-31", 831, "Age 18 to 26: HPV done? MenACWY booster? MenB?", "multi_select", "HPV|MenACWY|MenB|Not sure", "N", "", "", "Your care so far this year"],
   ["shcadult", "shcadult-32", 832, "Hep B series? Pneumonia (50+)? Shingles (50+)? RSV (75+)?", "multi_select", "HepB|Pneumonia|Shingles|RSV", "N", "", "", "Your care so far this year"],
@@ -570,23 +591,23 @@ var QUESTIONS = [
   ["shcadult", "shcadult-52", 1152, "How hard is it to pay for basics?", "single_select", "Not hard|A little|Somewhat|Hard|Very hard", "N", "", "", "Safety and support"],
   ["shcadult", "shcadult-53", 1153, "Want help with work or school?", "single_select", "No|Yes|Not now", "N", "", "", "Safety and support"],
   ["shcadult", "shcadult-54", 1154, "How often do you feel lonely or cut off?", "single_select", "Never|Rarely|Sometimes|Often|Always", "N", "", "", "Safety and support"],
-  ["shcadult", "shcadult-55", 1255, "Need help from another person with:", "multi_select", "None|Bathing|Dressing|Toilet|Moving from bed or chair|Eating|Medicines|Shopping, meals, or money", "N", "", "", "If you are 65 or older"],
-  ["shcadult", "shcadult-56", 1256, "Walking:", "single_select", "No trouble|Some trouble|Cane or walker|Wheelchair", "N", "", "", "If you are 65 or older"],
-  ["shcadult", "shcadult-57", 1257, "Fallen, unsteady, or worried about falling?", "single_select", "No|Fell|Unsteady|Worried", "N", "", "", "If you are 65 or older"],
-  ["shcadult", "shcadult-58", 1258, "Vision:", "single_select", "Fine|Some trouble|A lot of trouble", "N", "", "", "If you are 65 or older"],
-  ["shcadult", "shcadult-59", 1259, "Hearing:", "single_select", "Fine|Some trouble|A lot of trouble", "N", "", "", "If you are 65 or older"],
-  ["shcadult", "shcadult-60", 1260, "Changes in memory or thinking?", "single_select", "No|Yes|Not sure", "N", "", "", "If you are 65 or older"],
-  ["shcadult", "shcadult-61", 1261, "Living will, POLST, or health care power of attorney?", "single_select", "No|Yes|Not sure|I'd like to talk about it", "N", "", "", "If you are 65 or older"],
-  ["shcadult", "shcadult-62", 1362, "Would you like a pregnancy test today?", "single_select", "No|Yes", "N", "", "", "If you came for pregnancy or after-baby care"],
-  ["shcadult", "shcadult-63", 1363, "First day of your last period, and weeks pregnant:", "text", "___/___/____    ______ weeks", "N", "", "", "If you came for pregnancy or after-baby care"],
-  ["shcadult", "shcadult-64", 1364, "Delivery date, if you just had a baby:", "text", "___/___/____", "N", "", "", "If you came for pregnancy or after-baby care"],
-  ["shcadult", "shcadult-65", 1365, "Pregnancies and births so far:", "text", "______ / ______", "N", "", "", "If you came for pregnancy or after-baby care"],
-  ["shcadult", "shcadult-66", 1366, "Have you started pregnancy care?", "single_select", "Not yet|Yes, where: ______|N/A, after baby", "N", "", "", "If you came for pregnancy or after-baby care"],
-  ["shcadult", "shcadult-67", 1367, "Have you reported this pregnancy to the State in Manage My Case?", "single_select", "Yes|No, please help me today|Not sure", "N", "", "", "If you came for pregnancy or after-baby care"],
-  ["shcadult", "shcadult-68", 1368, "This pregnancy:", "multi_select", "Prenatal vitamin|Flu shot|Tdap shot|RSV shot (32 to 36 weeks)", "N", "", "", "If you came for pregnancy or after-baby care"],
-  ["shcadult", "shcadult-69", 1369, "HIV, syphilis, and hepatitis tests done?", "single_select", "Yes, all|Some|No|Not sure", "N", "", "", "If you came for pregnancy or after-baby care"],
-  ["shcadult", "shcadult-70", 1370, "Past 7 days: felt down, or unable to enjoy things?", "single_select", "No or rarely|Some of the time|Most of the time", "N", "", "", "If you came for pregnancy or after-baby care"],
-  ["shcadult", "shcadult-71", 1371, "Past 7 days: has the thought of hurting yourself come to mind?", "single_select", "No|Yes", "N", "", "", "If you came for pregnancy or after-baby care"],
+  ["shcadult", "shcadult-55", 1255, "Need help from another person with:", "multi_select", "None|Bathing|Dressing|Toilet|Moving from bed or chair|Eating|Medicines|Shopping, meals, or money", "N", "@age", "65+", "If you are 65 or older"],
+  ["shcadult", "shcadult-56", 1256, "Walking:", "single_select", "No trouble|Some trouble|Cane or walker|Wheelchair", "N", "@age", "65+", "If you are 65 or older"],
+  ["shcadult", "shcadult-57", 1257, "Fallen, unsteady, or worried about falling?", "single_select", "No|Fell|Unsteady|Worried", "N", "@age", "65+", "If you are 65 or older"],
+  ["shcadult", "shcadult-58", 1258, "Vision:", "single_select", "Fine|Some trouble|A lot of trouble", "N", "@age", "65+", "If you are 65 or older"],
+  ["shcadult", "shcadult-59", 1259, "Hearing:", "single_select", "Fine|Some trouble|A lot of trouble", "N", "@age", "65+", "If you are 65 or older"],
+  ["shcadult", "shcadult-60", 1260, "Changes in memory or thinking?", "single_select", "No|Yes|Not sure", "N", "@age", "65+", "If you are 65 or older"],
+  ["shcadult", "shcadult-61", 1261, "Living will, POLST, or health care power of attorney?", "single_select", "No|Yes|Not sure|I'd like to talk about it", "N", "@age", "65+", "If you are 65 or older"],
+  ["shcadult", "shcadult-62", 1362, "Would you like a pregnancy test today?", "single_select", "No|Yes", "N", "shccore-9", "Pregnancy or after-baby care", "If you came for pregnancy or after-baby care"],
+  ["shcadult", "shcadult-63", 1363, "First day of your last period, and weeks pregnant:", "text", "___/___/____    ______ weeks", "N", "shccore-9", "Pregnancy or after-baby care", "If you came for pregnancy or after-baby care"],
+  ["shcadult", "shcadult-64", 1364, "Delivery date, if you just had a baby:", "text", "___/___/____", "N", "shccore-9", "Pregnancy or after-baby care", "If you came for pregnancy or after-baby care"],
+  ["shcadult", "shcadult-65", 1365, "Pregnancies and births so far:", "text", "______ / ______", "N", "shccore-9", "Pregnancy or after-baby care", "If you came for pregnancy or after-baby care"],
+  ["shcadult", "shcadult-66", 1366, "Have you started pregnancy care?", "single_select", "Not yet|Yes, where: ______|N/A, after baby", "N", "shccore-9", "Pregnancy or after-baby care", "If you came for pregnancy or after-baby care"],
+  ["shcadult", "shcadult-67", 1367, "Have you reported this pregnancy to the State in Manage My Case?", "single_select", "Yes|No, please help me today|Not sure", "N", "shccore-9", "Pregnancy or after-baby care", "If you came for pregnancy or after-baby care"],
+  ["shcadult", "shcadult-68", 1368, "This pregnancy:", "multi_select", "Prenatal vitamin|Flu shot|Tdap shot|RSV shot (32 to 36 weeks)", "N", "shccore-9", "Pregnancy or after-baby care", "If you came for pregnancy or after-baby care"],
+  ["shcadult", "shcadult-69", 1369, "HIV, syphilis, and hepatitis tests done?", "single_select", "Yes, all|Some|No|Not sure", "N", "shccore-9", "Pregnancy or after-baby care", "If you came for pregnancy or after-baby care"],
+  ["shcadult", "shcadult-70", 1370, "Past 7 days: felt down, or unable to enjoy things?", "single_select", "No or rarely|Some of the time|Most of the time", "N", "shccore-9", "Pregnancy or after-baby care", "If you came for pregnancy or after-baby care"],
+  ["shcadult", "shcadult-71", 1371, "Past 7 days: has the thought of hurting yourself come to mind?", "single_select", "No|Yes", "N", "shccore-9", "Pregnancy or after-baby care", "If you came for pregnancy or after-baby care"],
   ["shcadult", "shcadult-72", 1472, "Are you sexually active?", "single_select", "No|Yes|Prefer not to say", "N", "", "", "Private questions"],
   ["shcadult", "shcadult-73", 1473, "Partners in the last year; partners are:", "text", "______   ☐ men  ☐ women  ☐ both", "N", "", "", "Private questions"],
   ["shcadult", "shcadult-74", 1474, "Any symptoms now (discharge, burning, sores)?", "single_select", "No|Yes", "N", "", "", "Private questions"],
@@ -656,6 +677,7 @@ function runImport_(dryRun) {
   log.push(upsert_(book, 'Core Field Map', CORE_FIELD_MAP, 1, 3, dryRun,
                    ['QuestionID', 'FormID', 'Paper field ID']));
   log.push(migrateAgeBands_(book, dryRun));
+  log.push(migrateQuestionAgeTriggers_(book, dryRun));
 
   var report = (dryRun ? 'PREVIEW - nothing written\n\n' : 'IMPORT COMPLETE\n\n') + log.join('\n');
   console.log(report);
@@ -813,6 +835,40 @@ function upsertConsentItems_(book, dryRun) {
     sheet.getRange(sheet.getLastRow() + 1, 1, appended.length, header.length).setValues(appended);
   }
   return name + ': ' + appended.length + ' new, ' + updates + ' updated.';
+}
+
+/**
+ * Restates the stale `@age` trigger values named in TRIGGER_MIGRATION.
+ *
+ * Guarded the same way as the Service Types migration: a value that is not the
+ * one expected has been edited since, so it is named and left alone.
+ */
+function migrateQuestionAgeTriggers_(book, dryRun) {
+  var sheet = book.getSheetByName('Form Questions');
+  var last = sheet.getLastRow();
+  if (last < 2) return 'Question @age triggers: no rows.';
+
+  var values = sheet.getRange(2, 1, last - 1, QUESTION_WIDTH).getValues();
+  var index = {};
+  values.forEach(function (row, i) { index[String(row[1]).trim()] = i; });
+
+  var notes = [];
+  TRIGGER_MIGRATION.forEach(function (m) {
+    var id = m[0], expected = m[1], replacement = m[2];
+    if (!(id in index)) { notes.push(id + ' not found'); return; }
+
+    var at = index[id];
+    var current = String(values[at][8]).trim();
+    if (current === replacement) { notes.push(id + ' already done'); return; }
+    if (current !== expected) {
+      notes.push(id + ' SKIPPED (found "' + current + '")');
+      return;
+    }
+    notes.push(id + ' "' + current + '" -> "' + replacement + '"');
+    if (!dryRun) sheet.getRange(at + 2, 9).setValue(replacement);
+  });
+
+  return 'Question @age triggers: ' + notes.join('; ');
 }
 
 /** Restates Age Eligibility on the existing services in the new bands. */
