@@ -320,6 +320,8 @@ var QUESTIONS = [
   ["shccore", "shccore-60", 600, "Your Medicaid letter says the group is:", "single_select", "ACA Adult|FamilyCare, AABD, Moms & Babies, or other|Not sure", "N", "@age", "18+"],
   ["shccore", "shccore-61", 610, "Right now, are you having any thoughts of hurting yourself?", "single_select", "No|Yes", "N", "@age", "18+"],
   ["shccore", "shccore-62", 620, "May Prism send the physical or shot record to your school or college?", "single_select", "Yes|No, I will deliver it myself|Does not apply", "N", "@age", "18+"],
+  ["shccore", "shccore-63", 630, "Best way to reach you for follow-up:", "single_select", "Phone|Text|Video", "N", "", ""],
+  ["shccore", "shccore-64", 640, "Best days and times to reach you:", "text", "", "N", "", ""],
   ["shc0003", "shc0003-1", 101, "Is your child under 3 and did they miss the 9 to 12 month or 24 month test? OR is your child 3 to 6 and never tested?", "scored", "Yes|No|Don't know", "N", "", ""],
   ["shc0003", "shc0003-2", 102, "Since the last check, moved to, or often visits, a building built before 1978?", "scored", "Yes|No|Don't know", "N", "", ""],
   ["shc0003", "shc0003-3", 103, "Been around repairs, repainting, or remodeling of a building built before 1978?", "scored", "Yes|No|Don't know", "N", "", ""],
