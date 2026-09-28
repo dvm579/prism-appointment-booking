@@ -17,3 +17,9 @@ desktop.ini
 
 # Claude Code local machine state (launch.json is shared, this is not)
 .claude/settings.local.json
+
+# School Health pipeline intermediates (regenerate with tools/school-health)
+tools/school-health/questions_out.json
+tools/school-health/core_mapping.json
+tools/school-health/sheets_out.json
+tools/school-health/__pycache__/
