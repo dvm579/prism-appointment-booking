@@ -389,6 +389,23 @@ Submission validation can still reject something answered several steps back, so
 `reject()` surfaces that element's step before scrolling to it. Scrolling to an
 element on a step that is not showing scrolls to nothing.
 
+## A hazard with range-shaped cells
+
+`12-18`, `8-11` and `1-2` all look like dates to Google Sheets. Typed into a
+default-formatted cell, `12-18` becomes December 18 stored as a date behind an
+`MM-DD` number format — so it still *displays* as `12-18`, and the published CSV
+still *carries* `12-18`, but `getValues()` in Apps Script hands back a `Date`.
+
+That is invisible until something compares the cell to a string, which is how
+four `@age` rows survived a migration that fixed their four siblings: `0-12` has
+no valid month, so it stayed text, while `12-18` did not.
+
+Anything in Apps Script that reads these columns should use
+`getDisplayValues()`, and anything writing a range-shaped value should set the
+cell's number format to `@` first, or the value it writes is parsed as a date on
+the way in. The published CSV is unaffected either way, so the page never sees
+this.
+
 ## Writing triggers
 
 The Data Dictionary behind the School Health forms carries no conditional logic,

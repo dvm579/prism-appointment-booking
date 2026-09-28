@@ -848,9 +848,14 @@ function migrateQuestionAgeTriggers_(book, dryRun) {
   var last = sheet.getLastRow();
   if (last < 2) return 'Question @age triggers: no rows.';
 
-  var values = sheet.getRange(2, 1, last - 1, QUESTION_WIDTH).getValues();
+  // Display values, not raw ones. Sheets reads "12-18" as December 18 and
+  // stores a date behind a MM-DD format, so getValues() hands back a Date whose
+  // string form matches nothing - which is why the 0-12 rows migrated and the
+  // 12-18 rows did not. What the sheet shows is what the published CSV carries
+  // and what this is comparing against.
+  var shown = sheet.getRange(2, 1, last - 1, QUESTION_WIDTH).getDisplayValues();
   var index = {};
-  values.forEach(function (row, i) { index[String(row[1]).trim()] = i; });
+  shown.forEach(function (row, i) { index[String(row[1]).trim()] = i; });
 
   var notes = [];
   TRIGGER_MIGRATION.forEach(function (m) {
@@ -858,14 +863,21 @@ function migrateQuestionAgeTriggers_(book, dryRun) {
     if (!(id in index)) { notes.push(id + ' not found'); return; }
 
     var at = index[id];
-    var current = String(values[at][8]).trim();
+    var current = String(shown[at][8]).trim();
     if (current === replacement) { notes.push(id + ' already done'); return; }
     if (current !== expected) {
       notes.push(id + ' SKIPPED (found "' + current + '")');
       return;
     }
+
     notes.push(id + ' "' + current + '" -> "' + replacement + '"');
-    if (!dryRun) sheet.getRange(at + 2, 9).setValue(replacement);
+    if (!dryRun) {
+      // Plain text first, or "12-17" is read as December 17 and the cell ends
+      // up holding another date rather than the range it is meant to hold.
+      var cell = sheet.getRange(at + 2, 9);
+      cell.setNumberFormat('@');
+      cell.setValue(replacement);
+    }
   });
 
   return 'Question @age triggers: ' + notes.join('; ');
