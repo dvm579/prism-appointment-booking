@@ -1,0 +1,14 @@
+# Check everything out with LF, on every platform.
+#
+# The generators in tools/ and the Apps Script files write LF. Without this a
+# Windows checkout converts them to CRLF, and then regenerating the importer
+# reports a diff on every line of an 88KB file that has not actually changed —
+# which hides real changes and makes "a clean checkout reproduces this" untestable.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.pdf binary
+*.xlsx binary
+*.pptx binary
+*.docx binary
