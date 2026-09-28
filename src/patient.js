@@ -17,11 +17,17 @@ export const DEMOGRAPHIC_FIELDS = [
 /**
  * Age bands used to gate services and questions.
  *
- * Bands are half-open so the labels do not overlap: `0-12` is under 12, `12-18`
- * is 12 up to but not including 18, and `18+` is 18 and over. A patient turning
- * 12 or 18 therefore falls in exactly one band.
+ * Bands are half-open so the labels do not overlap: `0-3` is under 4, `4-11` is
+ * 4 up to but not including 12, `12-17` is 12 up to but not including 18, and
+ * `18+` is 18 and over. A patient turning 4, 12 or 18 falls in exactly one band.
+ *
+ * These replaced `0-12 / 12-18 / 18+`, which the School Health intake forms
+ * split further. The old labels map onto these exactly - `0-12` is
+ * {`0-3`, `4-11`} and `12-18` is `12-17` - so the Service Types rewrite that
+ * ships with this changes nobody's eligibility. It does have to ship with it:
+ * a band the sheet does not use hides every service that gates on age.
  */
-export const AGE_BANDS = ['0-12', '12-18', '18+'];
+export const AGE_BANDS = ['0-3', '4-11', '12-17', '18+'];
 
 /** Whole years between a date of birth and today. */
 function ageInYears(dob) {
@@ -43,8 +49,9 @@ export function ageBand() {
 
     const age = ageInYears(dob);
     if (age < 0) return null;
-    if (age < 12) return '0-12';
-    if (age < 18) return '12-18';
+    if (age < 4) return '0-3';
+    if (age < 12) return '4-11';
+    if (age < 18) return '12-17';
     return '18+';
 }
 

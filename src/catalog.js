@@ -6,10 +6,19 @@
 
 import { state } from './state.js';
 
-/** Splits a comma-separated sheet cell into trimmed, non-empty values. */
+/**
+ * Splits a list cell into trimmed, non-empty values.
+ *
+ * Pipe wins when the cell contains one, comma otherwise. Comma alone could not
+ * express an option whose own label has a comma in it, and the School Health
+ * forms have 80 of those - "Testing only (HIV, hep C, STI)" and the like. Every
+ * cell written before this used commas and contains no pipe, so they keep
+ * splitting exactly as they did.
+ */
 export function splitList(value) {
-    return String(value ?? '')
-        .split(',')
+    const raw = String(value ?? '');
+    return raw
+        .split(raw.includes('|') ? '|' : ',')
         .map(entry => entry.trim())
         .filter(Boolean);
 }

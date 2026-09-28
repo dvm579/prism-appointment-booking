@@ -180,7 +180,7 @@ function createQuestionElement(question) {
 /**
  * The values that reveal a conditional question.
  *
- * `TriggerValue` is comma-separated, so one row can list several — `0-12, 12-18`
+ * `TriggerValue` is a list, so one row can list several — `0-3|4-11|12-17`
  * for any minor, or `Yes, Not sure` to catch both. A blank cell means "Yes",
  * which is what a bare `TriggerID` on a yes/no question is always meant to say.
  *

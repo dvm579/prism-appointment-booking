@@ -90,17 +90,25 @@ Three bands, half-open so the labels never overlap:
 
 | Band | Means |
 | --- | --- |
-| `0-12` | under 12 |
-| `12-18` | 12 up to but not including 18 |
+| `0-3` | under 4 |
+| `4-11` | 4 up to but not including 12 |
+| `12-17` | 12 up to but not including 18 |
 | `18+` | 18 and over |
 
-A patient turning 12 or 18 therefore falls in exactly one band. The band is
+These replaced `0-12 / 12-18 / 18+` when the School Health intake forms arrived,
+which split the under-12s into 0-3 and 4-11. The old labels map onto the new ones
+exactly — `0-12` is {`0-3`, `4-11`} and `12-18` is `12-17` — so restating the
+existing `Age Eligibility` values changed nobody's eligibility. **The sheet and
+`src/patient.js` must agree**: a band the page computes but the sheet never names
+hides every service that gates on age.
+
+A patient turning 4, 12 or 18 therefore falls in exactly one band. The band is
 computed from the date of birth in the demographics section — it is never asked
 for separately.
 
 `Age Eligibility` and `Gender Eligibility` on Service Types hide services the
-patient cannot receive. Both are comma-separated lists — `0-12, 12-18` for any
-minor, `12-18, 18+` for 12 and over — and a service is offered if the patient
+patient cannot receive. Both are lists — `0-3|4-11|12-17` for any
+minor, `12-17|18+` for 12 and over — and a service is offered if the patient
 matches any entry. Both are empty by default, meaning no restriction, and a
 restriction only applies once the demographic it depends on is known: gating on a
 blank date of birth would hide every service before the patient has filled the
@@ -149,7 +157,11 @@ their current selection actually requires.
 | `signature` | Inline Yes / No, with a pad at the end — see below |
 | anything else | Text input |
 
-`Options` is comma-separated, so option labels cannot contain commas.
+`Options` splits on `|` when the cell contains one and on `,` otherwise. Comma
+alone could not express an option whose label has a comma in it, and the School
+Health forms have 80 of those — `Testing only (HIV, hep C, STI)` and the like.
+Cells written before this contain no pipe, so they split exactly as they did.
+**A pipe-separated cell may contain commas; a comma-separated one may not.**
 `DisplayOrder` sorts questions within a form and accepts decimals, so `0.1` puts a
 question first without renumbering everything after it; rows without a usable
 value keep their sheet position, at the end.
@@ -161,16 +173,16 @@ value keep their sheet position, at the end.
 | `TriggerID` | Meaning |
 | --- | --- |
 | a QuestionID | Show when that question in the same form is answered with `TriggerValue` |
-| `@age` | Show when the patient's age band equals `TriggerValue` (`0-12`, `12-18`, `18+`) |
+| `@age` | Show when the patient's age band equals `TriggerValue` (`0-3`, `4-11`, `12-17`, `18+`) |
 | `@gender` | Show when the selected gender equals `TriggerValue` |
 
 `@`-prefixed triggers read the demographics section instead of a question, so a
 form can branch on age or gender without asking for it twice.
 
-`TriggerValue` is **comma-separated**, so one row can list several values and the
-question appears if *any* of them matches — `0-12, 12-18` for any minor,
-`12-18, 18+` for 12 and over, or `Yes, Not sure` to catch both answers. As with
-`Options`, a value therefore cannot itself contain a comma. A blank `TriggerValue`
+`TriggerValue` is a **list**, so one row can list several values and the
+question appears if *any* of them matches — `0-3|4-11|12-17` for any minor,
+`12-17|18+` for 12 and over, or `Yes|Not sure` to catch both answers. It splits
+the same way as `Options` — see below. A blank `TriggerValue`
 alongside a `TriggerID` means `Yes`.
 
 While the demographic is still blank the question stays hidden — we cannot tell
@@ -178,10 +190,11 @@ whether it applies, and hidden questions are neither validated nor submitted. Da
 of birth and gender are both required, so the right set is always revealed before
 the form can be submitted.
 
-**Chained triggers are not supported.** A question whose `TriggerID` points at
-another *conditional* question can be left visible after its parent is cleared.
-Point triggers at an unconditional question. A question must never trigger on
-itself — that hides it permanently, since it can never be answered.
+**Chained triggers work.** Visibility is recomputed to a fixed point after every
+change, and a dependent whose trigger question is itself hidden is hidden too, so
+chains of any depth collapse and clear correctly in both directions. A question
+must still never trigger on itself — that hides it permanently, since it can
+never be answered — and a cycle between questions is only caught by a pass cap.
 
 Generated inputs carry **no** `required` attribute. A required control inside a
 hidden section makes the browser abort submission with "An invalid form control is
@@ -252,3 +265,31 @@ both services would ask once instead.
   2022-era forms no active service references.
 - `Campaigns` still has a `Consent HTML` column. Nothing reads it; consent comes
   from services now. Safe to drop when AppSheet no longer needs it.
+
+## Consent Items
+
+`Consent Blocks` holds the prose; `Consent Items` holds the things a patient can
+opt **out** of. The Consent for Services v2026.7 inverted the model: one
+signature consents to every section the signer did not decline, rather than a
+single certification checkbox covering everything.
+
+| Column | Notes |
+| --- | --- |
+| `ConsentID` | The block these items belong to |
+| `Section` | `1A`, `1B`, … — groups the items under their section heading |
+| `Section Title` | Shown above the group |
+| `ItemID` | Key within the consent, e.g. `hiv`. `ConsentID` + `ItemID` is unique |
+| `Item Label` | What the patient sees beside the decline control |
+| `Note Label` | Non-empty means the item reveals a text input when declined — "Which test?" for *Another test* |
+| `DisplayOrder` | Order within the consent |
+
+Declines are recorded per item, so "declined HIV screening" is a fact about the
+consent rather than an answer buried in a questionnaire. An item with a
+`Note Label` stores the note alongside the decline.
+
+**Section 5 (audio recording) is deliberately absent.** The consent's own staff
+box says recording consent is *"entered by staff, never by the tool"*, so the
+app must not collect it.
+
+Sections 6, 7 and 8 have no decline panel on the paper form — they are
+informational or binding — so they appear in the prose and have no items.
