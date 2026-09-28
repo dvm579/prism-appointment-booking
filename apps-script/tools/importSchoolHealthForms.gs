@@ -12,8 +12,24 @@
  * Generated from the Data Dictionary - do not hand-edit the tables below.
  */
 
-/** The "Campaigns, Events, Facilities" workbook. */
-var WORKBOOK_ID = '1BCwN1zVVM-MwT9bzswKuOrtowbBBDBtj1e6XHds2EmQ';
+/**
+ * The "Events Management" workbook - the one the registration page reads.
+ *
+ * Not "Campaigns, Events, Facilities", which has its own unrelated Events
+ * sheet from the LTC outbreak work and none of the booking sheets.
+ */
+var WORKBOOK_ID = '17226ud6cLY7gbLyv0IS_3k1mylHeWuoHHKyr96hoy1I';
+
+/**
+ * Sheets that must already exist for this to be the right workbook.
+ *
+ * Checked before anything is written. Two of the targets below create
+ * themselves when absent, so without this check pointing at the wrong
+ * spreadsheet does not fail cleanly - it leaves a Consent Items and a Core
+ * Field Map behind in whatever book you opened while everything else reports
+ * MISSING.
+ */
+var REQUIRED_SHEETS = ['Forms', 'Form Questions', 'Service Types', 'Consent Blocks'];
 
 /**
  * Age bands changed from {0-12, 12-18, 18+} to {0-3, 4-11, 12-17, 18+}.
@@ -600,7 +616,19 @@ function importSchoolHealthForms() {
 
 function runImport_(dryRun) {
   var book = SpreadsheetApp.openById(WORKBOOK_ID);
-  var log = [];
+
+  var present = book.getSheets().map(function (sheet) { return sheet.getName(); });
+  var missing = REQUIRED_SHEETS.filter(function (name) { return present.indexOf(name) === -1; });
+  if (missing.length) {
+    var refusal = 'WRONG WORKBOOK - nothing written.\n\n' +
+      '"' + book.getName() + '" is missing: ' + missing.join(', ') + '\n' +
+      'It contains: ' + present.join(', ') + '\n\n' +
+      'Point WORKBOOK_ID at the spreadsheet the registration page reads.';
+    console.error(refusal);
+    return refusal;
+  }
+
+  var log = ['Workbook: ' + book.getName(), ''];
 
   log.push(upsert_(book, 'Forms', FORMS, 0, 2, dryRun));
   log.push(upsert_(book, 'Form Questions', QUESTIONS, 1, 9, dryRun));
