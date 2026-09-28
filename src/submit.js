@@ -5,6 +5,7 @@ import { state, currentEvent } from './state.js';
 import { collectResponses, collectSelectedServices, consentRequired } from './questions.js';
 import { readAdditionalSignatures, readConsentSignature } from './signature.js';
 import { collectDeclines } from './consent.js';
+import { revealElement } from './steps.js';
 import { INSURANCE_FIELDS } from './insurance.js';
 import { DEMOGRAPHIC_FIELDS, readFilesAsBase64 } from './patient.js';
 import { hideSlotTimer } from './slots.js';
@@ -33,6 +34,9 @@ let submitInFlight = false;
 function reject(message, element) {
     showAlert(message, 'warning');
     if (element) {
+        // The problem can be several steps back, and scrolling to an element on
+        // a step that is not showing scrolls to nothing.
+        revealElement(element);
         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
         if (element.type !== 'radio' && element.type !== 'checkbox') element.focus();
     }

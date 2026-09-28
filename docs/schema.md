@@ -79,7 +79,8 @@ signature.
 ### `Forms`, `Form Questions`, `Appointment Slots`
 
 `Forms` maps `FormID` → `Form Name`, used to title each questionnaire section.
-`Form Questions` holds the questions. `Appointment Slots` is unchanged.
+`Form Questions` holds the questions, including the `Section` column the page
+steps through. `Appointment Slots` is unchanged.
 
 `Campaigns`, `Appointment Waitlist` and `Registration Queue` are **not** published:
 nothing on the page reads them and the last two hold patient data.
@@ -165,6 +166,27 @@ rejects the offending cell, leaving the sheet half-loaded.
 what is missing. `radio_custom` appears in the rule but is used by no question
 and implemented nowhere — treat it as vestigial rather than as something to build
 on.
+
+### `Section`
+
+The tenth column, appended so every earlier column keeps its position. It holds
+the section title the question sits under on the printed form — `Insurance`,
+`Shots (vaccines)` — and it is what the page steps through.
+
+Consecutive questions sharing a section form one group, and groups are packed
+into steps of at most twelve questions. A section is never split, so a section
+larger than that gets a step to itself; the cap only stops several small
+sections being spread over several near-empty screens. Rows with a blank
+`Section` — every form authored before this column — fall into a single step
+named after the form, which is how they rendered before.
+
+The shared core gathers its questions form by form, so its natural order walks
+each form's sections in turn and doubles back. `DisplayOrder` on those rows is
+therefore assigned by section rather than by generation order, and the two
+signature sections (`Sharing with the school, and your signature` on the child
+forms, `Safety check, sharing, and your signature` on the adult one) are
+recorded under one name: the core asks each question once and must not carry two
+names for one section.
 
 `Options` splits on `|` when the cell contains one and on `,` otherwise. Comma
 alone could not express an option whose label has a comma in it, and the School
@@ -321,3 +343,30 @@ app must not collect it.
 
 Sections 6, 7 and 8 have no decline panel on the paper form — they are
 informational or binding — so they appear in the prose and have no items.
+
+## Stepping through a form
+
+A School Health registration is 135 questions for a single eight-year-old, which
+as one page is about fifteen thousand pixels of scroll. The same markup is shown
+one step at a time, with a progress bar, Back and Next, and Submit only on the
+last step.
+
+Steps are built from what is on the page, so they follow the patient rather than
+the sheet: a step whose questions have all been withdrawn by a trigger or by age
+is dropped rather than shown empty, and a section heading left with nothing under
+it is hidden while its box stays put.
+
+**A step hides with `step-off`, never with `d-none`.** The distinction carries
+real weight. `d-none` means *this does not apply to this patient*, and both
+`collectResponses` and the trigger cascade read it; a step the patient has
+already filled in is still part of the submission while it is off screen. Hiding
+a step with `d-none` would silently drop every answer on it.
+
+Advancing runs the browser's validation over the current step's controls only.
+Validating the whole form at each step would trip over required fields on steps
+the patient has not reached, which report as invalid and cannot be focused —
+the same failure that `collectResponses` exists to avoid.
+
+Submission validation can still reject something answered several steps back, so
+`reject()` surfaces that element's step before scrolling to it. Scrolling to an
+element on a step that is not showing scrolls to nothing.

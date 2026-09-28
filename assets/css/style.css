@@ -399,3 +399,36 @@ footer {
 .consent-decline input:checked ~ label {
     font-weight: 600;
 }
+
+/*
+ * Step visibility.
+ *
+ * Deliberately not `d-none`: that class means "does not apply to this patient",
+ * and both answer collection and the trigger cascade read it. A step already
+ * filled in is still part of the submission while it is off screen.
+ */
+.step-off {
+    display: none !important;
+}
+
+/*
+ * Step progress header.
+ *
+ * Bootstrap's .text-muted is a dark grey set with !important, which on this
+ * page's navy is close to unreadable. The markup drops that class rather than
+ * this file trying to out-specify it.
+ */
+#stepCount {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+#stepTitle {
+    font-size: 1.05rem;
+}
+
+/* Which questionnaire the current step belongs to. Context, not a headline. */
+.form-eyebrow {
+    color: rgba(255, 255, 255, 0.55);
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}

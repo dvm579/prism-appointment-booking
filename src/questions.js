@@ -20,6 +20,7 @@ import {
 import { setInsuranceVisible } from './insurance.js';
 import { setConsentSignatureVisible, syncAdditionalSignatures } from './signature.js';
 import { renderConsentDeclines, attachConsentDeclineListeners } from './consent.js';
+import { refreshSteps, attachStepListeners } from './steps.js';
 import { ageBand, gender } from './patient.js';
 import { escapeHtml, isTruthyFlag } from './utils.js';
 
@@ -198,6 +199,54 @@ function createQuestionElement(question) {
 }
 
 /**
+ * Largest number of questions to put on one step.
+ *
+ * A section is never split, so a section bigger than this gets a step to
+ * itself. The cap only stops several small sections being spread over several
+ * near-empty screens.
+ */
+const STEP_MAX_QUESTIONS = 12;
+
+/**
+ * Packs a form's questions into steps, one or more whole sections each.
+ *
+ * Sections come from the sheet's `Section` column, which mirrors the printed
+ * form's own numbered sections, so a step is a thing the patient (and the staff
+ * member reading the paper version) already recognises. Rows with no section —
+ * every form authored before that column existed — fall back to a single step
+ * named after the form, which is how those forms rendered before.
+ */
+function sectionSteps(entries, formLabel) {
+    const groups = [];
+    entries.forEach(entry => {
+        const question = entry.items ? entry.items[0] : entry;
+        const section = String(question.Section ?? '').trim() || formLabel;
+        const size = entry.items ? entry.items.length : 1;
+
+        const last = groups[groups.length - 1];
+        if (last && last.section === section) {
+            last.entries.push(entry);
+            last.size += size;
+        } else {
+            groups.push({ section, entries: [entry], size });
+        }
+    });
+
+    const steps = [];
+    groups.forEach(group => {
+        const last = steps[steps.length - 1];
+        if (last && last.size + group.size <= STEP_MAX_QUESTIONS) {
+            last.groups.push(group);
+            last.titles.push(group.section);
+            last.size += group.size;
+        } else {
+            steps.push({ groups: [group], titles: [group.section], size: group.size });
+        }
+    });
+    return steps;
+}
+
+/**
  * Splits a form's questions into matrix runs and everything else.
  *
  * Consecutive `scored` questions sharing one option set are the same
@@ -356,18 +405,50 @@ export function renderDynamicForms(event) {
         section.id = `section_${formId}`;
         section.className = 'd-none mt-4 form-section';
         section.dataset.formId = formId;
-        section.innerHTML = `<hr><h4 class="mb-3 text-info">${escapeHtml(formName(formId))}</h4>`;
+        // The form's name goes on each step rather than once above them all: the
+        // wrapper is not itself a step, so a heading here would show on every
+        // step of every form at once.
+        section.innerHTML = '';
 
-        groupScored(questionsForForm(formId)).forEach(entry =>
-            section.appendChild(
-                entry.items ? createScoredGrid(entry) : createQuestionElement(entry)
-            )
-        );
+        sectionSteps(groupScored(questionsForForm(formId)), formName(formId)).forEach(step => {
+            const panel = document.createElement('div');
+            panel.className = 'question-step';
+            panel.dataset.stepTitle = step.titles.join(' · ');
+
+            const eyebrow = document.createElement('p');
+            eyebrow.className = 'form-eyebrow small mb-2';
+            eyebrow.textContent = formName(formId);
+            panel.appendChild(eyebrow);
+
+            step.groups.forEach(group => {
+                // Each section is its own box so the step can tell which
+                // headings still have anything under them once triggers and age
+                // have had their say.
+                const box = document.createElement('div');
+                box.className = 'question-section';
+                box.dataset.section = group.section;
+
+                const heading = document.createElement('h5');
+                heading.className = 'mt-3 mb-3';
+                heading.textContent = group.section;
+                box.appendChild(heading);
+
+                group.entries.forEach(entry =>
+                    box.appendChild(
+                        entry.items ? createScoredGrid(entry) : createQuestionElement(entry)
+                    )
+                );
+                panel.appendChild(box);
+            });
+
+            section.appendChild(panel);
+        });
 
         sections.appendChild(section);
     });
 
     attachListeners();
+    attachStepListeners();
     applyServiceEligibility();
     applySelection();
 }
@@ -468,6 +549,10 @@ function applySelection() {
     // Opt-out declines for whichever blocks are now in force.
     renderConsentDeclines(blocks.map(block => block.id));
     attachConsentDeclineListeners();
+
+    // Steps are recomputed here rather than only after a render: a trigger
+    // can empty a section, and an empty step is one to skip, not to show.
+    refreshSteps();
 
     // Insurance applies when any visible form asks for it.
     setInsuranceVisible(
