@@ -19,12 +19,14 @@ import {
 } from './catalog.js';
 import { setInsuranceVisible } from './insurance.js';
 import { setConsentSignatureVisible, syncAdditionalSignatures } from './signature.js';
+import { renderConsentDeclines, attachConsentDeclineListeners } from './consent.js';
 import { ageBand, gender } from './patient.js';
 import { escapeHtml, isTruthyFlag } from './utils.js';
 
 /** Question types handled specially rather than rendered as a plain field. */
 const INSURANCE_TYPE = 'insurance';
 const SIGNATURE_TYPE = 'signature';
+const SCORED_TYPE = 'scored';
 
 /**
  * Prefix marking a TriggerID as referring to a demographic field rather than
@@ -143,6 +145,24 @@ function createQuestionElement(question) {
             </div>`;
             break;
 
+        // A scored item outside a run — one carrying a trigger, so it cannot
+        // sit in a matrix whose other rows are always visible.
+        case SCORED_TYPE:
+            inputHtml = `
+                <div class="row g-2">
+                    ${options
+                        .map(
+                            (opt, index) => `
+                    <div class="col-6 col-md-3">
+                        <input class="form-check-input" type="radio" name="${id}" id="${id}_${index}"
+                               value="${escapeHtml(opt)}" data-question-id="${id}" ${ariaRequired}>
+                        <label class="form-check-label ms-2" for="${id}_${index}">${escapeHtml(opt)}</label>
+                    </div>`
+                        )
+                        .join('')}
+                </div>`;
+            break;
+
         case 'radio_yes_no':
             inputHtml = `
                 <div class="row g-2">
@@ -178,13 +198,91 @@ function createQuestionElement(question) {
 }
 
 /**
+ * Splits a form's questions into matrix runs and everything else.
+ *
+ * Consecutive `scored` questions sharing one option set are the same
+ * instrument — the 17 PSC-17 items, the 8 lead-risk questions — and reading
+ * them as a matrix with the options named once beats 17 identical dropdowns.
+ *
+ * Only ungated items group. A row that can disappear on its own would leave a
+ * hole in the table under a header still describing it.
+ *
+ * @returns {Array<Object|{options: string, items: Object[]}>}
+ */
+function groupScored(questions) {
+    const out = [];
+    let run = null;
+
+    for (const question of questions) {
+        const type = String(question.QuestionType ?? '').trim();
+        const options = String(question.Options ?? '').trim();
+        const groupable = type === SCORED_TYPE && options && !String(question.TriggerID ?? '').trim();
+
+        if (groupable && run && run.options === options) {
+            run.items.push(question);
+        } else if (groupable) {
+            run = { options, items: [question] };
+            out.push(run);
+        } else {
+            run = null;
+            out.push(question);
+        }
+    }
+
+    return out;
+}
+
+/**
+ * One instrument as a matrix: an item per row, an option per column.
+ *
+ * The radios carry the same `name` and `data-question-id` as any other
+ * question, so `collectResponses` reads them without knowing this exists.
+ */
+function createScoredGrid(run) {
+    const options = splitList(run.options);
+    const wrapper = document.createElement('div');
+    wrapper.className = 'mb-4 scored-grid';
+
+    const head = options
+        .map(opt => `<th scope="col" class="text-center small">${escapeHtml(opt)}</th>`)
+        .join('');
+
+    const body = run.items
+        .map(question => {
+            const id = escapeHtml(question.QuestionID);
+            const cells = options
+                .map(
+                    opt => `
+                <td class="text-center" data-label="${escapeHtml(opt)}">
+                    <input class="form-check-input" type="radio" name="${id}"
+                           id="${id}_${escapeHtml(opt.replace(/\W+/g, '_'))}"
+                           value="${escapeHtml(opt)}" data-question-id="${id}"
+                           aria-label="${escapeHtml(question.QuestionText)} — ${escapeHtml(opt)}">
+                </td>`
+                )
+                .join('');
+            return `<tr><th scope="row" class="fw-normal small">${escapeHtml(question.QuestionText)}</th>${cells}</tr>`;
+        })
+        .join('');
+
+    wrapper.innerHTML = `
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+                <thead><tr><th scope="col"></th>${head}</tr></thead>
+                <tbody>${body}</tbody>
+            </table>
+        </div>`;
+    return wrapper;
+}
+
+/**
  * The values that reveal a conditional question.
  *
  * `TriggerValue` is a list, so one row can list several — `0-3|4-11|12-17`
- * for any minor, or `Yes, Not sure` to catch both. A blank cell means "Yes",
+ * for any minor, or `Yes|Not sure` to catch both. A blank cell means "Yes",
  * which is what a bare `TriggerID` on a yes/no question is always meant to say.
  *
- * As with `Options`, a value therefore cannot itself contain a comma.
+ * It splits the same way as `Options`: on `|` when the cell has one, else on `,`.
  *
  * @returns {string[]}
  */
@@ -260,8 +358,10 @@ export function renderDynamicForms(event) {
         section.dataset.formId = formId;
         section.innerHTML = `<hr><h4 class="mb-3 text-info">${escapeHtml(formName(formId))}</h4>`;
 
-        questionsForForm(formId).forEach(question =>
-            section.appendChild(createQuestionElement(question))
+        groupScored(questionsForForm(formId)).forEach(entry =>
+            section.appendChild(
+                entry.items ? createScoredGrid(entry) : createQuestionElement(entry)
+            )
         );
 
         sections.appendChild(section);
@@ -364,6 +464,10 @@ function applySelection() {
     dom.consentBody.innerHTML = blocks.map(block => block.html).join('\n<hr>\n');
     dom.consentAccordion.classList.toggle('d-none', blocks.length === 0);
     setConsentSignatureVisible(blocks.length > 0);
+
+    // Opt-out declines for whichever blocks are now in force.
+    renderConsentDeclines(blocks.map(block => block.id));
+    attachConsentDeclineListeners();
 
     // Insurance applies when any visible form asks for it.
     setInsuranceVisible(

@@ -27,7 +27,17 @@ export const CSV_URLS = {
     serviceTypes: published(874288766),
     forms: published(494874326),
     questions: published(2021441540),
-    consentBlocks: published(952217193)
+    consentBlocks: published(952217193),
+
+    /**
+     * Consent Items — the declinable parts of a consent block.
+     *
+     * Null until the sheet exists and has been published to web; put its gid
+     * here then. While it is null the consent renders as prose plus the
+     * certification checkbox, exactly as it did before opt-out consent, so a
+     * half-finished setup degrades instead of breaking registration.
+     */
+    consentItems: null
 };
 
 /** Base URL used when building links to a single event. */

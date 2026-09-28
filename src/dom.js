@@ -43,6 +43,7 @@ export const dom = {
 
     // Consent
     consentAccordion: byId('consentAccordion'),
+    consentDeclines: byId('consentDeclines'),
     consentBody: byId('consent-body'),
     certifyConsentRow: byId('certifyConsentRow'),
     certifyConsent: byId('certifyConsent'),

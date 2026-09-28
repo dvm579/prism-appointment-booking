@@ -4,6 +4,7 @@ import { dom } from './dom.js';
 import { state, currentEvent } from './state.js';
 import { collectResponses, collectSelectedServices, consentRequired } from './questions.js';
 import { readAdditionalSignatures, readConsentSignature } from './signature.js';
+import { collectDeclines } from './consent.js';
 import { INSURANCE_FIELDS } from './insurance.js';
 import { DEMOGRAPHIC_FIELDS, readFilesAsBase64 } from './patient.js';
 import { hideSlotTimer } from './slots.js';
@@ -126,6 +127,8 @@ export async function submitBooking(event) {
             medicalRecords,
             signature: validated.signature,
             additionalSignatures: validated.additionalSignatures,
+            // Opt-out consent: one signature covers every section not listed here.
+            consentDeclines: collectDeclines(),
             demographics: readFields(form, DEMOGRAPHIC_FIELDS),
             insurance: readFields(form, INSURANCE_FIELDS),
             consentCalls: form.consentCalls.checked,

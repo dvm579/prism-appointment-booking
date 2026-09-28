@@ -401,6 +401,11 @@
             </div>
           </div>
 
+          <!-- Opt-out declines. Outside the accordion: the prose is there to be
+               read, but a decline is an action, and an action behind a collapsed
+               accordion is one nobody takes. -->
+          <div id="consentDeclines" class="d-none"></div>
+
           <div class="form-check mb-3 pt-3">
             <input type="checkbox" class="form-check-input" id="electronicConsent" name="electronicConsent" required>
             <label class="form-check-label" for="electronicConsent">
@@ -412,7 +417,8 @@
             <label class="form-check-label" for="certifyConsent">
               I certify that I am the Parent/Legal Guardian, the individual receiving services and
               at least 18 years of age/emancipated, or a Legally Authorized Representative, and that
-              I have read and agree to the Consent &amp; Authorizations above.<span class="text-danger">*</span>
+              I have read the Consent &amp; Authorizations above and agree to every section I have
+              not declined.<span class="text-danger">*</span>
             </label>
           </div>
 

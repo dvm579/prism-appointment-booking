@@ -98,14 +98,17 @@ async function init() {
             state.serviceTypes,
             state.forms,
             state.questions,
-            state.consentBlocks
+            state.consentBlocks,
+            state.consentItems
         ] = await Promise.all([
             fetchCSV(CSV_URLS.events),
             fetchCSV(CSV_URLS.slots),
             fetchCSV(CSV_URLS.serviceTypes),
             fetchCSV(CSV_URLS.forms),
             fetchCSV(CSV_URLS.questions),
-            fetchCSV(CSV_URLS.consentBlocks)
+            fetchCSV(CSV_URLS.consentBlocks),
+            // Optional: absent until the sheet is published. See CSV_URLS.
+            CSV_URLS.consentItems ? fetchCSV(CSV_URLS.consentItems) : Promise.resolve([])
         ]);
 
         if (eventId) {

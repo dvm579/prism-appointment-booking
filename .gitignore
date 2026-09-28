@@ -14,3 +14,6 @@ desktop.ini
 
 # Logs and scratch files
 *.log
+
+# Claude Code local machine state (launch.json is shared, this is not)
+.claude/settings.local.json

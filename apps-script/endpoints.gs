@@ -516,6 +516,10 @@ function submitForm1(data) {
   );
   writeFormResponses_(data.formResponses, patientID, formToService, signatureUrls);
 
+  // 5b. Consent declines. Opt-out consent means the signature covers everything
+  //     the patient did NOT tick, so what they declined is the record.
+  writeConsentDeclines_(data.consentDeclines, patientID, appointmentID, now);
+
   // 6. Best-effort extras. None of these may fail the registration.
   const qrBase64 = tryFetchQrCode_(appointmentID);
   trySendConfirmationEmail_(
@@ -633,6 +637,41 @@ function writeFormResponses_(formResponses, patientID, formToService, signatureU
     // The appointment is already recorded; losing answers is bad, but failing a
     // registration in front of the patient is worse. Log loudly instead.
     console.error('Could not write question responses for %s: %s', patientID, error.message);
+  }
+}
+
+/**
+ * Records the consent items the patient opted out of.
+ *
+ * Their own rows rather than question responses: a decline is a fact about the
+ * consent, and the staff box on the printed form requires each one to be
+ * verified and entered in the EMR. Burying them among questionnaire answers
+ * would make that list impossible to pull.
+ *
+ * An empty array is the normal case - it means the patient accepted every
+ * section - so nothing is written and nothing is logged.
+ */
+function writeConsentDeclines_(declines, patientID, appointmentID, now) {
+  if (!declines || !declines.length) return;
+
+  try {
+    const book = SpreadsheetApp.openById(RESPONSES_SPREADSHEET_ID);
+    let sheet = book.getSheetByName('Consent Declines');
+    if (!sheet) {
+      sheet = book.insertSheet('Consent Declines');
+      sheet.appendRow(['Timestamp', 'PatientID', 'AppointmentID', 'ConsentID',
+                       'ItemID', 'Item Label', 'Note']);
+    }
+
+    const rows = declines.map(function (decline) {
+      return [now, patientID, appointmentID || '', decline.consentId || '',
+              decline.itemId || '', decline.label || '', decline.note || ''];
+    });
+    sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, 7).setValues(rows);
+  } catch (error) {
+    // The registration is already recorded. Losing a decline is serious, so log
+    // it loudly rather than failing the patient's booking in front of them.
+    console.error('Could not write consent declines for %s: %s', patientID, error.message);
   }
 }
 

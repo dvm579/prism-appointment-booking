@@ -16,6 +16,8 @@ export const state = {
     questions: [],
     /** Consent Blocks: reusable consent HTML, referenced by Service Types. */
     consentBlocks: [],
+    /** Consent Items: the declinable parts of each consent block. */
+    consentItems: [],
 
     /** Normalised "HH:mm" start time of the slot currently held, if any. */
     heldSlotTime: null,
