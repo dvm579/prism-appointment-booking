@@ -456,6 +456,11 @@ footer {
     display: none !important;
 }
 
+/* Answered from the patient panel (src/prefill.js). Not d-none, for the same reason. */
+.prefilled {
+    display: none !important;
+}
+
 /*
  * Step progress header.
  *

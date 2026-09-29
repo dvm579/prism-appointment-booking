@@ -33,8 +33,9 @@ function fixedPanels() {
 function isEmpty(el) {
     if (!el || el.classList.contains('d-none')) return true;
     // A question wrapper hidden by its trigger does not count towards the step.
+    // Nor does one the patient panel answers.
     return !Array.from(el.querySelectorAll('[data-question-id], input, select, textarea'))
-        .some(control => !control.closest('.d-none'));
+        .some(control => !control.closest('.d-none, .prefilled'));
 }
 
 /**
@@ -142,7 +143,7 @@ function firstInvalidOnStep() {
     if (!step) return null;
 
     for (const control of step.el.querySelectorAll('input, select, textarea')) {
-        if (control.closest('.d-none') || control.disabled) continue;
+        if (control.closest('.d-none, .prefilled') || control.disabled) continue;
         if (!control.checkValidity()) return control;
     }
     return null;

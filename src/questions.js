@@ -22,6 +22,7 @@ import { setConsentSignatureVisible, syncAdditionalSignatures } from './signatur
 import { renderConsentDeclines, attachConsentDeclineListeners } from './consent.js';
 import { refreshSteps, attachStepListeners } from './steps.js';
 import { ageBand, ageYears, gender } from './patient.js';
+import { isPrefilled, prefilledAnswer } from './prefill.js';
 import { escapeHtml, isTruthyFlag } from './utils.js';
 
 /** Question types handled specially rather than rendered as a plain field. */
@@ -67,6 +68,10 @@ function createQuestionElement(question) {
         wrapper.dataset.insuranceMarker = questionId;
         return wrapper;
     }
+
+    // Answered by the patient panel. Rendered so its triggers still decide
+    // whether it applies, but never shown - see prefill.js.
+    if (isPrefilled(questionId)) wrapper.classList.add('prefilled');
 
     const triggerId = String(question.TriggerID ?? '').trim();
     if (triggerId) {
@@ -770,6 +775,16 @@ export function collectResponses() {
         const questionId = input.dataset.questionId;
         const definition = findQuestion(questionId);
         const required = definition ? isTruthyFlag(definition.IsRequired) : false;
+
+        // Never asked: the patient panel already has the answer. See prefill.js.
+        if (isPrefilled(questionId)) {
+            responses.push({
+                questionId,
+                answer: prefilledAnswer(questionId),
+                formId: definition?.FormID ?? ''
+            });
+            continue;
+        }
 
         let answer;
         if (input.type === 'radio') {

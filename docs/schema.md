@@ -389,6 +389,34 @@ Submission validation can still reject something answered several steps back, so
 `reject()` surfaces that element's step before scrolling to it. Scrolling to an
 element on a step that is not showing scrolls to nothing.
 
+Validation paints only what is wrong. `was-validated` goes on the whole form the
+first time a step or submission is refused, and Bootstrap's default then styles
+every *passing* control green — which includes every blank optional field, so an
+untouched select showed a tick. `style.css` cancels the `:valid` styling.
+
+## Questions the patient panel already asks
+
+The School Health shared core is the paper form's front page, so it repeats the
+patient panel: middle name, race, ethnicity, the parent's name and relationship,
+a phone number, a typed signature. `src/prefill.js` maps those QuestionIDs to the
+panel field that answers them. They are still rendered and still gated by their
+own triggers — so the adult and child variants apply exactly as before — but they
+carry `prefilled`, which hides them and which the steps treat as absent, and
+`collectResponses` records the panel's answer in their place. Question Responses
+and the Core Field Map therefore still get a value for every printed field.
+
+`prefilled`, like `step-off`, is deliberately not `d-none`: a `d-none` question
+does not apply and is not collected.
+
+Only equivalents belong in the map. Sex at birth is not gender and stays asked.
+Where the panel's wording differs from the paper option ("White or Caucasian" and
+"White"), the map rewords it; a panel answer the paper has no box for passes
+through rather than being dropped.
+
+This lives in the page rather than the sheet because the panel is page markup:
+a column naming `middleName` would be a sheet value that only means something to
+one file of JavaScript.
+
 ## A hazard with range-shaped cells
 
 `12-18`, `8-11` and `1-2` all look like dates to Google Sheets. Typed into a
@@ -414,7 +442,7 @@ so their triggers were read off the printed forms and written by hand in
 
 They are deliberately sparse. **A wrong trigger hides a question and its answer
 is never collected; a missing one only shows something that did not apply.** The
-two failures are not comparable, so anything ambiguous is left showing. Of 328
+two failures are not comparable, so anything ambiguous is left showing. Of 326
 questions, 14 carry a conditional trigger and the rest are always asked.
 
 Two things are worth knowing about the ones that exist:

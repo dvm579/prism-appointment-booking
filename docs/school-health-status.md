@@ -11,7 +11,7 @@ Written 2026-09-28.
 Loaded by `apps-script/tools/importSchoolHealthForms.gs`, verified against the
 published CSV:
 
-- **328 Form Questions rows** across six forms — `shccore` (the shared core, 64
+- **326 Form Questions rows** across six forms — `shccore` (the shared core, 62
   questions listed by every age service) plus `shc0003`, `shc0411`, `shc1217`,
   `shcadult` and `shcvax26`. Every row carries a `Section`.
 - **Five Service Types** — `SHCV0003`, `SHCV0411`, `SHCV1217`, `SHCVADLT`,
@@ -23,41 +23,35 @@ published CSV:
 - Age eligibility on the five pre-existing services restated in the new bands.
 
 464 paper fields became 328 rows because ~173 of them are the same demographics,
-contact and insurance questions repeated on each form.
+contact and insurance questions repeated on each form; two staff-only fields have
+been dropped since.
 
 Teen Private (27 fields) is **not** modelled — it stays on paper.
 
 ## Outstanding
 
-Updated 2026-09-29.
+Updated 2026-09-29, after the first live test event (`bc41fe7d`).
 
-**1. Re-run the importer, again.** The `@age` triggers are done — every one in
-the published CSV now names a current band or a plain range. But the page's new
-bands exposed two services still on the old vocabulary, and Age Eligibility is an
-exact band match, so both are **hidden from every patient on the live site**:
+**1. Re-run the importer** to delete the two staff-only questions, `shccore-48`
+(phone-interview staff name) and `shccore-49` (read-back initials), from Form
+Questions and Core Field Map. Upserts never delete, so until then patients still
+see them. The same run switches Core Field Map to a QuestionID + FormID key; it
+was keyed on FormID alone, so a changed mapping could never land (the rows already
+there were unharmed). Preview first: expect "would remove 2" for each sheet.
 
-- `SPRTPHYS` still reads `12-18`. `migrateAgeBands_` had the same `getValues()`
-  bug the trigger migration had — the lone `12-18` is stored as December 18 — so
-  it was skipped. The Macon event on 10/13 offers it.
-- `LEADTEST` reads `0-12`. It was never in `AGE_MIGRATION`.
+**2. Confirm the deployed `endpoints.gs` writes declines.** The tracked copy
+writes them to a `Consent Declines` sheet since `ca6b070`; a web app deployed
+before that silently drops them.
 
-The importer now reads display values here too and has `LEADTEST` in the list.
-Paste the regenerated `apps-script/tools/importSchoolHealthForms.gs`, run
-`previewSchoolHealthImport()` and check that both show a `->`, then run
-`importSchoolHealthForms()`.
+Done:
 
-**2. Confirm the deployed `endpoints.gs` writes declines.** The decline panel is
-now live (Consent Items is published at gid `389763252`). The tracked
-`endpoints.gs` writes them to a `Consent Declines` sheet since `ca6b070`; a web
-app deployed before that silently drops them.
-
-**3. Create an Event** whose `Services` names the new codes — being done from
-AppSheet. Nothing exercises the new forms end to end until one exists.
-
-Done: the band change and the page shipped together (`main` is live and serves
-`0-3 / 4-11 / 12-17 / 18+`); Consent Items is published and wired in, and was
-checked against the live rows — all 19 items render and `collectDeclines()`
-returns them with their notes.
+- Age bands: every Age Eligibility and `@age` value is in the current vocabulary
+  (`SPRTPHYS` and `LEADTEST` fixed by the second importer run).
+- Consent Items is published (gid `389763252`) and the decline panel is live.
+- Validation no longer paints blank optional fields green with a tick.
+- The header Back is now "Change time slot"; the step Back only moves steps.
+- The shared core no longer re-asks what the patient panel collected — see
+  *Questions the patient panel already asks* in `docs/schema.md`.
 
 ## Decisions worth not relitigating
 
@@ -72,7 +66,7 @@ returns them with their notes.
 - **The pregnancy block always shows to adults**, though the paper heads it "If
   you came for pregnancy or after-baby care". Somebody who books a check-up and
   is pregnant would otherwise never be asked. The age-based sections *are* gated.
-- **Triggers are deliberately sparse** — 14 of 328. A wrong one hides a question
+- **Triggers are deliberately sparse** — 14 of 326. A wrong one hides a question
   and its answer is never collected; a missing one only shows something that did
   not apply.
 
