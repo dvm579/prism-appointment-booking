@@ -107,6 +107,51 @@ footer {
     box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
 }
 
+/*
+ * Validation shows what is wrong, never what is right.
+ *
+ * `was-validated` goes on the whole form the first time a step or a submission
+ * is refused, and Bootstrap then paints every control that passes: optional
+ * fields are valid while still blank, so an untouched select got a green tick
+ * and every radio and checkbox label turned green, as if already answered.
+ * Only the :invalid styling is kept.
+ */
+.was-validated .form-control:valid,
+.was-validated .form-select:valid {
+    border-color: #ced4da;
+    padding-right: .75rem;
+    background-image: none;
+}
+
+.was-validated .form-select:valid:not([multiple]):not([size]) {
+    --bs-form-select-bg-icon: none;
+    padding-right: 2.25rem;
+    background-image: var(--bs-form-select-bg-img);
+}
+
+.was-validated .form-control:valid:focus,
+.was-validated .form-select:valid:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.was-validated .form-check-input:valid {
+    border-color: var(--bs-border-color);
+}
+
+.was-validated .form-check-input:valid:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.was-validated .form-check-input:valid:focus {
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.was-validated .form-check-input:valid ~ .form-check-label {
+    color: var(--prism-text);
+}
+
 .form-control::placeholder {
     color: var(--prism-muted);
     opacity: 1;
