@@ -242,10 +242,21 @@ core_rows.sort(key=lambda r: (core_rank(r), int(r['DisplayOrder'])))
 for position, row in enumerate(core_rows, 1):
     row['DisplayOrder'] = position * 10
 
+# Fields the paper form gives to staff: who ran a phone interview and the
+# initials confirming the read-back. A patient cannot answer either, and staff
+# record them in the EMR. Dropped after numbering so no other QuestionID moves;
+# the importer deletes their rows from the sheet (RETIRED_QUESTIONS).
+STAFF_ONLY = {'shccore-48', 'shccore-49'}
+assert STAFF_ONLY <= {r['QuestionID'] for r in core_rows}, 'a staff-only id no longer exists'
+assert all('staff' in r['QuestionText'].lower() for r in core_rows if r['QuestionID'] in STAFF_ONLY)
+core_rows = [r for r in core_rows if r['QuestionID'] not in STAFF_ONLY]
+mapping = [m for m in mapping if m[0] not in STAFF_ONLY]
+
 rows = core_rows + form_rows
 triggered = apply_triggers(rows)
 json.dump([dict(r) for r in rows], open(here('questions_out.json'), 'w', encoding='utf-8'))
 json.dump(mapping, open(here('core_mapping.json'), 'w', encoding='utf-8'))
+json.dump(sorted(STAFF_ONLY), open(here('retired_out.json'), 'w', encoding='utf-8'))
 
 print('core questions   :', len(core_rows), '(from', sum(len(v) for v in core.values()),
       'paper fields +', len(CONSENT_FIELDS), 'consent fields)')

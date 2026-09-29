@@ -9,6 +9,7 @@ function makeSheet(name, header, rows) {
     data,
     getLastRow: () => data.length,
     appendRow: r => data.push(r.slice()),
+    deleteRow: r => { data.splice(r - 1, 1); },
     getMaxRows: () => Math.max(data.length, 1000),
     getRange(row, col, numRows, numCols) {
       const self = this;
@@ -95,6 +96,7 @@ this.previewSchoolHealthImport = previewSchoolHealthImport;
 this.importSchoolHealthForms = importSchoolHealthForms;
 this.QUESTIONS = QUESTIONS; this.SERVICE_TYPES = SERVICE_TYPES;
 this.AGE_MIGRATION = AGE_MIGRATION; this.CONSENT_ITEMS = CONSENT_ITEMS;
+this.CORE_FIELD_MAP = CORE_FIELD_MAP; this.RETIRED_QUESTIONS = RETIRED_QUESTIONS;
 `, ctx, { filename: 'importer.gs' });
 
 let pass = 0, fail = 0;
@@ -150,11 +152,11 @@ console.log('\n2. import loads every row');
 book = freshBook();
 ctx.importSchoolHealthForms();
 const fq = book.sheets['Form Questions'].data;
-check('328 new question rows appended (4 seeded)', fq.length === 1 + 4 + 328, fq.length);
+check('326 new question rows appended (4 seeded)', fq.length === 1 + 4 + 326, fq.length);
 check('pre-existing question untouched', fq[1][1] === 'pedvax25-1');
 check('Consent Items created with 19 rows', book.sheets['Consent Items'].data.length === 20,
   book.sheets['Consent Items'] && book.sheets['Consent Items'].data.length);
-check('Core Field Map created with 173 rows', book.sheets['Core Field Map'].data.length === 174,
+check('Core Field Map created with 167 rows', book.sheets['Core Field Map'].data.length === 168,
   book.sheets['Core Field Map'] && book.sheets['Core Field Map'].data.length);
 check('5 new services appended', book.sheets['Service Types'].data.length === 1 + 7 + 5,
   book.sheets['Service Types'].data.length);
@@ -172,7 +174,7 @@ check('ENMADULT 18+ left alone', ageOf('ENMADULT') === '18+', ageOf('ENMADULT'))
 
 console.log('\n4. re-running updates in place, never duplicates');
 ctx.importSchoolHealthForms();
-check('still 328 question rows', book.sheets['Form Questions'].data.length === 1 + 4 + 328,
+check('still 326 question rows', book.sheets['Form Questions'].data.length === 1 + 4 + 326,
   book.sheets['Form Questions'].data.length);
 check('still 19 consent items', book.sheets['Consent Items'].data.length === 20);
 check('still 12 services', book.sheets['Service Types'].data.length === 13);
@@ -222,7 +224,7 @@ const dvNow = book.sheets['Form Questions']._dv.getCriteriaValues()[0];
 check('scored added to the rule', dvNow.indexOf('scored') !== -1, dvNow);
 check('every existing type kept', LIVE_TYPES.every(t => dvNow.indexOf(t) !== -1));
 check('radio_custom survives untouched', dvNow.indexOf('radio_custom') !== -1);
-check('all 328 rows landed', book.sheets['Form Questions'].data.length === 1 + 4 + 328,
+check('all 326 rows landed', book.sheets['Form Questions'].data.length === 1 + 4 + 326,
   book.sheets['Form Questions'].data.length);
 const dvAgain = ctx.importSchoolHealthForms();
 check('re-run finds nothing to widen', /already accepts every type used/.test(dvAgain));
@@ -284,6 +286,45 @@ row[3] = 'STALE TEXT';
 ctx.importSchoolHealthForms();
 const fixed = book.sheets['Form Questions'].data.find(r => r[1] === 'shccore-1');
 check('stale text overwritten', fixed[3] !== 'STALE TEXT', fixed[3]);
+
+console.log('\n8. retired staff-only questions are deleted, not just left behind');
+check('generator no longer emits them',
+  !ctx.QUESTIONS.some(r => ctx.RETIRED_QUESTIONS.includes(r[1])) &&
+  !ctx.CORE_FIELD_MAP.some(r => ctx.RETIRED_QUESTIONS.includes(r[0])));
+book = freshBook();
+book.sheets['Form Questions'].data.push(
+  ['shccore', 'shccore-48', 480, 'Phone interview: Prism staff name', 'text', '', 'N', '@age', '0-3|4-11|12-17', 'x'],
+  ['shccore', 'shccore-49', 490, 'Parent read-back confirmed (staff initials)', 'text', '', 'N', '', '', 'x']);
+book.sheets['Core Field Map'] = makeSheet('Core Field Map', ['QuestionID', 'FormID', 'Paper field ID'],
+  [['shccore-48', 'shc0411', '9.3'], ['shccore-49', 'shc0411', '9.4']]);
+const r8 = ctx.previewSchoolHealthImport();
+check('preview names what it would remove',
+  /Form Questions would remove 2; Core Field Map would remove 2/.test(r8));
+check('preview removed nothing',
+  book.sheets['Form Questions'].data.some(r => r[1] === 'shccore-48'));
+ctx.importSchoolHealthForms();
+check('gone from Form Questions',
+  !book.sheets['Form Questions'].data.some(r => ctx.RETIRED_QUESTIONS.includes(r[1])));
+check('gone from Core Field Map',
+  !book.sheets['Core Field Map'].data.some(r => ctx.RETIRED_QUESTIONS.includes(r[0])));
+check('nothing else lost', book.sheets['Form Questions'].data.length === 1 + 4 + 326,
+  book.sheets['Form Questions'].data.length);
+
+console.log('\n9. Core Field Map upserts on QuestionID and FormID together');
+book = freshBook();
+ctx.importSchoolHealthForms();
+const cfm = book.sheets['Core Field Map'].data;
+const [q0, f0, p0] = ctx.CORE_FIELD_MAP[0];
+const sibling = ctx.CORE_FIELD_MAP.find(r => r[0] === q0 && r[1] !== f0);
+cfm.find(r => r[0] === q0 && r[1] === f0)[2] = 'STALE';
+ctx.importSchoolHealthForms();
+check('a stale printed id is corrected', cfm.find(r => r[0] === q0 && r[1] === f0)[2] === p0,
+  cfm.find(r => r[0] === q0 && r[1] === f0));
+check('its sibling on another form untouched',
+  !sibling || cfm.find(r => r[0] === q0 && r[1] === sibling[1])[2] === sibling[2]);
+check('every mapping present exactly once',
+  ctx.CORE_FIELD_MAP.every(m => cfm.filter(r => r[0] === m[0] && r[1] === m[1]).length === 1));
+check('no rows added', cfm.length === 1 + ctx.CORE_FIELD_MAP.length, cfm.length);
 
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);

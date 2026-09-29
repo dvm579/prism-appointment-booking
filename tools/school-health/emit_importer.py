@@ -12,6 +12,7 @@ sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 q = json.load(open(here('questions_out.json'), encoding='utf-8'))
 s = json.load(open(here('sheets_out.json'), encoding='utf-8'))
 mapping = json.load(open(here('core_mapping.json'), encoding='utf-8'))
+retired = json.load(open(here('retired_out.json'), encoding='utf-8'))
 
 j = lambda v: json.dumps(v, ensure_ascii=False)
 
@@ -90,6 +91,13 @@ __AGEMIG__
  *
  * QuestionID, the value expected there, the value it should be.
  */
+/**
+ * Questions withdrawn from the generator, deleted from Form Questions and Core
+ * Field Map. The staff-only fields: who ran a phone interview, and the initials
+ * confirming the read-back. Staff record those in the EMR, never the patient.
+ */
+var RETIRED_QUESTIONS = __RETIRED__;
+
 var TRIGGER_MIGRATION = [
   ['c2e4d150-34', '0-12', '0-3|4-11'],
   ['c2e4d150-35', '0-12', '0-3|4-11'],
@@ -170,8 +178,9 @@ function runImport_(dryRun) {
   log.push(upsert_(book, 'Service Types', SERVICE_TYPES, 0, 8, dryRun));
   log.push(upsert_(book, 'Consent Blocks', [CONSENT_BLOCK], 0, 4, dryRun));
   log.push(upsertConsentItems_(book, dryRun));
-  log.push(upsert_(book, 'Core Field Map', CORE_FIELD_MAP, 1, 3, dryRun,
+  log.push(upsert_(book, 'Core Field Map', CORE_FIELD_MAP, [0, 1], 3, dryRun,
                    ['QuestionID', 'FormID', 'Paper field ID']));
+  log.push(retireQuestions_(book, dryRun));
   log.push(migrateAgeBands_(book, dryRun));
   log.push(migrateQuestionAgeTriggers_(book, dryRun));
 
@@ -265,15 +274,20 @@ function upsert_(book, sheetName, rows, keyCol, width, dryRun, headerIfMissing) 
 
   var last = sheet.getLastRow();
   var existing = last > 1 ? sheet.getRange(2, 1, last - 1, width).getValues() : [];
+  // Core Field Map needs two columns: a core question has one row per paper
+  // form it appears on, so neither QuestionID nor FormID alone is unique.
+  var keyOf = function (r) {
+    return [].concat(keyCol).map(function (c) { return String(r[c]).trim(); }).join('|');
+  };
   var rowOf = {};
   existing.forEach(function (r, i) {
-    var k = String(r[keyCol]).trim();
-    if (k) rowOf[k] = i + 2;
+    var k = keyOf(r);
+    if (k.replace(/[|]/g, '')) rowOf[k] = i + 2;
   });
 
   var updates = 0, inserts = 0, appended = [];
   rows.forEach(function (row) {
-    var key = String(row[keyCol]).trim();
+    var key = keyOf(row);
     if (rowOf[key]) {
       updates++;
       if (!dryRun) sheet.getRange(rowOf[key], 1, 1, width).setValues([pad_(row, width)]);
@@ -379,6 +393,31 @@ function migrateQuestionAgeTriggers_(book, dryRun) {
   return 'Question @age triggers: ' + notes.join('; ');
 }
 
+/**
+ * Deletes the rows of RETIRED_QUESTIONS.
+ *
+ * Upserts never remove anything, so a question dropped from the generator would
+ * otherwise stay in the sheet and keep being asked. Rows go bottom-up so each
+ * deletion leaves the row numbers still to be deleted where they were.
+ */
+function retireQuestions_(book, dryRun) {
+  var notes = [];
+  [['Form Questions', 2], ['Core Field Map', 1]].forEach(function (target) {
+    var sheet = book.getSheetByName(target[0]);
+    if (!sheet) { notes.push(target[0] + ' missing'); return; }
+    var last = sheet.getLastRow();
+    var ids = last > 1 ? sheet.getRange(2, target[1], last - 1, 1).getDisplayValues() : [];
+
+    var doomed = [];
+    ids.forEach(function (r, i) {
+      if (RETIRED_QUESTIONS.indexOf(String(r[0]).trim()) !== -1) doomed.push(i + 2);
+    });
+    if (!dryRun) doomed.reverse().forEach(function (row) { sheet.deleteRow(row); });
+    notes.push(target[0] + ' ' + (dryRun ? 'would remove ' : 'removed ') + doomed.length);
+  });
+  return 'Retired questions (' + RETIRED_QUESTIONS.join(', ') + '): ' + notes.join('; ');
+}
+
 /** Restates Age Eligibility on the existing services in the new bands. */
 function migrateAgeBands_(book, dryRun) {
   var sheet = book.getSheetByName('Service Types');
@@ -433,6 +472,7 @@ out = (TEMPLATE
        .replace('__CONSENTBLOCK__', j(list(s['consentBlock'])))
        .replace('__CONSENTITEMS__', rows(s['consentItems']))
        .replace('__MAPPING__', rows(mapping))
+       .replace('__RETIRED__', j(retired))
        .replace('__QUESTIONS__', rows(QUESTION_ROWS)))
 
 io.open(TARGET, 'w', encoding='utf-8', newline='\n').write(out)

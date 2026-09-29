@@ -22,4 +22,5 @@ desktop.ini
 tools/school-health/questions_out.json
 tools/school-health/core_mapping.json
 tools/school-health/sheets_out.json
+tools/school-health/retired_out.json
 tools/school-health/__pycache__/

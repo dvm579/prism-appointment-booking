@@ -58,7 +58,11 @@ python -c "import openpyxl, json; wb = openpyxl.load_workbook(PATH, read_only=Tr
 
 ## What the importer does
 
-Upserts keyed by each row's own id, so a re-run corrects rather than duplicates.
+Upserts keyed by each row's own id — QuestionID and FormID together for Core
+Field Map, where a core question has a row per paper form — so a re-run corrects
+rather than duplicates. Upserts never delete, so questions dropped from the
+generator (`STAFF_ONLY` in `gen.py`) are removed by name from Form Questions and
+Core Field Map.
 `previewSchoolHealthImport()` reports every change and writes nothing. It refuses
 outright if the workbook is missing any of Forms, Form Questions, Service Types
 or Consent Blocks, and it widens the QuestionType validation and adds the Section
