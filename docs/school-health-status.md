@@ -29,28 +29,35 @@ Teen Private (27 fields) is **not** modelled — it stays on paper.
 
 ## Outstanding
 
-**1. Re-run the importer.** Four rows still need it: `c2e4d150-38` to `-41` on
-the WOW pediatric form, whose `@age` triggers read `12-18` — a band `ageBand()`
-no longer returns, so those questions are hidden. They include the teen
-self-harm question. The first attempt skipped them because Sheets had stored
-`12-18` as a date; the importer now compares display values and forces the cell
-to text. Run `previewSchoolHealthImport()` first — it writes nothing.
+Updated 2026-09-29.
 
-**2. Publish `Consent Items` to web and set its gid** in `CSV_URLS.consentItems`
-in `src/config.js`. It is `null`, so the opt-out decline panel does not render at
-all: consent currently falls back to prose plus the certification checkbox, which
-is the pre-opt-out behaviour. Nothing breaks, but no decline can be recorded.
+**1. Re-run the importer, again.** The `@age` triggers are done — every one in
+the published CSV now names a current band or a plain range. But the page's new
+bands exposed two services still on the old vocabulary, and Age Eligibility is an
+exact band match, so both are **hidden from every patient on the live site**:
 
-**3. Create an Event** whose `Services` names the new codes. Nothing exercises
-the new forms until one exists.
+- `SPRTPHYS` still reads `12-18`. `migrateAgeBands_` had the same `getValues()`
+  bug the trigger migration had — the lone `12-18` is stored as December 18 — so
+  it was skipped. The Macon event on 10/13 offers it.
+- `LEADTEST` reads `0-12`. It was never in `AGE_MIGRATION`.
 
-**4. Deploy the frontend with the sheet.** `src/patient.js` now computes
-`0-3 / 4-11 / 12-17 / 18+`. The workbook has been migrated to match. Shipping the
-page without that migration — or reverting one — hides every age-gated service,
-including the live vaccination and physical ones.
+The importer now reads display values here too and has `LEADTEST` in the list.
+Paste the regenerated `apps-script/tools/importSchoolHealthForms.gs`, run
+`previewSchoolHealthImport()` and check that both show a `->`, then run
+`importSchoolHealthForms()`.
 
-Once the gid is in and an event exists, the whole flow can be walked in a browser
-against real data rather than a fixture.
+**2. Confirm the deployed `endpoints.gs` writes declines.** The decline panel is
+now live (Consent Items is published at gid `389763252`). The tracked
+`endpoints.gs` writes them to a `Consent Declines` sheet since `ca6b070`; a web
+app deployed before that silently drops them.
+
+**3. Create an Event** whose `Services` names the new codes — being done from
+AppSheet. Nothing exercises the new forms end to end until one exists.
+
+Done: the band change and the page shipped together (`main` is live and serves
+`0-3 / 4-11 / 12-17 / 18+`); Consent Items is published and wired in, and was
+checked against the live rows — all 19 items render and `collectDeclines()`
+returns them with their notes.
 
 ## Decisions worth not relitigating
 

@@ -8,7 +8,7 @@ export const GAS_API_URL =
 /**
  * Published-to-web CSV feeds used for read-only data.
  *
- * All six sheets live in the "Campaigns, Events" workbook, so they share one
+ * All seven sheets live in the "Events Management" workbook, so they share one
  * publish id and differ only by gid. Publish a new sheet from
  * File → Share → Publish to web, then add its gid here.
  *
@@ -32,12 +32,11 @@ export const CSV_URLS = {
     /**
      * Consent Items — the declinable parts of a consent block.
      *
-     * Null until the sheet exists and has been published to web; put its gid
-     * here then. While it is null the consent renders as prose plus the
-     * certification checkbox, exactly as it did before opt-out consent, so a
-     * half-finished setup degrades instead of breaking registration.
+     * Optional: set this to null and the consent renders as prose plus the
+     * certification checkbox, exactly as it did before opt-out consent, so an
+     * unpublished sheet degrades instead of breaking registration.
      */
-    consentItems: null
+    consentItems: published(389763252)
 };
 
 /** Base URL used when building links to a single event. */
