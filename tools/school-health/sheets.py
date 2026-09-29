@@ -47,6 +47,7 @@ AGE_MIGRATION = [
     ('SPRTPHYS', '12-18',       '12-17'),
     ('HIV12HCV', '12-18, 18+',  '12-17,18+'),
     ('ENMMINOR', '0-12, 12-18', '0-3,4-11,12-17'),
+    ('LEADTEST', '0-12',        '0-3,4-11'),
 ]
 
 # Section 5 (audio recording) is deliberately absent: the consent's staff box

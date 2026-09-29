@@ -386,7 +386,9 @@ function migrateAgeBands_(book, dryRun) {
 
   var last = sheet.getLastRow();
   if (last < 2) return 'Age bands: no rows.';
-  var values = sheet.getRange(2, 1, last - 1, 8).getValues();
+  // Display values, for the same reason as the @age triggers: SPRTPHYS's lone
+  // "12-18" is stored as December 18, and its Date never matched "12-18".
+  var values = sheet.getRange(2, 1, last - 1, 8).getDisplayValues();
 
   var notes = [];
   AGE_MIGRATION.forEach(function (m) {
@@ -403,7 +405,12 @@ function migrateAgeBands_(book, dryRun) {
                    current + '".');
       } else {
         notes.push('  ' + id + ': "' + current + '" -> "' + replacement + '"');
-        if (!dryRun) sheet.getRange(i + 2, 6).setValue(replacement);
+        if (!dryRun) {
+          // Text first, or "12-17" goes in as December 17.
+          var cell = sheet.getRange(i + 2, 6);
+          cell.setNumberFormat('@');
+          cell.setValue(replacement);
+        }
       }
       return;
     }

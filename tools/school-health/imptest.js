@@ -124,7 +124,9 @@ function freshBook() {
       [
         ['VAXADMIN', 'IL School Required and Recommended Vaccinations', 'pedvax25', 'x', 'init0002', '0-12, 12-18', '', 'TRUE'],
         ['PHYSICAL', 'IL State School Physical', 'schlphys26', 'x', 'init0002', '0-12, 12-18', '', 'TRUE'],
-        ['SPRTPHYS', 'IHSA Sports Physical', 'sprtphys26', 'x', 'init0002', '12-18', '', 'TRUE'],
+        // Held as a date, as on the live sheet: Sheets parsed the lone "12-18".
+        ['SPRTPHYS', 'IHSA Sports Physical', 'sprtphys26', 'x', 'init0002', dateCell('12-18'), '', 'TRUE'],
+        ['LEADTEST', 'Lead Testing ONLY (no school physical)', '', '', '', '0-12', '', 'TRUE'],
         ['HIV12HCV', 'HIV and Hepatitis C Testing', '99be5397 , 6f25fcaa', '', 'init0002', '12-18, 18+', '', 'TRUE'],
         ['ENMMINOR', 'Health Check-Up (Minor)', '99be5397', '', 'init0002', '0-12, 12-18', '', 'TRUE'],
         ['ENMADULT', 'Health Check-Up (Adult)', '99be5397', '', 'init0002', '18+', '', 'TRUE'],
@@ -154,14 +156,17 @@ check('Consent Items created with 19 rows', book.sheets['Consent Items'].data.le
   book.sheets['Consent Items'] && book.sheets['Consent Items'].data.length);
 check('Core Field Map created with 173 rows', book.sheets['Core Field Map'].data.length === 174,
   book.sheets['Core Field Map'] && book.sheets['Core Field Map'].data.length);
-check('5 new services appended', book.sheets['Service Types'].data.length === 1 + 6 + 5,
+check('5 new services appended', book.sheets['Service Types'].data.length === 1 + 7 + 5,
   book.sheets['Service Types'].data.length);
 
 console.log('\n3. age bands migrated exactly');
 const st = book.sheets['Service Types'].data;
 const ageOf = id => (st.find(r => r[0] === id) || [])[5];
 check('VAXADMIN -> 0-3,4-11,12-17', ageOf('VAXADMIN') === '0-3,4-11,12-17', ageOf('VAXADMIN'));
-check('SPRTPHYS -> 12-17', ageOf('SPRTPHYS') === '12-17', ageOf('SPRTPHYS'));
+check('SPRTPHYS -> 12-17 though the cell held a date', ageOf('SPRTPHYS') === '12-17', String(ageOf('SPRTPHYS')));
+check('LEADTEST -> 0-3,4-11', ageOf('LEADTEST') === '0-3,4-11', ageOf('LEADTEST'));
+check('Age Eligibility forced to text before writing',
+  Object.keys(book.sheets['Service Types'].__formats || {}).some(k => /:6$/.test(k)));
 check('HIV12HCV -> 12-17,18+', ageOf('HIV12HCV') === '12-17,18+', ageOf('HIV12HCV'));
 check('ENMADULT 18+ left alone', ageOf('ENMADULT') === '18+', ageOf('ENMADULT'));
 
@@ -170,7 +175,7 @@ ctx.importSchoolHealthForms();
 check('still 328 question rows', book.sheets['Form Questions'].data.length === 1 + 4 + 328,
   book.sheets['Form Questions'].data.length);
 check('still 19 consent items', book.sheets['Consent Items'].data.length === 20);
-check('still 11 services', book.sheets['Service Types'].data.length === 12);
+check('still 12 services', book.sheets['Service Types'].data.length === 13);
 check('age band stays migrated', ageOf('VAXADMIN') === '0-3,4-11,12-17');
 
 console.log('\n5. a hand-edited age value is refused, not clobbered');
