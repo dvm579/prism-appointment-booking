@@ -1,5 +1,26 @@
-import { GAS_API_URL, RETRY } from './config.js';
+import { GAS_API_URL, RETRY, RUN_API_URL, RUN_EVENT_IDS, RUN_SERVICES } from './config.js';
+import { currentEvent } from './state.js';
 import { delay } from './utils.js';
+
+/**
+ * The backend that handles the event being registered for.
+ *
+ * Cloud Run when every service the event offers is one it documents itself (and,
+ * during the pilot, the event is listed); Apps Script otherwise. Decided per
+ * event, never per request, so a slot booked through one backend is always
+ * confirmed and released through the same one.
+ */
+export function apiUrl() {
+    if (!RUN_API_URL) return GAS_API_URL;
+    const event = currentEvent();
+    if (!event) return GAS_API_URL;
+    if (RUN_EVENT_IDS.length && !RUN_EVENT_IDS.includes(String(event.EventID))) return GAS_API_URL;
+    const services = String(event.Services ?? '')
+        .split(/[|,]/)
+        .map(code => code.trim())
+        .filter(Boolean);
+    return services.length && services.every(code => RUN_SERVICES.includes(code)) ? RUN_API_URL : GAS_API_URL;
+}
 
 /** Error carrying enough context to decide whether a retry is worthwhile. */
 export class ApiError extends Error {
@@ -54,7 +75,7 @@ export function fetchCSVFresh(url) {
 async function postOnce(action, payload) {
     let response;
     try {
-        response = await fetch(GAS_API_URL, {
+        response = await fetch(apiUrl(), {
             method: 'POST',
             mode: 'cors',
             redirect: 'follow',
@@ -104,7 +125,7 @@ async function postOnce(action, payload) {
 }
 
 /**
- * Calls the Apps Script backend, retrying transient failures with backoff.
+ * Calls the event's backend (see `apiUrl`), retrying transient failures with backoff.
  *
  * @param {'bookSlot'|'releaseSlot'|'submitForm'} action
  * @param {Object} payload
@@ -142,5 +163,5 @@ export function releaseSlotOnUnload(eventId, startTime, holdToken) {
         action: 'releaseSlot',
         payload: { eventId, startTime, holdToken }
     });
-    navigator.sendBeacon(GAS_API_URL, new Blob([body], { type: 'text/plain;charset=utf-8' }));
+    navigator.sendBeacon(apiUrl(), new Blob([body], { type: 'text/plain;charset=utf-8' }));
 }

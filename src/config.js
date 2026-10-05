@@ -6,6 +6,31 @@ export const GAS_API_URL =
     'https://script.google.com/macros/s/AKfycbwnvm7Q26ebVGOnC14BrFajyuh7RyeBijBQg6xSSfz0hA8ofj4HxT8P1EoqKkpg8lDU/exec';
 
 /**
+ * The Cloud Run registration backend (backend/ in this repo), which replaces the
+ * Apps Script web app one event at a time.
+ *
+ * An event is sent here only when every one of its services is in RUN_SERVICES:
+ * those are the services whose paperwork the new backend produces itself. Any
+ * other event stays on Apps Script, whose document queue still owns its forms,
+ * so no registration loses a document halfway through the migration. Leave
+ * RUN_API_URL empty to send everything to Apps Script.
+ */
+export const RUN_API_URL = '';
+
+export const RUN_SERVICES = [
+    // Wellness on Wheels / mobile health: four forms and their clinical rows.
+    'VITALCHK', 'HIV12HCV', 'ENMADULT', 'ENMMINOR',
+    // School Health: Apps Script never documented these.
+    'SHCV0003', 'SHCV0411', 'SHCV1217', 'SHCVADLT', 'SHCVAXIM'
+];
+
+/**
+ * Pilot: when non-empty, only these EventIDs may use the new backend, and only if
+ * their services qualify. Empty means every qualifying event does.
+ */
+export const RUN_EVENT_IDS = ['bc41fe7d'];
+
+/**
  * Published-to-web CSV feeds used for read-only data.
  *
  * All seven sheets live in the "Events Management" workbook, so they share one

@@ -1,0 +1,3570 @@
+{
+ "99be5397": {
+  "key": "wowsu",
+  "title": "WOW Participant Sign-Up (99be5397) — template",
+  "pages": 1,
+  "fields": [
+   {
+    "page": 1,
+    "kind": "t",
+    "left": 90,
+    "top": 116,
+    "width": 362,
+    "height": 18.7,
+    "size": 11,
+    "token": "%wowsu.name%"
+   },
+   {
+    "page": 1,
+    "kind": "t",
+    "left": 494,
+    "top": 116,
+    "width": 96,
+    "height": 18.7,
+    "size": 11,
+    "token": "%wowsu.dob%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 104.9,
+    "top": 142.9,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowsu.sex.female%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 158.6,
+    "top": 142.9,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowsu.sex.intersex%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 217.2,
+    "top": 142.9,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowsu.sex.male%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 266.6,
+    "top": 142.9,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowsu.sex.decline_to_answer%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 377.1,
+    "top": 142.9,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowsu.sex.other%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 25.7,
+    "top": 179,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowsu.orientation.straight_heterosexual%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 149.4,
+    "top": 179,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowsu.orientation.gay%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 200.6,
+    "top": 179,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowsu.orientation.lesbian%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 267,
+    "top": 179,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowsu.orientation.queer%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 326.2,
+    "top": 179,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowsu.orientation.bi_sexual%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 397.9,
+    "top": 179,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowsu.orientation.questioning_and_or_unsure%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 25.7,
+    "top": 195.2,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowsu.orientation.other%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 25.7,
+    "top": 234.6,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowsu.gender.female%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 79.5,
+    "top": 234.6,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowsu.gender.male%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 124.3,
+    "top": 234.6,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowsu.gender.non_binary_gender_non_conforming%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 318.4,
+    "top": 234.6,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowsu.gender.transgender_man%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 422.2,
+    "top": 234.6,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowsu.gender.transgender_woman%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 25.7,
+    "top": 250.4,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowsu.gender.two_spirit%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 92.5,
+    "top": 250.4,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowsu.gender.decline_to_answer%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 201.6,
+    "top": 250.4,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowsu.gender.other%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 25.7,
+    "top": 289.5,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowsu.disability.blind_visually_impaired%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 162.8,
+    "top": 289.5,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowsu.disability.deaf_hard_of_hearing%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 291.7,
+    "top": 289.5,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowsu.disability.medical_disability%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 397.6,
+    "top": 289.5,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowsu.disability.physical_disability%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 505.8,
+    "top": 289.5,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowsu.disability.none%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 25.7,
+    "top": 305.1,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowsu.disability.other%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 83,
+    "top": 326.8,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowsu.insurance.medicare%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 149.9,
+    "top": 326.8,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowsu.insurance.medicaid%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 217.7,
+    "top": 326.8,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowsu.insurance.private_insurance%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 327.8,
+    "top": 326.8,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowsu.insurance.none_uninsured%"
+   }
+  ]
+ },
+ "6f25fcaa": {
+  "key": "wowtc",
+  "title": "WOW Testing Consent (6f25fcaa) — template",
+  "pages": 2,
+  "fields": [
+   {
+    "page": 1,
+    "kind": "t",
+    "left": 72,
+    "top": 108.4,
+    "width": 178,
+    "height": 13.6,
+    "size": 8,
+    "token": "%wowtc.last_name%"
+   },
+   {
+    "page": 1,
+    "kind": "t",
+    "left": 300,
+    "top": 108.4,
+    "width": 156,
+    "height": 13.6,
+    "size": 8,
+    "token": "%wowtc.first_name%"
+   },
+   {
+    "page": 1,
+    "kind": "t",
+    "left": 484,
+    "top": 108.4,
+    "width": 104,
+    "height": 13.6,
+    "size": 8,
+    "token": "%wowtc.dob%"
+   },
+   {
+    "page": 1,
+    "kind": "t",
+    "left": 68,
+    "top": 123.6,
+    "width": 176,
+    "height": 13.6,
+    "size": 8,
+    "token": "%wowtc.street%"
+   },
+   {
+    "page": 1,
+    "kind": "t",
+    "left": 300,
+    "top": 123.6,
+    "width": 152,
+    "height": 13.6,
+    "size": 8,
+    "token": "%wowtc.city%"
+   },
+   {
+    "page": 1,
+    "kind": "t",
+    "left": 458,
+    "top": 123.6,
+    "width": 50,
+    "height": 13.6,
+    "size": 8,
+    "token": "%wowtc.state%"
+   },
+   {
+    "page": 1,
+    "kind": "t",
+    "left": 524,
+    "top": 123.6,
+    "width": 64,
+    "height": 13.6,
+    "size": 8,
+    "token": "%wowtc.zip%"
+   },
+   {
+    "page": 1,
+    "kind": "t",
+    "left": 78,
+    "top": 138.7,
+    "width": 162,
+    "height": 13.6,
+    "size": 8,
+    "token": "%wowtc.cell%"
+   },
+   {
+    "page": 1,
+    "kind": "t",
+    "left": 404,
+    "top": 139,
+    "width": 184,
+    "height": 13.6,
+    "size": 8,
+    "token": "%wowtc.email%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 300.8,
+    "top": 139.7,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowtc.text_ok.yes%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 333.9,
+    "top": 139.7,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowtc.text_ok.no%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 105.9,
+    "top": 155.1,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowtc.language.english%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 159.5,
+    "top": 155.1,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowtc.language.spanish%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 212.4,
+    "top": 155.1,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowtc.language.polish%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 262.4,
+    "top": 155.1,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowtc.language.mandarin%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 329.7,
+    "top": 155.1,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowtc.language.arabic%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 377.6,
+    "top": 155.1,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowtc.language.other%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 148.9,
+    "top": 170,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowtc.interpreter.no%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 183.3,
+    "top": 170,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowtc.interpreter.yes%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 93.8,
+    "top": 207.5,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowtc.coverage.medicaid_chip%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 351.9,
+    "top": 207.5,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowtc.coverage.private_insurance%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 93.8,
+    "top": 219.9,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowtc.coverage.medicare%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 233.5,
+    "top": 219.9,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowtc.coverage.va_tricare%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 339.3,
+    "top": 219.9,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowtc.coverage.uninsured_or_unknown%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 491.5,
+    "top": 219.9,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowtc.coverage.prefer_not_to_say%"
+   },
+   {
+    "page": 1,
+    "kind": "t",
+    "left": 116,
+    "top": 235.8,
+    "width": 124,
+    "height": 13.6,
+    "size": 8,
+    "token": "%wowtc.plan_name%"
+   },
+   {
+    "page": 1,
+    "kind": "t",
+    "left": 336,
+    "top": 235.8,
+    "width": 112,
+    "height": 13.6,
+    "size": 8,
+    "token": "%wowtc.member_id%"
+   },
+   {
+    "page": 1,
+    "kind": "t",
+    "left": 518,
+    "top": 235.8,
+    "width": 70,
+    "height": 13.6,
+    "size": 8,
+    "token": "%wowtc.subscriber_dob%"
+   },
+   {
+    "page": 1,
+    "kind": "t",
+    "left": 98,
+    "top": 251.5,
+    "width": 260,
+    "height": 13.6,
+    "size": 8,
+    "token": "%wowtc.subscriber_name%"
+   },
+   {
+    "page": 1,
+    "kind": "t",
+    "left": 464,
+    "top": 251.5,
+    "width": 124,
+    "height": 13.6,
+    "size": 8,
+    "token": "%wowtc.subscriber_relationship%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 182.7,
+    "top": 288.3,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowtc.hiv_prior.no%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 229.4,
+    "top": 288.3,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowtc.hiv_prior.yes%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 282.8,
+    "top": 288.3,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowtc.hiv_prior.unsure%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 396.4,
+    "top": 288.3,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowtc.hiv_result.positive%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 453.4,
+    "top": 288.3,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowtc.hiv_result.negative%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 510.4,
+    "top": 288.3,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowtc.hiv_result.i_don_t_know%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 206.2,
+    "top": 303.8,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowtc.hcv_prior.no%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 242.3,
+    "top": 303.8,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowtc.hcv_prior.yes%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 282.8,
+    "top": 303.8,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowtc.hcv_prior.unsure%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 396.4,
+    "top": 303.8,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowtc.hcv_result.positive%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 453.4,
+    "top": 303.8,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowtc.hcv_result.negative%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 510.4,
+    "top": 303.8,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowtc.hcv_result.i_don_t_know%"
+   },
+   {
+    "page": 1,
+    "kind": "t",
+    "left": 6,
+    "top": 370.4,
+    "width": 19,
+    "height": 11.9,
+    "size": 7,
+    "token": "%wowtc.initials.a%"
+   },
+   {
+    "page": 1,
+    "kind": "t",
+    "left": 6,
+    "top": 407.1,
+    "width": 19,
+    "height": 11.9,
+    "size": 7,
+    "token": "%wowtc.initials.b%"
+   },
+   {
+    "page": 1,
+    "kind": "t",
+    "left": 6,
+    "top": 437.3,
+    "width": 19,
+    "height": 11.9,
+    "size": 7,
+    "token": "%wowtc.initials.c%"
+   },
+   {
+    "page": 1,
+    "kind": "t",
+    "left": 6,
+    "top": 454.8,
+    "width": 19,
+    "height": 11.9,
+    "size": 7,
+    "token": "%wowtc.initials.d%"
+   },
+   {
+    "page": 1,
+    "kind": "t",
+    "left": 6,
+    "top": 498.5,
+    "width": 19,
+    "height": 11.9,
+    "size": 7,
+    "token": "%wowtc.initials.e%"
+   },
+   {
+    "page": 1,
+    "kind": "t",
+    "left": 6,
+    "top": 530.1,
+    "width": 19,
+    "height": 11.9,
+    "size": 7,
+    "token": "%wowtc.initials.f%"
+   },
+   {
+    "page": 1,
+    "kind": "t",
+    "left": 6,
+    "top": 562.6,
+    "width": 19,
+    "height": 11.9,
+    "size": 7,
+    "token": "%wowtc.initials.g%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 62.7,
+    "top": 614.8,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowtc.declines.hiv_testing%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 179.6,
+    "top": 614.8,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowtc.declines.hcv_testing%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 308.9,
+    "top": 614.8,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%wowtc.declines.sharing_results_with_my_pcp%"
+   },
+   {
+    "page": 1,
+    "kind": "t",
+    "left": 116,
+    "top": 673.5,
+    "width": 298,
+    "height": 13.6,
+    "size": 8,
+    "token": "%wowtc.patient_name_print%"
+   },
+   {
+    "page": 1,
+    "kind": "t",
+    "left": 474,
+    "top": 673.5,
+    "width": 114,
+    "height": 13.6,
+    "size": 8,
+    "token": "%wowtc.dob%"
+   },
+   {
+    "page": 1,
+    "kind": "i",
+    "left": 106,
+    "top": 687.6,
+    "width": 312,
+    "height": 15,
+    "size": 8,
+    "token": "%wowtc.signature.patient%"
+   },
+   {
+    "page": 1,
+    "kind": "t",
+    "left": 454,
+    "top": 688.1,
+    "width": 134,
+    "height": 13.6,
+    "size": 8,
+    "token": "%wowtc.date%"
+   },
+   {
+    "page": 1,
+    "kind": "t",
+    "left": 152,
+    "top": 722.4,
+    "width": 236,
+    "height": 13.6,
+    "size": 8,
+    "token": "%wowtc.guardian_name_print%"
+   },
+   {
+    "page": 1,
+    "kind": "t",
+    "left": 448,
+    "top": 722.4,
+    "width": 140,
+    "height": 13.6,
+    "size": 8,
+    "token": "%wowtc.guardian_relationship%"
+   },
+   {
+    "page": 1,
+    "kind": "i",
+    "left": 142,
+    "top": 736.2,
+    "width": 276,
+    "height": 15,
+    "size": 8,
+    "token": "%wowtc.signature.guardian%"
+   },
+   {
+    "page": 1,
+    "kind": "t",
+    "left": 454,
+    "top": 736.7,
+    "width": 134,
+    "height": 13.6,
+    "size": 8,
+    "token": "%wowtc.date%"
+   },
+   {
+    "page": 2,
+    "kind": "t",
+    "left": 424,
+    "top": 73.9,
+    "width": 118,
+    "height": 15.3,
+    "size": 9,
+    "token": "%wowtc.dos%"
+   },
+   {
+    "page": 2,
+    "kind": "t",
+    "left": 136,
+    "top": 94.6,
+    "width": 244,
+    "height": 15.3,
+    "size": 9,
+    "token": "%wowtc.name%"
+   },
+   {
+    "page": 2,
+    "kind": "t",
+    "left": 416,
+    "top": 94.6,
+    "width": 126,
+    "height": 15.3,
+    "size": 9,
+    "token": "%wowtc.dob%"
+   }
+  ]
+ },
+ "63948c3e": {
+  "key": "mhqa",
+  "title": "Mobile Health Screening - Adult (63948c3e) — template",
+  "pages": 3,
+  "fields": [
+   {
+    "page": 1,
+    "kind": "t",
+    "left": 90,
+    "top": 87.4,
+    "width": 362,
+    "height": 13.6,
+    "size": 8,
+    "token": "%mhqa.name%"
+   },
+   {
+    "page": 1,
+    "kind": "t",
+    "left": 484,
+    "top": 87.4,
+    "width": 104,
+    "height": 13.6,
+    "size": 8,
+    "token": "%mhqa.dob%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 107.6,
+    "top": 179.9,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.reason.a_check_up_preventive_care%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 233,
+    "top": 179.9,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.reason.mental_health_or_emotional_support%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 382.5,
+    "top": 179.9,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.reason.pregnancy_or_after_baby_care%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 36.4,
+    "top": 261.3,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.history.high_blood_pressure%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 178.4,
+    "top": 261.3,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.history.diabetes_high_blood_sugar%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 319.3,
+    "top": 261.3,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.history.high_cholesterol%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 462.8,
+    "top": 261.3,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.history.heart_disease%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 36.4,
+    "top": 278.1,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.history.stroke_or_mini_stroke%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 178.4,
+    "top": 278.1,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.history.asthma_or_copd%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 319.3,
+    "top": 278.1,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.history.kidney_disease%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 462.8,
+    "top": 278.1,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.history.liver_disease_or_hepatitis%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 36.4,
+    "top": 294.9,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.history.cancer%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 178.4,
+    "top": 294.9,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.history.thyroid_problems%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 319.3,
+    "top": 294.9,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.history.seizures%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 462.8,
+    "top": 294.9,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.history.hiv%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 36.4,
+    "top": 311.7,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.history.a_mental_health_condition%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 178.4,
+    "top": 311.7,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.history.a_substance_use_problem%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 319.3,
+    "top": 311.7,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.history.pregnancy_now_or_recently%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 462.8,
+    "top": 311.7,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.history.none_of_these%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 219.4,
+    "top": 340.7,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.nonrx_drugs.no%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 266.2,
+    "top": 340.7,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.nonrx_drugs.yes%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 315.9,
+    "top": 340.7,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.nonrx_drugs.prefer_not_to_say%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 119.3,
+    "top": 357.6,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.could_be_pregnant.no%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 166.1,
+    "top": 357.6,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.could_be_pregnant.yes%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 215.8,
+    "top": 357.6,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.could_be_pregnant.not_sure%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 283.6,
+    "top": 357.6,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.could_be_pregnant.does_not_apply%"
+   },
+   {
+    "page": 1,
+    "kind": "t",
+    "left": 156,
+    "top": 373.8,
+    "width": 432,
+    "height": 13.6,
+    "size": 8,
+    "token": "%mhqa.work%"
+   },
+   {
+    "page": 1,
+    "kind": "t",
+    "left": 126,
+    "top": 390.7,
+    "width": 462,
+    "height": 13.6,
+    "size": 8,
+    "token": "%mhqa.household%"
+   },
+   {
+    "page": 1,
+    "kind": "a",
+    "left": 28,
+    "top": 427,
+    "width": 560,
+    "height": 40,
+    "size": 8,
+    "token": "%mhqa.history_detail%"
+   },
+   {
+    "page": 1,
+    "kind": "a",
+    "left": 28,
+    "top": 476,
+    "width": 560,
+    "height": 32,
+    "size": 8,
+    "token": "%mhqa.medications%"
+   },
+   {
+    "page": 1,
+    "kind": "t",
+    "left": 146,
+    "top": 509,
+    "width": 442,
+    "height": 13.6,
+    "size": 8,
+    "token": "%mhqa.allergies%"
+   },
+   {
+    "page": 1,
+    "kind": "a",
+    "left": 28,
+    "top": 545,
+    "width": 560,
+    "height": 40,
+    "size": 8,
+    "token": "%mhqa.surgeries%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 275.7,
+    "top": 611,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.housing_worry.no%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 311.2,
+    "top": 611,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.housing_worry.yes%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 192.4,
+    "top": 627,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.stable_housing.no%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 227.9,
+    "top": 627,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.stable_housing.yes%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 266.3,
+    "top": 627,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.stable_housing.i_m_worried_about_it%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 323.8,
+    "top": 642,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.food.no%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 359.3,
+    "top": 642,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.food.yes%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 397.8,
+    "top": 642,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.food.sometimes%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 266.2,
+    "top": 657.1,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.transport.no%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 301.7,
+    "top": 657.1,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.transport.yes%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 340.1,
+    "top": 657.1,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.transport.sometimes%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 294.8,
+    "top": 672.1,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.utilities.no%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 330.3,
+    "top": 672.1,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.utilities.yes%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 368.7,
+    "top": 672.1,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.utilities.sometimes%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 146.4,
+    "top": 687.2,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.feel_safe.no%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 181.9,
+    "top": 687.2,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.feel_safe.yes%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 220.3,
+    "top": 687.2,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.feel_safe.prefer_not_to_say%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 177.4,
+    "top": 136.4,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.phq2_interest.not_at_all%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 232.7,
+    "top": 136.4,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.phq2_interest.several_days%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 300.2,
+    "top": 136.4,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.phq2_interest.more_than_half_the_days%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 406.7,
+    "top": 136.4,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.phq2_interest.nearly_every_day%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 168.9,
+    "top": 152.4,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.phq2_down.not_at_all%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 224.3,
+    "top": 152.4,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.phq2_down.several_days%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 291.7,
+    "top": 152.4,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.phq2_down.more_than_half_the_days%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 398.3,
+    "top": 152.4,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.phq2_down.nearly_every_day%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 165.5,
+    "top": 182.2,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.gad2_nervous.not_at_all%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 220.9,
+    "top": 182.2,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.gad2_nervous.several_days%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 288.3,
+    "top": 182.2,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.gad2_nervous.more_than_half_the_days%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 394.9,
+    "top": 182.2,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.gad2_nervous.nearly_every_day%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 183.2,
+    "top": 197.2,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.gad2_worry.not_at_all%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 238.6,
+    "top": 197.2,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.gad2_worry.several_days%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 306.1,
+    "top": 197.2,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.gad2_worry.more_than_half_the_days%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 412.6,
+    "top": 197.2,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.gad2_worry.nearly_every_day%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 213.7,
+    "top": 227.4,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.audit_frequency.never%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 252.9,
+    "top": 227.4,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.audit_frequency.monthly_or_less%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 325.9,
+    "top": 227.4,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.audit_frequency.2_4_times_a_month%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 411.6,
+    "top": 227.4,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.audit_frequency.2_3_times_a_week%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 493,
+    "top": 227.4,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.audit_frequency.4_times_a_week%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 213.7,
+    "top": 242.5,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.audit_quantity.1_2%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 248.2,
+    "top": 242.5,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.audit_quantity.3_4%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 282.7,
+    "top": 242.5,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.audit_quantity.5_6%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 317.2,
+    "top": 242.5,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.audit_quantity.7_9%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 351.8,
+    "top": 242.5,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.audit_quantity.10%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 238.7,
+    "top": 257.6,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.audit_binge.never%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 281.9,
+    "top": 257.6,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.audit_binge.less_than_monthly%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 369.5,
+    "top": 257.6,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.audit_binge.monthly%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 420.7,
+    "top": 257.6,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.audit_binge.weekly%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 468.5,
+    "top": 257.6,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.audit_binge.almost_daily%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 183.2,
+    "top": 286.1,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.tobacco.no%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 216.2,
+    "top": 286.1,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.tobacco.yes%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 250.8,
+    "top": 286.1,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.tobacco.i_recently_quit_within_the_last_year%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 36.3,
+    "top": 348,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.family.heart_disease_or_heart_attack%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 178.3,
+    "top": 348,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.family.high_blood_pressure%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 319.2,
+    "top": 348,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.family.diabetes%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 462.7,
+    "top": 348,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.family.stroke%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 36.3,
+    "top": 364.7,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.family.breast_cancer%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 178.3,
+    "top": 364.7,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.family.colon_cancer%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 319.2,
+    "top": 364.7,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.family.cervical_cancer%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 462.7,
+    "top": 364.7,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.family.other_cancer%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 36.3,
+    "top": 381.5,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.family.a_mental_health_condition%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 178.3,
+    "top": 381.5,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.family.a_substance_use_problem%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 319.2,
+    "top": 381.5,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.family.kidney_disease%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 462.7,
+    "top": 381.5,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.family.hiv%"
+   },
+   {
+    "page": 2,
+    "kind": "a",
+    "left": 28,
+    "top": 418,
+    "width": 560,
+    "height": 34,
+    "size": 8,
+    "token": "%mhqa.family_detail%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 238.7,
+    "top": 518.2,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.falls.no%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 281.9,
+    "top": 518.2,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.falls.yes%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 322.5,
+    "top": 518.2,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.falls.i_m_under_65%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 167.1,
+    "top": 533.5,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.regular_doctor.no%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 210.3,
+    "top": 533.5,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.regular_doctor.yes%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 250.9,
+    "top": 533.5,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.regular_doctor.not_sure%"
+   },
+   {
+    "page": 2,
+    "kind": "t",
+    "left": 350,
+    "top": 547.5,
+    "width": 152,
+    "height": 13.6,
+    "size": 8,
+    "token": "%mhqa.last_screening%"
+   },
+   {
+    "page": 2,
+    "kind": "t",
+    "left": 306,
+    "top": 562.9,
+    "width": 78,
+    "height": 13.6,
+    "size": 8,
+    "token": "%mhqa.last_pap%"
+   },
+   {
+    "page": 2,
+    "kind": "t",
+    "left": 284,
+    "top": 578.2,
+    "width": 78,
+    "height": 13.6,
+    "size": 8,
+    "token": "%mhqa.last_mammogram%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 281.1,
+    "top": 595.3,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.colon_screening.no%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 314.4,
+    "top": 595.3,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.colon_screening.yes%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 351,
+    "top": 595.3,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.colon_screening.n_a%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 371.7,
+    "top": 642,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.mh_hospital.no%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 401.7,
+    "top": 642,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.mh_hospital.yes_mental_health%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 492.4,
+    "top": 642,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.mh_hospital.yes_substance_use%"
+   },
+   {
+    "page": 2,
+    "kind": "t",
+    "left": 158,
+    "top": 656.8,
+    "width": 430,
+    "height": 13.6,
+    "size": 8,
+    "token": "%mhqa.mh_treatment_where%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 274.5,
+    "top": 673.6,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.mh_treatment.no%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 304.5,
+    "top": 673.6,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.mh_treatment.yes%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 337.4,
+    "top": 673.6,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.mh_treatment.i_recently_stopped%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 250.1,
+    "top": 689.4,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.self_harm.no%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 280,
+    "top": 689.4,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.self_harm.yes%"
+   },
+   {
+    "page": 3,
+    "kind": "c",
+    "left": 117.2,
+    "top": 121.7,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.pregnant_now.yes%"
+   },
+   {
+    "page": 3,
+    "kind": "c",
+    "left": 147.1,
+    "top": 121.7,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.pregnant_now.no_i_recently_had_a_baby%"
+   },
+   {
+    "page": 3,
+    "kind": "c",
+    "left": 251,
+    "top": 121.7,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.pregnant_now.maybe_i_d_like_a_test_today%"
+   },
+   {
+    "page": 3,
+    "kind": "t",
+    "left": 134,
+    "top": 136.8,
+    "width": 94,
+    "height": 13.6,
+    "size": 8,
+    "token": "%mhqa.due_date%"
+   },
+   {
+    "page": 3,
+    "kind": "t",
+    "left": 401,
+    "top": 136.8,
+    "width": 187,
+    "height": 13.6,
+    "size": 8,
+    "token": "%mhqa.weeks_pregnant%"
+   },
+   {
+    "page": 3,
+    "kind": "t",
+    "left": 266,
+    "top": 151.8,
+    "width": 118,
+    "height": 13.6,
+    "size": 8,
+    "token": "%mhqa.delivery_date%"
+   },
+   {
+    "page": 3,
+    "kind": "t",
+    "left": 296,
+    "top": 167.4,
+    "width": 88,
+    "height": 13.6,
+    "size": 8,
+    "token": "%mhqa.pregnancies%"
+   },
+   {
+    "page": 3,
+    "kind": "t",
+    "left": 436,
+    "top": 167.4,
+    "width": 92,
+    "height": 13.6,
+    "size": 8,
+    "token": "%mhqa.births%"
+   },
+   {
+    "page": 3,
+    "kind": "t",
+    "left": 263,
+    "top": 183.5,
+    "width": 161,
+    "height": 13.6,
+    "size": 8,
+    "token": "%mhqa.prenatal_where%"
+   },
+   {
+    "page": 3,
+    "kind": "c",
+    "left": 147.2,
+    "top": 184.2,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.prenatal_care.not_yet%"
+   },
+   {
+    "page": 3,
+    "kind": "c",
+    "left": 193.7,
+    "top": 184.2,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.prenatal_care.yes%"
+   },
+   {
+    "page": 3,
+    "kind": "c",
+    "left": 429,
+    "top": 184.2,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.prenatal_care.n_a_after_baby%"
+   },
+   {
+    "page": 3,
+    "kind": "c",
+    "left": 236.8,
+    "top": 225,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.epds_mood.no_rarely%"
+   },
+   {
+    "page": 3,
+    "kind": "c",
+    "left": 300.2,
+    "top": 225,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.epds_mood.some_of_the_time%"
+   },
+   {
+    "page": 3,
+    "kind": "c",
+    "left": 388.6,
+    "top": 225,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.epds_mood.most_of_the_time%"
+   },
+   {
+    "page": 3,
+    "kind": "c",
+    "left": 239.2,
+    "top": 240.3,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.epds_self_harm.no%"
+   },
+   {
+    "page": 3,
+    "kind": "c",
+    "left": 272.5,
+    "top": 240.3,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqa.epds_self_harm.yes%"
+   },
+   {
+    "page": 3,
+    "kind": "a",
+    "left": 28,
+    "top": 367,
+    "width": 560,
+    "height": 45,
+    "size": 8,
+    "token": "%mhqa.other%"
+   }
+  ]
+ },
+ "c2e4d150": {
+  "key": "mhqp",
+  "title": "Mobile Health Screening - Minor (c2e4d150) — template",
+  "pages": 3,
+  "fields": [
+   {
+    "page": 1,
+    "kind": "t",
+    "left": 90,
+    "top": 87.4,
+    "width": 362,
+    "height": 13.6,
+    "size": 8,
+    "token": "%mhqp.name%"
+   },
+   {
+    "page": 1,
+    "kind": "t",
+    "left": 484,
+    "top": 87.4,
+    "width": 104,
+    "height": 13.6,
+    "size": 8,
+    "token": "%mhqp.dob%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 107.6,
+    "top": 165,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.reason.well_child_check_up%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 203.3,
+    "top": 165,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.reason.shots_immunizations%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 312.7,
+    "top": 165,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.reason.sick_or_a_specific_concern%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 431.2,
+    "top": 165,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.reason.school_sports_form%"
+   },
+   {
+    "page": 1,
+    "kind": "t",
+    "left": 76,
+    "top": 216.8,
+    "width": 324,
+    "height": 13.6,
+    "size": 8,
+    "token": "%mhqp.parent_name%"
+   },
+   {
+    "page": 1,
+    "kind": "t",
+    "left": 496,
+    "top": 216.8,
+    "width": 92,
+    "height": 13.6,
+    "size": 8,
+    "token": "%mhqp.parent_relationship%"
+   },
+   {
+    "page": 1,
+    "kind": "t",
+    "left": 78,
+    "top": 232,
+    "width": 162,
+    "height": 13.6,
+    "size": 8,
+    "token": "%mhqp.parent_cell%"
+   },
+   {
+    "page": 1,
+    "kind": "t",
+    "left": 404,
+    "top": 232.3,
+    "width": 184,
+    "height": 13.6,
+    "size": 8,
+    "token": "%mhqp.parent_email%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 300.9,
+    "top": 233,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.text_ok.yes%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 334.1,
+    "top": 233,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.text_ok.no%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 272,
+    "top": 248.3,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.is_guardian.yes%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 315.1,
+    "top": 248.3,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.is_guardian.no%"
+   },
+   {
+    "page": 1,
+    "kind": "t",
+    "left": 208,
+    "top": 262.8,
+    "width": 380,
+    "height": 13.6,
+    "size": 8,
+    "token": "%mhqp.other_guardian%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 93.9,
+    "top": 298.6,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.coverage.medicaid%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 155.4,
+    "top": 298.6,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.coverage.medicaid_health_plan%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 264.5,
+    "top": 298.6,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.coverage.chip_all_kids%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 351.8,
+    "top": 298.6,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.coverage.no_insurance%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 436.3,
+    "top": 298.6,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.coverage.other%"
+   },
+   {
+    "page": 1,
+    "kind": "t",
+    "left": 104,
+    "top": 313.7,
+    "width": 280,
+    "height": 13.6,
+    "size": 8,
+    "token": "%mhqp.plan_name%"
+   },
+   {
+    "page": 1,
+    "kind": "t",
+    "left": 438,
+    "top": 313.7,
+    "width": 150,
+    "height": 13.6,
+    "size": 8,
+    "token": "%mhqp.member_id%"
+   },
+   {
+    "page": 1,
+    "kind": "t",
+    "left": 148,
+    "top": 329.4,
+    "width": 236,
+    "height": 13.6,
+    "size": 8,
+    "token": "%mhqp.card_name%"
+   },
+   {
+    "page": 1,
+    "kind": "t",
+    "left": 482,
+    "top": 329.4,
+    "width": 106,
+    "height": 13.6,
+    "size": 8,
+    "token": "%mhqp.card_relationship%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 35.9,
+    "top": 381.5,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.history.asthma_or_breathing_problems%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 177.9,
+    "top": 381.5,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.history.diabetes%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 318.8,
+    "top": 381.5,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.history.frequent_ear_infections%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 462.3,
+    "top": 384.2,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.history.a_developmental_or_learning_concern%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 35.9,
+    "top": 398.3,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.history.allergies_food_medicine_other%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 177.9,
+    "top": 398.3,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.history.vision_or_hearing_problem%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 318.8,
+    "top": 398.3,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.history.heart_condition%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 462.3,
+    "top": 405,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.history.none_of_these%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 35.9,
+    "top": 415.1,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.history.eczema_or_skin_conditions%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 177.9,
+    "top": 415.1,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.history.born_premature_nicu_stay%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 318.8,
+    "top": 423.6,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.history.a_mental_or_behavioral_health_condition%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 35.9,
+    "top": 431.8,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.history.seizures%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 177.9,
+    "top": 431.8,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.history.a_substance_use_problem%"
+   },
+   {
+    "page": 1,
+    "kind": "a",
+    "left": 28,
+    "top": 467,
+    "width": 560,
+    "height": 35,
+    "size": 8,
+    "token": "%mhqp.history_detail%"
+   },
+   {
+    "page": 1,
+    "kind": "a",
+    "left": 28,
+    "top": 510,
+    "width": 560,
+    "height": 28,
+    "size": 8,
+    "token": "%mhqp.medications%"
+   },
+   {
+    "page": 1,
+    "kind": "t",
+    "left": 144,
+    "top": 538.8,
+    "width": 444,
+    "height": 13.6,
+    "size": 8,
+    "token": "%mhqp.allergies%"
+   },
+   {
+    "page": 1,
+    "kind": "a",
+    "left": 28,
+    "top": 568,
+    "width": 560,
+    "height": 29,
+    "size": 8,
+    "token": "%mhqp.surgeries%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 200.7,
+    "top": 598.5,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.regular_doctor.no%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 230.7,
+    "top": 598.5,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.regular_doctor.yes%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 263.6,
+    "top": 598.5,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.regular_doctor.not_sure%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 200.7,
+    "top": 634.6,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.born_early.no%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 230.7,
+    "top": 634.6,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.born_early.yes%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 263.6,
+    "top": 634.6,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.born_early.not_sure%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 200.7,
+    "top": 649.4,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.birth_problems.no%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 230.7,
+    "top": 649.4,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.birth_problems.yes%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 320.9,
+    "top": 649.4,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.birth_problems.not_sure%"
+   },
+   {
+    "page": 1,
+    "kind": "a",
+    "left": 28,
+    "top": 678,
+    "width": 560,
+    "height": 24,
+    "size": 8,
+    "token": "%mhqp.birth_problems_detail%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 24.3,
+    "top": 703.5,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.development.no_concerns%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 95,
+    "top": 703.5,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.development.a_few_concerns%"
+   },
+   {
+    "page": 1,
+    "kind": "c",
+    "left": 175.7,
+    "top": 703.5,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.development.yes_i_d_like_to_talk_about_it%"
+   },
+   {
+    "page": 1,
+    "kind": "a",
+    "left": 28,
+    "top": 732,
+    "width": 560,
+    "height": 18,
+    "size": 8,
+    "token": "%mhqp.development_detail%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 226.7,
+    "top": 105,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.shots_current.no%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 256.6,
+    "top": 105,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.shots_current.yes%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 289.5,
+    "top": 105,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.shots_current.not_sure%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 346.9,
+    "top": 105,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.shots_current.we_don_t_vaccinate%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 226.7,
+    "top": 119.9,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.shot_record.yes_on_paper%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 294.9,
+    "top": 119.9,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.shot_record.yes_on_phone_or_app%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 381.4,
+    "top": 119.9,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.shot_record.no%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 414.4,
+    "top": 119.9,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.shot_record.it_s_with_another_clinic%"
+   },
+   {
+    "page": 2,
+    "kind": "t",
+    "left": 204,
+    "top": 134.2,
+    "width": 236,
+    "height": 13.6,
+    "size": 8,
+    "token": "%mhqp.shot_record_clinic%"
+   },
+   {
+    "page": 2,
+    "kind": "t",
+    "left": 494,
+    "top": 134.2,
+    "width": 94,
+    "height": 13.6,
+    "size": 8,
+    "token": "%mhqp.shot_record_city_state%"
+   },
+   {
+    "page": 2,
+    "kind": "a",
+    "left": 28,
+    "top": 164,
+    "width": 560,
+    "height": 24,
+    "size": 8,
+    "token": "%mhqp.shots_needed%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 203.5,
+    "top": 188.8,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.vaccine_reaction.no%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 234.5,
+    "top": 188.8,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.vaccine_reaction.yes%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 325.7,
+    "top": 188.8,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.vaccine_reaction.not_sure%"
+   },
+   {
+    "page": 2,
+    "kind": "a",
+    "left": 28,
+    "top": 217,
+    "width": 560,
+    "height": 30,
+    "size": 8,
+    "token": "%mhqp.vaccine_reaction_detail%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 36.2,
+    "top": 283.3,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.family.asthma_or_allergies%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 178.2,
+    "top": 283.3,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.family.diabetes%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 319.1,
+    "top": 283.3,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.family.heart_disease%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 462.5,
+    "top": 283.3,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.family.high_blood_pressure%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 36.2,
+    "top": 300.1,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.family.a_mental_health_condition%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 178.2,
+    "top": 300.1,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.family.a_substance_use_problem%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 319.1,
+    "top": 300.1,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.family.sickle_cell_or_blood_disorder%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 462.5,
+    "top": 300.1,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.family.none_not_sure%"
+   },
+   {
+    "page": 2,
+    "kind": "a",
+    "left": 28,
+    "top": 335,
+    "width": 560,
+    "height": 28,
+    "size": 8,
+    "token": "%mhqp.family_detail%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 200.4,
+    "top": 363.8,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.smoke_vape.no%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 230.4,
+    "top": 363.8,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.smoke_vape.yes%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 263.3,
+    "top": 363.8,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.smoke_vape.not_in_the_home_but_around_the_child%"
+   },
+   {
+    "page": 2,
+    "kind": "t",
+    "left": 148,
+    "top": 377.9,
+    "width": 440,
+    "height": 13.6,
+    "size": 8,
+    "token": "%mhqp.household%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 305.4,
+    "top": 450,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.housing_worry.no%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 340.9,
+    "top": 450,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.housing_worry.yes%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 231,
+    "top": 466,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.stable_housing.no%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 266.5,
+    "top": 466,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.stable_housing.yes%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 305,
+    "top": 466,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.stable_housing.we_re_worried_about_it%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 305,
+    "top": 482,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.food.no%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 340.5,
+    "top": 482,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.food.yes%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 378.9,
+    "top": 482,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.food.sometimes%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 288.3,
+    "top": 498,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.transport.no%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 323.8,
+    "top": 498,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.transport.yes%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 245,
+    "top": 514,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.utilities.no%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 280.5,
+    "top": 514,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.utilities.yes%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 178.7,
+    "top": 530,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.feel_safe.no%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 214.2,
+    "top": 530,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.feel_safe.yes%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 252.7,
+    "top": 530,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.feel_safe.prefer_not_to_say%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 305.4,
+    "top": 600.9,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.emotional.doing_well%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 362.9,
+    "top": 600.9,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.emotional.some_ups_and_downs%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 460.1,
+    "top": 600.9,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.emotional.i_have_concerns%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 286.4,
+    "top": 616,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.home_changes.no%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 343.9,
+    "top": 616,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.home_changes.yes%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 178.6,
+    "top": 631,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.sleep_eating.fine%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 236.1,
+    "top": 631,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.sleep_eating.some_issues%"
+   },
+   {
+    "page": 2,
+    "kind": "c",
+    "left": 324,
+    "top": 631,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.sleep_eating.i_have_concerns%"
+   },
+   {
+    "page": 2,
+    "kind": "a",
+    "left": 28,
+    "top": 659,
+    "width": 560,
+    "height": 33,
+    "size": 8,
+    "token": "%mhqp.provider_note%"
+   },
+   {
+    "page": 3,
+    "kind": "c",
+    "left": 168.8,
+    "top": 151.9,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.phq_down.not_at_all%"
+   },
+   {
+    "page": 3,
+    "kind": "c",
+    "left": 224.2,
+    "top": 151.9,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.phq_down.several_days%"
+   },
+   {
+    "page": 3,
+    "kind": "c",
+    "left": 291.6,
+    "top": 151.9,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.phq_down.more_than_half_the_days%"
+   },
+   {
+    "page": 3,
+    "kind": "c",
+    "left": 398.2,
+    "top": 151.9,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.phq_down.nearly_every_day%"
+   },
+   {
+    "page": 3,
+    "kind": "c",
+    "left": 180.1,
+    "top": 167.3,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.phq_interest.not_at_all%"
+   },
+   {
+    "page": 3,
+    "kind": "c",
+    "left": 235.4,
+    "top": 167.3,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.phq_interest.several_days%"
+   },
+   {
+    "page": 3,
+    "kind": "c",
+    "left": 302.9,
+    "top": 167.3,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.phq_interest.more_than_half_the_days%"
+   },
+   {
+    "page": 3,
+    "kind": "c",
+    "left": 409.4,
+    "top": 167.3,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.phq_interest.nearly_every_day%"
+   },
+   {
+    "page": 3,
+    "kind": "c",
+    "left": 166.1,
+    "top": 182.4,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.gad_nervous.not_at_all%"
+   },
+   {
+    "page": 3,
+    "kind": "c",
+    "left": 221.5,
+    "top": 182.4,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.gad_nervous.several_days%"
+   },
+   {
+    "page": 3,
+    "kind": "c",
+    "left": 289,
+    "top": 182.4,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.gad_nervous.more_than_half_the_days%"
+   },
+   {
+    "page": 3,
+    "kind": "c",
+    "left": 395.5,
+    "top": 182.4,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.gad_nervous.nearly_every_day%"
+   },
+   {
+    "page": 3,
+    "kind": "c",
+    "left": 242.4,
+    "top": 197.4,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.self_harm.no%"
+   },
+   {
+    "page": 3,
+    "kind": "c",
+    "left": 299.9,
+    "top": 197.4,
+    "width": 18,
+    "height": 13,
+    "size": 10,
+    "token": "%mhqp.self_harm.yes%"
+   },
+   {
+    "page": 3,
+    "kind": "a",
+    "left": 28,
+    "top": 317,
+    "width": 560,
+    "height": 45,
+    "size": 8,
+    "token": "%mhqp.other%"
+   }
+  ]
+ }
+}
