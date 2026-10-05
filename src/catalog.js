@@ -4,6 +4,7 @@
 // label, which intake forms to show, which consent applies — is looked up in
 // Service Types, so there is exactly one place to maintain it.
 
+import { ageMatches } from './patient.js';
 import { state } from './state.js';
 
 /**
@@ -31,7 +32,7 @@ export function splitList(value) {
  * @property {string} name Patient-facing label from Service Types
  * @property {string[]} formIds Intake forms, in sheet order
  * @property {string[]} consentIds Consent blocks this service requires
- * @property {string[]} ageBands Age bands eligible for it; empty means any age
+ * @property {string[]} ages Age ranges eligible for it (`12-17y`); empty means any age
  * @property {string[]} genders Genders eligible for it; empty means any gender
  */
 
@@ -63,7 +64,7 @@ export function servicesForEvent(event) {
                 // can require several intake forms.
                 formIds: splitList(row['Intake Form']),
                 consentIds: splitList(row.ConsentIDs),
-                ageBands: splitList(row['Age Eligibility']),
+                ages: splitList(row['Age Eligibility']),
                 genders: splitList(row['Gender Eligibility'])
             };
         })
@@ -78,16 +79,21 @@ export function servicesForEvent(event) {
  * blank date of birth would hide every service before the patient has filled the
  * form in.
  *
- * Both columns are plain membership tests, matching how `@age` and `@gender`
- * question triggers behave. A gender-restricted service is therefore hidden from
- * patients who answered Other or Decline to Answer unless those values are listed
- * too, so include them whenever they should still be offered.
+ * Both columns behave exactly like the `@age` and `@gender` question triggers.
+ * Each age entry is a range of years, so any range works, not only the four
+ * bands. Gender is a plain membership test: a gender-restricted service is
+ * hidden from patients who answered Other or Decline to Answer unless those
+ * values are listed too, so include them whenever they should still be offered.
  *
  * @param {Service} service
- * @param {{band: string|null, gender: string|null}} patient
+ * @param {{years: number|null, gender: string|null}} patient
  */
 export function isServiceEligible(service, patient) {
-    if (service.ageBands.length && patient.band && !service.ageBands.includes(patient.band)) {
+    if (
+        service.ages.length &&
+        patient.years !== null &&
+        !service.ages.some(value => ageMatches(value, patient.years))
+    ) {
         return false;
     }
     if (service.genders.length && patient.gender && !service.genders.includes(patient.gender)) {

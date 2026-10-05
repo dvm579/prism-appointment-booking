@@ -15,19 +15,54 @@ export const DEMOGRAPHIC_FIELDS = [
 ];
 
 /**
- * Age bands used to gate services and questions.
+ * The age bands services and questions are usually gated on.
  *
- * Bands are half-open so the labels do not overlap: `0-3` is under 4, `4-11` is
- * 4 up to but not including 12, `12-17` is 12 up to but not including 18, and
- * `18+` is 18 and over. A patient turning 4, 12 or 18 falls in exactly one band.
+ * Every age value in the sheet - an `Age Eligibility` entry or an `@age`
+ * trigger - is a range of whole years, and these are just the four the School
+ * Health forms split on. `4-11y` is 4 through 11, `18+y` is 18 and over, so a
+ * patient turning 4, 12 or 18 falls in exactly one of them. Any other range
+ * (`8-11y`, `65+y`) works the same way.
  *
- * These replaced `0-12 / 12-18 / 18+`, which the School Health intake forms
- * split further. The old labels map onto these exactly - `0-12` is
- * {`0-3`, `4-11`} and `12-18` is `12-17` - so the Service Types rewrite that
- * ships with this changes nobody's eligibility. It does have to ship with it:
- * a band the sheet does not use hides every service that gates on age.
+ * The `y` is there for Google Sheets: a bare `12-17` typed into a cell is read
+ * as December 17 and stored as a date. See "A hazard with range-shaped cells" in
+ * docs/schema.md.
  */
-export const AGE_BANDS = ['0-3', '4-11', '12-17', '18+'];
+export const AGE_BANDS = ['0-3y', '4-11y', '12-17y', '18+y'];
+
+/**
+ * Parses an age value from the sheet into an inclusive range of years.
+ *
+ * Accepts `12-17y` and `18+y` (or `18y+`), and the bare `12-17` / `18+` the
+ * sheet used before the suffix, so the page reads either vocabulary and never
+ * has to ship in step with a sheet migration.
+ *
+ * @param {string} value
+ * @returns {{low: number, high: number}|null} null when it is not an age range.
+ */
+export function parseAgeRange(value) {
+    const match = /^(\d+)\s*(?:-\s*(\d+)\s*y?|y?\s*\+\s*y?|y)$/i.exec(String(value ?? '').trim());
+    if (!match) return null;
+
+    const low = Number(match[1]);
+    if (match[2] !== undefined) return { low, high: Number(match[2]) };
+    // `18+y` is open-ended; a lone `5y` is just that year.
+    return { low, high: /\+/.test(match[0]) ? Infinity : low };
+}
+
+/**
+ * True when a patient of `years` falls in the age range `value`.
+ *
+ * False while the date of birth is unknown, and for a value that is not an age
+ * range at all, which is logged: an unreadable age gate hides what it guards.
+ */
+export function ageMatches(value, years) {
+    const range = parseAgeRange(value);
+    if (!range) {
+        console.warn(`"${value}" is not an age range; expected e.g. 12-17y or 18+y.`);
+        return false;
+    }
+    return years !== null && years >= range.low && years <= range.high;
+}
 
 /** Whole years between a date of birth and today. */
 function ageInYears(dob) {
@@ -39,10 +74,7 @@ function ageInYears(dob) {
 }
 
 /**
- * The patient's age in whole years.
- *
- * `@age` triggers accept a plain range as well as a band name, and a range has
- * to be measured against years rather than against the band it falls in.
+ * The patient's age in whole years, which every age gate is measured against.
  *
  * @returns {number|null} null while the date of birth is blank or unparseable.
  */
@@ -51,23 +83,6 @@ export function ageYears() {
     if (dob === null) return null;
     const age = ageInYears(dob);
     return age < 0 ? null : age;
-}
-
-/**
- * The patient's age band from the date of birth entered.
- *
- * @returns {string|null} null while the date of birth is blank or unparseable.
- */
-export function ageBand() {
-    const dob = parseSheetDate(dom.dob.value);
-    if (dob === null) return null;
-
-    const age = ageInYears(dob);
-    if (age < 0) return null;
-    if (age < 4) return '0-3';
-    if (age < 12) return '4-11';
-    if (age < 18) return '12-17';
-    return '18+';
 }
 
 /**

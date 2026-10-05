@@ -30,21 +30,25 @@ Teen Private (27 fields) is **not** modelled — it stays on paper.
 
 ## Outstanding
 
-Updated 2026-09-29, after the first live test event (`bc41fe7d`).
+Updated 2026-10-05.
 
-**1. Re-run the importer** to delete the two staff-only questions, `shccore-48`
-(phone-interview staff name) and `shccore-49` (read-back initials), from Form
-Questions and Core Field Map. Upserts never delete, so until then patients still
-see them. The same run switches Core Field Map to a QuestionID + FormID key; it
-was keyed on FormID alone, so a changed mapping could never land (the rows already
-there were unharmed). Preview first: expect "would remove 2" for each sheet.
+**1. Re-run the importer** to give every age value its `y` (`12-17` becomes
+`12-17y`) across Service Types and every `@age` row of Form Questions. The page
+reads both forms, so the order does not matter. Preview first: it lists each
+cell it would change.
 
-**2. Confirm the deployed `endpoints.gs` writes declines.** The tracked copy
-writes them to a `Consent Declines` sheet since `ca6b070`; a web app deployed
-before that silently drops them.
+**2. Registration backend on Cloud Run.** Apps Script finished the 2026-09-29
+test registration in 15.8 s but the reply never reached the browser, so the
+patient was told it failed. Plan: a Cloud Run service keeping the same three
+actions, writing the same sheets in batched Sheets API calls, and filling the
+PDFs directly with a PDF library inside the request (target: 7-10 s end to end on
+the client). School Health and WOW forms first. Waiting on the choice of a
+BAA-covered Cloud project.
 
 Done:
 
+- Staff-only questions retired and Core Field Map keyed on both ids.
+- `endpoints.gs` writes consent declines (confirmed by the 2026-09-29 test).
 - Age bands: every Age Eligibility and `@age` value is in the current vocabulary
   (`SPRTPHYS` and `LEADTEST` fixed by the second importer run).
 - Consent Items is published (gid `389763252`) and the decline panel is live.

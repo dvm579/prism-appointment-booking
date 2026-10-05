@@ -95,7 +95,7 @@ vm.runInContext(src + `
 this.previewSchoolHealthImport = previewSchoolHealthImport;
 this.importSchoolHealthForms = importSchoolHealthForms;
 this.QUESTIONS = QUESTIONS; this.SERVICE_TYPES = SERVICE_TYPES;
-this.AGE_MIGRATION = AGE_MIGRATION; this.CONSENT_ITEMS = CONSENT_ITEMS;
+this.CONSENT_ITEMS = CONSENT_ITEMS;
 this.CORE_FIELD_MAP = CORE_FIELD_MAP; this.RETIRED_QUESTIONS = RETIRED_QUESTIONS;
 `, ctx, { filename: 'importer.gs' });
 
@@ -115,23 +115,27 @@ function freshBook() {
     'Form Questions': makeSheet('Form Questions',
       ['FormID', 'QuestionID', 'DisplayOrder', 'QuestionText', 'QuestionType', 'Options', 'IsRequired', 'TriggerID', 'TriggerValue'],
       [['pedvax25', 'pedvax25-1', 1, 'Existing question', 'radio_yes_no', '', 'N', '', ''],
-       ['c2e4d150', 'c2e4d150-37', 37, 'Anything to add?', 'text_area', '', 'N', '@age', '0-12'],
-       ['c2e4d150', 'c2e4d150-41', 41, 'Thoughts of harming yourself?', 'radio_yes_no', 'Yes|No', 'N', '@age', dateCell('12-18')],
-       ['c2e4d150', 'c2e4d150-40', 40, 'Edited since', 'single_select', '', 'N', '@age', '12-17']]),
+       // The live sheet before the y suffix: bare ranges, one stored as a date.
+       ['c2e4d150', 'c2e4d150-37', 37, 'Anything to add?', 'text_area', '', 'N', '@age', '0-3|4-11'],
+       ['c2e4d150', 'c2e4d150-41', 41, 'Thoughts of harming yourself?', 'radio_yes_no', 'Yes|No', 'N', '@age', dateCell('12-17')],
+       ['c2e4d150', 'c2e4d150-40', 40, 'Already suffixed', 'single_select', '', 'N', '@age', '12-17y'],
+       // Looks like a range but is an answer to another question, not an age.
+       ['pedvax25', 'pedvax25-2', 2, 'How many doses?', 'text', '', 'N', 'pedvax25-1', '1-2']]),
     // Column E carries the live sheet's value-in-list rule, which has no
     // `scored` in it - the rule that stopped the real import part way.
 
     'Service Types': makeSheet('Service Types',
       ['ServiceTypeID', 'Service Name', 'Intake Form', 'AppSheet Form View', 'ConsentIDs', 'Age Eligibility', 'Gender Eligibility', 'Active'],
       [
-        ['VAXADMIN', 'IL School Required and Recommended Vaccinations', 'pedvax25', 'x', 'init0002', '0-12, 12-18', '', 'TRUE'],
-        ['PHYSICAL', 'IL State School Physical', 'schlphys26', 'x', 'init0002', '0-12, 12-18', '', 'TRUE'],
-        // Held as a date, as on the live sheet: Sheets parsed the lone "12-18".
-        ['SPRTPHYS', 'IHSA Sports Physical', 'sprtphys26', 'x', 'init0002', dateCell('12-18'), '', 'TRUE'],
-        ['LEADTEST', 'Lead Testing ONLY (no school physical)', '', '', '', '0-12', '', 'TRUE'],
-        ['HIV12HCV', 'HIV and Hepatitis C Testing', '99be5397 , 6f25fcaa', '', 'init0002', '12-18, 18+', '', 'TRUE'],
-        ['ENMMINOR', 'Health Check-Up (Minor)', '99be5397', '', 'init0002', '0-12, 12-18', '', 'TRUE'],
+        ['VAXADMIN', 'IL School Required and Recommended Vaccinations', 'pedvax25', 'x', 'init0002', '0-3,4-11,12-17', '', 'TRUE'],
+        ['PHYSICAL', 'IL State School Physical', 'schlphys26', 'x', 'init0002', '0-3, 4-11, 12-17', '', 'TRUE'],
+        // Held as a date, as on the live sheet: Sheets parsed the lone "12-17".
+        ['SPRTPHYS', 'IHSA Sports Physical', 'sprtphys26', 'x', 'init0002', dateCell('12-17'), '', 'TRUE'],
+        ['LEADTEST', 'Lead Testing ONLY (no school physical)', '', '', '', '0-3,4-11', '', 'TRUE'],
+        ['HIV12HCV', 'HIV and Hepatitis C Testing', '99be5397 , 6f25fcaa', '', 'init0002', '12-17,18+', '', 'TRUE'],
+        ['ENMMINOR', 'Health Check-Up (Minor)', '99be5397', '', 'init0002', '0-3y,4-11y,12-17y', '', 'TRUE'],
         ['ENMADULT', 'Health Check-Up (Adult)', '99be5397', '', 'init0002', '18+', '', 'TRUE'],
+        ['VITALCHK', 'Vitals Check', '99be5397', '', 'init0002', '', '', 'TRUE'],
       ]),
     'Consent Blocks': makeSheet('Consent Blocks',
       ['ConsentID', 'Consent Name', 'ConsentHTML', 'DisplayOrder'],
@@ -152,43 +156,50 @@ console.log('\n2. import loads every row');
 book = freshBook();
 ctx.importSchoolHealthForms();
 const fq = book.sheets['Form Questions'].data;
-check('326 new question rows appended (4 seeded)', fq.length === 1 + 4 + 326, fq.length);
+check('326 new question rows appended (5 seeded)', fq.length === 1 + 5 + 326, fq.length);
 check('pre-existing question untouched', fq[1][1] === 'pedvax25-1');
 check('Consent Items created with 19 rows', book.sheets['Consent Items'].data.length === 20,
   book.sheets['Consent Items'] && book.sheets['Consent Items'].data.length);
 check('Core Field Map created with 167 rows', book.sheets['Core Field Map'].data.length === 168,
   book.sheets['Core Field Map'] && book.sheets['Core Field Map'].data.length);
-check('5 new services appended', book.sheets['Service Types'].data.length === 1 + 7 + 5,
+check('5 new services appended', book.sheets['Service Types'].data.length === 1 + 8 + 5,
   book.sheets['Service Types'].data.length);
 
-console.log('\n3. age bands migrated exactly');
+console.log('\n3. every age range gets its y');
 const st = book.sheets['Service Types'].data;
 const ageOf = id => (st.find(r => r[0] === id) || [])[5];
-check('VAXADMIN -> 0-3,4-11,12-17', ageOf('VAXADMIN') === '0-3,4-11,12-17', ageOf('VAXADMIN'));
-check('SPRTPHYS -> 12-17 though the cell held a date', ageOf('SPRTPHYS') === '12-17', String(ageOf('SPRTPHYS')));
-check('LEADTEST -> 0-3,4-11', ageOf('LEADTEST') === '0-3,4-11', ageOf('LEADTEST'));
+check('VAXADMIN', ageOf('VAXADMIN') === '0-3y,4-11y,12-17y', ageOf('VAXADMIN'));
+check('PHYSICAL, spaces and all', ageOf('PHYSICAL') === '0-3y,4-11y,12-17y', ageOf('PHYSICAL'));
+check('SPRTPHYS though the cell held a date', ageOf('SPRTPHYS') === '12-17y', String(ageOf('SPRTPHYS')));
+check('HIV12HCV open-ended band', ageOf('HIV12HCV') === '12-17y,18+y', ageOf('HIV12HCV'));
+check('ENMADULT', ageOf('ENMADULT') === '18+y', ageOf('ENMADULT'));
+check('an already-suffixed list untouched', ageOf('ENMMINOR') === '0-3y,4-11y,12-17y');
+check('a blank stays blank', ageOf('VITALCHK') === '');
+check('the School Health services land suffixed', ageOf('SHCVAXIM') === '0-3y,4-11y,12-17y', ageOf('SHCVAXIM'));
 check('Age Eligibility forced to text before writing',
   Object.keys(book.sheets['Service Types'].__formats || {}).some(k => /:6$/.test(k)));
-check('HIV12HCV -> 12-17,18+', ageOf('HIV12HCV') === '12-17,18+', ageOf('HIV12HCV'));
-check('ENMADULT 18+ left alone', ageOf('ENMADULT') === '18+', ageOf('ENMADULT'));
+const fqRow = id => book.sheets['Form Questions'].data.find(r => r[1] === id);
+check('@age trigger list', fqRow('c2e4d150-37')[8] === '0-3y|4-11y', fqRow('c2e4d150-37')[8]);
+check('@age trigger held as a date', fqRow('c2e4d150-41')[8] === '12-17y', String(fqRow('c2e4d150-41')[8]));
+check('an answer that looks like a range is left alone', fqRow('pedvax25-2')[8] === '1-2');
+check('core questions land suffixed', fqRow('shccore-1')[8] === '0-3y|4-11y|12-17y', fqRow('shccore-1')[8]);
 
 console.log('\n4. re-running updates in place, never duplicates');
 ctx.importSchoolHealthForms();
-check('still 326 question rows', book.sheets['Form Questions'].data.length === 1 + 4 + 326,
+check('still 326 question rows', book.sheets['Form Questions'].data.length === 1 + 5 + 326,
   book.sheets['Form Questions'].data.length);
 check('still 19 consent items', book.sheets['Consent Items'].data.length === 20);
-check('still 12 services', book.sheets['Service Types'].data.length === 13);
-check('age band stays migrated', ageOf('VAXADMIN') === '0-3,4-11,12-17');
+check('still 13 services', book.sheets['Service Types'].data.length === 14);
+check('ages stay suffixed', ageOf('VAXADMIN') === '0-3y,4-11y,12-17y');
 
-console.log('\n5. a hand-edited age value is refused, not clobbered');
+console.log('\n5. a re-run finds nothing left to suffix, and preview writes nothing');
+const again = ctx.importSchoolHealthForms();
+check('re-run reports nothing to do', /Age ranges: all already carry their y/.test(again));
 book = freshBook();
-book.sheets['Service Types'].data[1][5] = '0-12';   // someone narrowed VAXADMIN
-const report = ctx.importSchoolHealthForms();
-check('VAXADMIN left as the human set it',
-  book.sheets['Service Types'].data[1][5] === '0-12', book.sheets['Service Types'].data[1][5]);
-check('report says SKIPPED', /VAXADMIN: SKIPPED/.test(report));
-check('the other services still migrated',
-  book.sheets['Service Types'].data[3][5] === '12-17');
+const agePreview = ctx.previewSchoolHealthImport();
+check('preview names a change', /SPRTPHYS "12-17" -> "12-17y"/.test(agePreview));
+check('preview left the date cell alone',
+  book.sheets['Service Types'].data.find(r => r[0] === 'SPRTPHYS')[5] instanceof Date);
 
 console.log('\n6. the wrong workbook is refused before anything is written');
 // Exactly what happened live: a book with none of the booking sheets. Two of
@@ -224,7 +235,7 @@ const dvNow = book.sheets['Form Questions']._dv.getCriteriaValues()[0];
 check('scored added to the rule', dvNow.indexOf('scored') !== -1, dvNow);
 check('every existing type kept', LIVE_TYPES.every(t => dvNow.indexOf(t) !== -1));
 check('radio_custom survives untouched', dvNow.indexOf('radio_custom') !== -1);
-check('all 326 rows landed', book.sheets['Form Questions'].data.length === 1 + 4 + 326,
+check('all 326 rows landed', book.sheets['Form Questions'].data.length === 1 + 5 + 326,
   book.sheets['Form Questions'].data.length);
 const dvAgain = ctx.importSchoolHealthForms();
 check('re-run finds nothing to widen', /already accepts every type used/.test(dvAgain));
@@ -249,34 +260,8 @@ book.sheets['Form Questions'].data[0][9] = 'Notes';
 const clash = ctx.importSchoolHealthForms();
 check('a foreign column 10 refuses', /UNEXPECTED COLUMN - nothing written/.test(clash));
 check('and did not overwrite it', book.sheets['Form Questions'].data[0][9] === 'Notes');
-check('and wrote no rows', book.sheets['Form Questions'].data.length === 5,
+check('and wrote no rows', book.sheets['Form Questions'].data.length === 6,
   book.sheets['Form Questions'].data.length);
-
-console.log('\n6e. stale @age triggers are restated, edited ones left alone');
-book = freshBook();
-const trigPreview = ctx.previewSchoolHealthImport();
-check('preview names the change', /c2e4d150-41 "12-18" -> "12-17"/.test(trigPreview),
-  (trigPreview.match(/Question @age triggers:.*/) || [''])[0].slice(0, 120));
-const untouched = book.sheets['Form Questions'].data.find(r => r[1] === 'c2e4d150-41')[8];
-check('preview changed nothing', untouched instanceof Date,
-  'expected the date cell to be left as it was');
-ctx.importSchoolHealthForms();
-const triggerRows = book.sheets['Form Questions'].data;
-const at = id => triggerRows.find(r => r[1] === id);
-check('0-12 restated', at('c2e4d150-37')[8] === '0-3|4-11', at('c2e4d150-37')[8]);
-check('12-18 restated on the self-harm row even though the cell held a date',
-  at('c2e4d150-41')[8] === '12-17', String(at('c2e4d150-41')[8]));
-check('and the cell was forced to text first',
-  Object.values(book.sheets['Form Questions'].__formats || {}).includes('@'));
-check('an already-current value is left alone', at('c2e4d150-40')[8] === '12-17');
-check('the row text was not touched', at('c2e4d150-41')[3] === 'Thoughts of harming yourself?');
-
-book = freshBook();
-book.sheets['Form Questions'].data.find(r => r[1] === 'c2e4d150-37')[8] = '0-3';
-const edited = ctx.importSchoolHealthForms();
-check('a hand-edited trigger is skipped and named', /c2e4d150-37 SKIPPED/.test(edited));
-check('and left as the human set it',
-  book.sheets['Form Questions'].data.find(r => r[1] === 'c2e4d150-37')[8] === '0-3');
 
 console.log('\n7. edits to the generator correct the sheet');
 book = freshBook();
@@ -307,7 +292,7 @@ check('gone from Form Questions',
   !book.sheets['Form Questions'].data.some(r => ctx.RETIRED_QUESTIONS.includes(r[1])));
 check('gone from Core Field Map',
   !book.sheets['Core Field Map'].data.some(r => ctx.RETIRED_QUESTIONS.includes(r[0])));
-check('nothing else lost', book.sheets['Form Questions'].data.length === 1 + 4 + 326,
+check('nothing else lost', book.sheets['Form Questions'].data.length === 1 + 5 + 326,
   book.sheets['Form Questions'].data.length);
 
 console.log('\n9. Core Field Map upserts on QuestionID and FormID together');

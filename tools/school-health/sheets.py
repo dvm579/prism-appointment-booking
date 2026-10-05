@@ -31,24 +31,13 @@ FORMS = [
 
 SERVICE_TYPES = [
     # ServiceTypeID, Name, Intake Form, AppSheet view, ConsentIDs, Age, Gender, Active
-    ('SHCV0003', 'School Health Visit (ages 0-3)',   'shccore,shc0003',  '', CONSENT_ID, '0-3',   '', 'TRUE'),
-    ('SHCV0411', 'School Health Visit (ages 4-11)',  'shccore,shc0411',  '', CONSENT_ID, '4-11',  '', 'TRUE'),
-    ('SHCV1217', 'School Health Visit (ages 12-17)', 'shccore,shc1217',  '', CONSENT_ID, '12-17', '', 'TRUE'),
-    ('SHCVADLT', 'School Health Visit (18+)',        'shccore,shcadult', '', CONSENT_ID, '18+',   '', 'TRUE'),
-    ('SHCVAXIM', 'Immunizations at this visit',      'shcvax26',         '', CONSENT_ID, '0-3,4-11,12-17', '', 'TRUE'),
+    ('SHCV0003', 'School Health Visit (ages 0-3)',   'shccore,shc0003',  '', CONSENT_ID, '0-3y',  '', 'TRUE'),
+    ('SHCV0411', 'School Health Visit (ages 4-11)',  'shccore,shc0411',  '', CONSENT_ID, '4-11y', '', 'TRUE'),
+    ('SHCV1217', 'School Health Visit (ages 12-17)', 'shccore,shc1217',  '', CONSENT_ID, '12-17y', '', 'TRUE'),
+    ('SHCVADLT', 'School Health Visit (18+)',        'shccore,shcadult', '', CONSENT_ID, '18+y',  '', 'TRUE'),
+    ('SHCVAXIM', 'Immunizations at this visit',      'shcvax26',         '', CONSENT_ID, '0-3y,4-11y,12-17y', '', 'TRUE'),
 ]
 
-# Existing rows whose Age Eligibility has to be restated in the four new bands.
-# 0-12 is exactly {0-3, 4-11} and 12-18 is exactly 12-17, so nobody's
-# eligibility changes - only the vocabulary does.
-AGE_MIGRATION = [
-    ('VAXADMIN', '0-12, 12-18', '0-3,4-11,12-17'),
-    ('PHYSICAL', '0-12, 12-18', '0-3,4-11,12-17'),
-    ('SPRTPHYS', '12-18',       '12-17'),
-    ('HIV12HCV', '12-18, 18+',  '12-17,18+'),
-    ('ENMMINOR', '0-12, 12-18', '0-3,4-11,12-17'),
-    ('LEADTEST', '0-12',        '0-3,4-11'),
-]
 
 # Section 5 (audio recording) is deliberately absent: the consent's staff box
 # says recording consent is "entered by staff, never by the tool".
@@ -126,7 +115,6 @@ else:
 out = {
     'forms': FORMS,
     'serviceTypes': SERVICE_TYPES,
-    'ageMigration': AGE_MIGRATION,
     'consentBlock': (CONSENT_ID, 'Consent for Services v2026.7', consent_html, 10),
     'consentItems': [(CONSENT_ID, s, t, i, lbl, note, (n + 1) * 10)
                      for n, (s, t, i, lbl, note) in enumerate(CONSENT_ITEMS)],
@@ -135,6 +123,6 @@ json.dump(out, io.open(os.path.join(HERE, 'sheets_out.json'), 'w', encoding='utf
           ensure_ascii=False)
 
 print('forms         :', len(FORMS))
-print('service types :', len(SERVICE_TYPES), 'new +', len(AGE_MIGRATION), 'age migrations')
+print('service types :', len(SERVICE_TYPES), 'new')
 print('consent items :', len(CONSENT_ITEMS))
 print('consent HTML  :', len(consent_html), 'chars -', source)

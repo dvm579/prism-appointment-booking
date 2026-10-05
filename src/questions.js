@@ -21,7 +21,7 @@ import { setInsuranceVisible } from './insurance.js';
 import { setConsentSignatureVisible, syncAdditionalSignatures } from './signature.js';
 import { renderConsentDeclines, attachConsentDeclineListeners } from './consent.js';
 import { refreshSteps, attachStepListeners } from './steps.js';
-import { ageBand, ageYears, gender } from './patient.js';
+import { ageMatches, ageYears, gender } from './patient.js';
 import { isPrefilled, prefilledAnswer } from './prefill.js';
 import { escapeHtml, isTruthyFlag } from './utils.js';
 
@@ -476,7 +476,7 @@ function selectedServices() {
  * @returns {boolean} true when the selection changed and callers must recompute.
  */
 export function applyServiceEligibility() {
-    const patient = { band: ageBand(), gender: gender() };
+    const patient = { years: ageYears(), gender: gender() };
     const rows = dom.dynamicFormsContainer.querySelectorAll('.service-option');
     if (rows.length === 0) return false;
 
@@ -630,30 +630,6 @@ function answerValues(questionId) {
     return first.value ? [first.value] : [];
 }
 
-/**
- * True when the patient matches one `@age` trigger value.
- *
- * A value is a band name or a plain range — `8-11`, `65+`. Both are read the
- * same way, because the four band names are themselves exactly those ranges:
- * `0-3` is 0 to 3, `18+` is 18 and over. Ranges exist because sections like
- * "For children 8 to 11" and "If you are 65 or older" do not line up with the
- * bands, and inventing bands for them would change what every service's
- * eligibility means.
- *
- * Reading them as ranges also means a value left behind by an older band
- * vocabulary still lands roughly where it was meant to, instead of matching
- * nothing and hiding its question for good.
- */
-function matchesAge(value, band, years) {
-    const range = /^(\d+)\s*(?:-\s*(\d+)|\+)$/.exec(String(value).trim());
-    if (!range) return value === band;
-    if (years === null) return false;
-
-    const low = Number(range[1]);
-    const high = range[2] === undefined ? Infinity : Number(range[2]);
-    return years >= low && years <= high;
-}
-
 /** True when a question is on screen, so its answer can gate something else. */
 function questionIsVisible(questionId) {
     const inputs = dom.dynamicFormsContainer.querySelectorAll(
@@ -675,8 +651,7 @@ function questionIsVisible(questionId) {
  * pass cap only guards against a cycle in the sheet's trigger data.
  */
 function applyConditionals() {
-    const demographics = { age: ageBand(), gender: gender() };
-    const years = ageYears();
+    const demographics = { age: ageYears(), gender: gender() };
     const conditionals = dom.dynamicFormsContainer.querySelectorAll('[data-trigger-id]');
     if (conditionals.length === 0) return;
 
@@ -697,7 +672,7 @@ function applyConditionals() {
                 }
                 const actual = demographics[field];
                 matches = field === 'age'
-                    ? expected.some(value => matchesAge(value, actual, years))
+                    ? expected.some(value => ageMatches(value, actual))
                     : actual !== null && actual !== undefined && expected.includes(actual);
             } else {
                 // A question can name several parents. Only one has to be both

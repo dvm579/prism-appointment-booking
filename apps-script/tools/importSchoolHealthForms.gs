@@ -2,8 +2,8 @@
  * One-off loader for the School Health Clinic Program forms.
  *
  * Writes Forms, Form Questions, Service Types, Consent Blocks and the new
- * Consent Items into the scheduling workbook, and restates the existing Age
- * Eligibility values in the four new age bands.
+ * Consent Items into the scheduling workbook, retires withdrawn questions,
+ * and gives every age range in the workbook its `y` suffix.
  *
  * Every write is an upsert keyed by the row's own id, so running this twice
  * updates in place rather than duplicating. Run `previewSchoolHealthImport()`
@@ -43,49 +43,11 @@ var SECTION_COL = 10;
 var QUESTION_WIDTH = 10;
 
 /**
- * Age bands changed from {0-12, 12-18, 18+} to {0-3, 4-11, 12-17, 18+}.
- *
- * The mapping is exact - 0-12 is {0-3, 4-11} and 12-18 is 12-17 - so no
- * patient's eligibility changes. It must ship together with the matching
- * AGE_BANDS change in src/patient.js, or the page will compute a band the
- * sheet does not use and every gated service will disappear.
- */
-var AGE_MIGRATION = [
-  ["VAXADMIN", "0-12, 12-18", "0-3,4-11,12-17"],
-  ["PHYSICAL", "0-12, 12-18", "0-3,4-11,12-17"],
-  ["SPRTPHYS", "12-18", "12-17"],
-  ["HIV12HCV", "12-18, 18+", "12-17,18+"],
-  ["ENMMINOR", "0-12, 12-18", "0-3,4-11,12-17"],
-  ["LEADTEST", "0-12", "0-3,4-11"]
-];
-
-/**
- * `@age` triggers left behind by the old band vocabulary.
- *
- * The band change restated Age Eligibility on Service Types but not the `@age`
- * triggers inside Form Questions, so these eight rows on the WOW pediatric form
- * were left asking for bands `ageBand()` no longer returns - which hid them
- * outright, including the teen self-harm question.
- *
- * QuestionID, the value expected there, the value it should be.
- */
-/**
  * Questions withdrawn from the generator, deleted from Form Questions and Core
  * Field Map. The staff-only fields: who ran a phone interview, and the initials
  * confirming the read-back. Staff record those in the EMR, never the patient.
  */
 var RETIRED_QUESTIONS = ["shccore-48", "shccore-49"];
-
-var TRIGGER_MIGRATION = [
-  ['c2e4d150-34', '0-12', '0-3|4-11'],
-  ['c2e4d150-35', '0-12', '0-3|4-11'],
-  ['c2e4d150-36', '0-12', '0-3|4-11'],
-  ['c2e4d150-37', '0-12', '0-3|4-11'],
-  ['c2e4d150-38', '12-18', '12-17'],
-  ['c2e4d150-39', '12-18', '12-17'],
-  ['c2e4d150-40', '12-18', '12-17'],
-  ['c2e4d150-41', '12-18', '12-17']
-];
 
 var FORMS = [
   ["shccore", "School Health - shared core"],
@@ -97,11 +59,11 @@ var FORMS = [
 ];
 
 var SERVICE_TYPES = [
-  ["SHCV0003", "School Health Visit (ages 0-3)", "shccore,shc0003", "", "cfs20267", "0-3", "", "TRUE"],
-  ["SHCV0411", "School Health Visit (ages 4-11)", "shccore,shc0411", "", "cfs20267", "4-11", "", "TRUE"],
-  ["SHCV1217", "School Health Visit (ages 12-17)", "shccore,shc1217", "", "cfs20267", "12-17", "", "TRUE"],
-  ["SHCVADLT", "School Health Visit (18+)", "shccore,shcadult", "", "cfs20267", "18+", "", "TRUE"],
-  ["SHCVAXIM", "Immunizations at this visit", "shcvax26", "", "cfs20267", "0-3,4-11,12-17", "", "TRUE"]
+  ["SHCV0003", "School Health Visit (ages 0-3)", "shccore,shc0003", "", "cfs20267", "0-3y", "", "TRUE"],
+  ["SHCV0411", "School Health Visit (ages 4-11)", "shccore,shc0411", "", "cfs20267", "4-11y", "", "TRUE"],
+  ["SHCV1217", "School Health Visit (ages 12-17)", "shccore,shc1217", "", "cfs20267", "12-17y", "", "TRUE"],
+  ["SHCVADLT", "School Health Visit (18+)", "shccore,shcadult", "", "cfs20267", "18+y", "", "TRUE"],
+  ["SHCVAXIM", "Immunizations at this visit", "shcvax26", "", "cfs20267", "0-3y,4-11y,12-17y", "", "TRUE"]
 ];
 
 var CONSENT_BLOCK = ["cfs20267", "Consent for Services v2026.7", "<p class=\"text-muted small\">Read each section. Use the <strong>I decline</strong> controls to opt out of anything you do not want; declining one item does not affect any other care. Signing consents to every section you did not decline.</p>\n<h5 class=\"mt-3\">1. Consent For Services</h5>\n<p>A. Treatment. I consent to examination, vital signs, point-of-care screening, health education, and referrals by Prism clinicians. Trained volunteers, supervised students, and host-site staff may assist or observe, unless I affirmatively decline. If I am pregnant, this consent includes my unborn child. Prism may photograph a rash, wound, or similar finding for my medical record; images are not used for advertising without a separate signed release. No health care service can guarantee a result, and none has been promised. B. Laboratory testing, including HIV and hepatitis C screening. I consent to specimen collection by urine, finger stick, blood draw, or swab; a blood draw may cause bruising or fainting. Some specimens are sent to an outside laboratory. Rapid tests are screening tests, not diagnoses; a reactive or abnormal result requires a confirmatory laboratory test, and follow-up care is my choice. The following HIV pre-test information has been provided to me (pursuant to 410 ILCS 305): the purpose of the test and how the result may be used; what the test can and cannot tell me; that testing is voluntary and how it is performed; that staff are available to answer questions; that I may withdraw at any time; that anonymous testing is available and my name and result are confidential as far as the law allows; and that counseling is available. C. Immunizations and registry reporting. I consent to age-appropriate vaccines recommended by the Centers for Disease Control and Prevention, with a Vaccine Information Statement provided before each vaccine. Illinois requires reporting of COVID-19 and publicly funded vaccines to the I-CARE registry; other vaccines are reported unless declined, which locks my record but does not remove existing entries. D. Telehealth follow-up. If laboratory testing is ordered, Prism may contact me for a follow-up visit by telephone or video, usually within 3 to 5 business days, with an Illinois-licensed clinician. No physical examination is possible by telehealth, and I may be asked to come in. I will be located in Illinois in a private setting and will state my location at the start of the visit so that emergency services can be directed to me (call 911 in an emergency). Others may join to help, such as an interpreter, a student, or a supervising clinician, and I may ask anyone not involved in my care to leave. You understand that there are potential risks to telehealth technology, including interruptions, unauthorized access, and technical difficulties. In addition, Prism is not responsible nor has control over the devices, computers, or internet over which you may choose to enter confidential or personal information and cannot, therefore, prevent interceptions or compromises to you information while in transit. Best way to reach me for follow-up phone / text / video Best days and times</p>\n<h5 class=\"mt-3\">2. Communications And Patient Portal Access</h5>\n<p>Prism, or a company acting on Prism&#x27;s behalf, may contact me by telephone, text message, or email about appointments, results, and my care, including by automated or prerecorded message. Message frequency varies and message and data rates may apply. I may stop text messages at any time by replying STOP, or reply HELP for help. Text and email are not secure; Prism does not send results or diagnoses by those means unless I ask, and does not send a positive HIV result by those means. If a patient portal account is created for me, results and messages will appear there; a parent or guardian may view a minor&#x27;s portal except for care the minor may receive on their own under Illinois law.</p>\n<h5 class=\"mt-3\">3. Disclosure Of Results To Primary Care Provider</h5>\n<p>Prism sends my test results and follow-up recommendations, including routine laboratory results, to the primary care provider named below so that provider can care for me. I may stop this at any time through the decline panel or by telling a team member. Mental health and substance use records are not included and require a separate signed release. Primary care provider name and practice Practice phone or fax</p>\n<h5 class=\"mt-3\">4. De-Identified Research And Quality Use</h5>\n<p>Prism analyzes its own results to improve care and publish findings, with my name and all identifiers removed, and may retain leftover specimens in de-identified form. Illinois law prohibits any recipient from attempting to re-identify me. Information that identifies me is not used for research without a separate signed authorization or approval by an institutional review board as permitted by law.</p>\n<h5 class=\"mt-3\">5. Audio Recording For Clinical Documentation</h5>\n<p>initial the box to decline By signing this form I consent to the recording of my visits today, in person, by telephone, or by video, by a documentation tool that drafts the clinical note for the clinician&#x27;s review and signature. The tool makes no clinical decisions. Everyone present is asked before recording begins, and anyone may decline or ask the clinician to stop at any time. How recordings and transcripts are kept and used is described in the Notice of Privacy Practices. For care a minor may receive on their own under Illinois law, the minor makes this choice.</p>\n<h5 class=\"mt-3\">6. Technology Use In Prism Operations</h5>\n<p>Prism operates with software that uses artificial intelligence for scheduling, reminders, drafting of notes and correspondence, billing and claim review, planning of mobile clinic locations, and translation of written materials. These tools are part of Prism&#x27;s standard operations for every patient, in the same way as the electronic health record. A licensed clinician makes every decision about my care, and a person signs every clinical note and every claim. The tools in use and the rules Prism applies to them are described in the Notice of Privacy Practices.</p>\n<h5 class=\"mt-3\">7. Assignment Of Benefits And Financial Responsibility</h5>\n<p>I authorize Prism Foundation NFP, Prism Holistic Care Ltd, and Prism Health Lab USA Inc to verify my insurance coverage and Medicaid eligibility, using the information I provide and coverage information available through their billing systems, and to bill any coverage identified for today&#x27;s services, including coverage I did not list. I assign my benefits to whichever of them bills for the service. If I have Medicare, I certify that the information provided is correct and request payment to that organization. I agree to personally pay for any charges that are not covered by or collected from any applicable insurance program, including any copays, deductibles, and coinsurance amounts. • Medicaid and Medicaid managed care: Medicaid&#x27;s payment is payment in full. Members are not billed for covered services, and Illinois Medicaid has no copayments. • Medicare QMB: no deductible, coinsurance, or copayment is charged. • Private insurance: my plan may apply cost sharing. Prism makes reasonable efforts to tell me before a service if I am likely to owe, including when a preventive visit becomes a preventive plus problem visit. • Uninsured or self-pay: I may request a written Good Faith Estimate, and I may qualify for the Sliding Fee Discount Program. No one is refused care for inability to pay. • Outside laboratory: some specimens go to an outside laboratory that may bill separately. • Restricting disclosure to my insurer: available for a service I pay for in full myself; not available for services provided at no charge. • No charge services: Vaccines for Children Program vaccines are free; the administration fee does not exceed the amount the program allows, and no child is refused a vaccine for inability to pay. HIV and hepatitis C screening are always free. • Telehealth Visits: Telehealth visits are documented and billed as clinical visits.</p>\n<h5 class=\"mt-3\">8. Notice Of Privacy Practices And Patient Rights</h5>\n<p>I received Prism&#x27;s Notice of Privacy Practices, a separate document that describes how my information is used and shared, my rights, and how to file a complaint. The law requires Prism to report certain results, such as a positive HIV or hepatitis C test or an elevated blood lead level, to public health authorities, and to report danger to any person or suspected abuse or neglect of a child or vulnerable adult. I may complain to Prism, the U.S. Department of Health and Human Services Office for Civil Rights, or the Illinois Department of Public Health without retaliation; Privacy Officer: compliance@prism.org, 800-325-1812. I may change any answer on this form at any time by telling a team member. This consent covers today&#x27;s visit and is renewed at each visit. Photography and recording by patients or visitors at Prism events is not permitted, to protect other patients.</p>", 10];
@@ -308,42 +270,42 @@ var CORE_FIELD_MAP = [
 
 /** FormID, QuestionID, DisplayOrder, Text, Type, Options, Required, TriggerID, TriggerValue, Section */
 var QUESTIONS = [
-  ["shccore", "shccore-1", 10, "Filled out:", "multi_select", "At home by parent or guardian|By phone with a Prism team member|Online (e-sign link)|On paper at the visit", "N", "@age", "0-3|4-11|12-17", "How this form was filled out"],
-  ["shccore", "shccore-2", 20, "Filled out:", "multi_select", "At home by me|By phone with a Prism team member|Online (e-sign link)|On paper at the visit", "N", "@age", "18+", "How this form was filled out"],
-  ["shccore", "shccore-3", 30, "Best number to reach the parent on the visit day:", "text", "", "N", "@age", "0-3|4-11|12-17", "How this form was filled out"],
+  ["shccore", "shccore-1", 10, "Filled out:", "multi_select", "At home by parent or guardian|By phone with a Prism team member|Online (e-sign link)|On paper at the visit", "N", "@age", "0-3y|4-11y|12-17y", "How this form was filled out"],
+  ["shccore", "shccore-2", 20, "Filled out:", "multi_select", "At home by me|By phone with a Prism team member|Online (e-sign link)|On paper at the visit", "N", "@age", "18+y", "How this form was filled out"],
+  ["shccore", "shccore-3", 30, "Best number to reach the parent on the visit day:", "text", "", "N", "@age", "0-3y|4-11y|12-17y", "How this form was filled out"],
   ["shccore", "shccore-4", 40, "Returned by:", "multi_select", "Photo or upload (text link)|E-sign|Paper in the child's backpack|Handed in at the visit", "N", "", "", "How this form was filled out"],
-  ["shccore", "shccore-50", 50, "Best number to reach you on the visit day:", "text", "", "N", "@age", "18+", "How this form was filled out"],
-  ["shccore", "shccore-5", 60, "Child's middle name:", "text", "", "N", "@age", "0-3|4-11|12-17", "Today's visit"],
+  ["shccore", "shccore-50", 50, "Best number to reach you on the visit day:", "text", "", "N", "@age", "18+y", "How this form was filled out"],
+  ["shccore", "shccore-5", 60, "Child's middle name:", "text", "", "N", "@age", "0-3y|4-11y|12-17y", "Today's visit"],
   ["shccore", "shccore-6", 70, "Race (optional):", "multi_select", "American Indian or Alaska Native|Asian|Black or African American|Native Hawaiian or Pacific Islander|White|More than one race|Prefer not to say", "N", "", "", "Today's visit"],
   ["shccore", "shccore-7", 80, "Ethnicity (optional):", "single_select", "Hispanic or Latino|Not Hispanic or Latino|Prefer not to say", "N", "", "", "Today's visit"],
-  ["shccore", "shccore-8", 90, "Reason for visit:", "multi_select", "Check-up|Shots|Sick or a problem|School / sports form|Blood lead test|After hospital / ER / crisis", "N", "@age", "0-3|4-11|12-17", "Today's visit"],
-  ["shccore", "shccore-9", 100, "Reason for visit:", "multi_select", "Check-up|School / sports / college form|Sick or a problem|Testing only (HIV, hep C, STI)|Mental health support|Pregnancy or after-baby care|After hospital / ER / crisis|BP, sugar, or cholesterol check", "N", "@age", "18+", "Today's visit"],
-  ["shccore", "shccore-10", 110, "Name your child goes by:", "text", "", "N", "@age", "0-3|4-11|12-17", "Today's visit"],
-  ["shccore", "shccore-11", 120, "Child's school and grade:", "text", "", "N", "@age", "0-3|4-11|12-17", "Today's visit"],
-  ["shccore", "shccore-12", 130, "Student ID number:", "text", "", "N", "@age", "0-3|4-11|12-17", "Today's visit"],
-  ["shccore", "shccore-13", 140, "School nurse name and fax or phone:", "text", "", "N", "@age", "0-3|4-11|12-17", "Today's visit"],
-  ["shccore", "shccore-14", 150, "Child's regular doctor or clinic (name, phone or fax):", "text", "", "N", "@age", "0-3|4-11|12-17", "Today's visit"],
-  ["shccore", "shccore-15", 160, "Mother's name (or second parent or guardian):", "text", "", "N", "@age", "0-3|4-11|12-17", "Today's visit"],
-  ["shccore", "shccore-16", 170, "Child's birth state and country:", "text", "", "N", "@age", "0-3|4-11|12-17", "Today's visit"],
-  ["shccore", "shccore-17", 180, "Sex at birth:", "single_select", "Girl|Boy", "N", "@age", "0-3|4-11|12-17", "Today's visit"],
-  ["shccore", "shccore-18", 190, "Sex at birth:", "single_select", "Female|Male|Intersex|Decline to answer", "N", "@age", "18+", "Today's visit"],
-  ["shccore", "shccore-51", 200, "Middle name:", "text", "", "N", "@age", "18+", "Today's visit"],
-  ["shccore", "shccore-52", 210, "Name you go by:", "text", "", "N", "@age", "18+", "Today's visit"],
-  ["shccore", "shccore-53", 220, "Regular doctor or clinic (name, phone or fax):", "text", "", "N", "@age", "18+", "Today's visit"],
-  ["shccore", "shccore-54", 230, "School or employer, if this visit is for a school or work form:", "text", "", "N", "@age", "18+", "Today's visit"],
-  ["shccore", "shccore-55", 240, "Is this visit related to a work injury or an accident?", "single_select", "No|Yes, work|Yes, auto|Yes, other", "N", "@age", "18+", "Today's visit"],
-  ["shccore", "shccore-56", 250, "Gender identity:", "single_select", "Woman|Man|Non-binary|Trans man|Trans woman|Two Spirit", "N", "@age", "18+", "About you"],
-  ["shccore", "shccore-57", 260, "Sexual orientation:", "single_select", "Straight|Gay|Lesbian|Queer|Bisexual|Questioning", "N", "@age", "18+", "About you"],
-  ["shccore", "shccore-58", 270, "Disabilities:", "multi_select", "None|Blind or low vision|Deaf or hard of hearing|Medical|Physical", "N", "@age", "18+", "About you"],
+  ["shccore", "shccore-8", 90, "Reason for visit:", "multi_select", "Check-up|Shots|Sick or a problem|School / sports form|Blood lead test|After hospital / ER / crisis", "N", "@age", "0-3y|4-11y|12-17y", "Today's visit"],
+  ["shccore", "shccore-9", 100, "Reason for visit:", "multi_select", "Check-up|School / sports / college form|Sick or a problem|Testing only (HIV, hep C, STI)|Mental health support|Pregnancy or after-baby care|After hospital / ER / crisis|BP, sugar, or cholesterol check", "N", "@age", "18+y", "Today's visit"],
+  ["shccore", "shccore-10", 110, "Name your child goes by:", "text", "", "N", "@age", "0-3y|4-11y|12-17y", "Today's visit"],
+  ["shccore", "shccore-11", 120, "Child's school and grade:", "text", "", "N", "@age", "0-3y|4-11y|12-17y", "Today's visit"],
+  ["shccore", "shccore-12", 130, "Student ID number:", "text", "", "N", "@age", "0-3y|4-11y|12-17y", "Today's visit"],
+  ["shccore", "shccore-13", 140, "School nurse name and fax or phone:", "text", "", "N", "@age", "0-3y|4-11y|12-17y", "Today's visit"],
+  ["shccore", "shccore-14", 150, "Child's regular doctor or clinic (name, phone or fax):", "text", "", "N", "@age", "0-3y|4-11y|12-17y", "Today's visit"],
+  ["shccore", "shccore-15", 160, "Mother's name (or second parent or guardian):", "text", "", "N", "@age", "0-3y|4-11y|12-17y", "Today's visit"],
+  ["shccore", "shccore-16", 170, "Child's birth state and country:", "text", "", "N", "@age", "0-3y|4-11y|12-17y", "Today's visit"],
+  ["shccore", "shccore-17", 180, "Sex at birth:", "single_select", "Girl|Boy", "N", "@age", "0-3y|4-11y|12-17y", "Today's visit"],
+  ["shccore", "shccore-18", 190, "Sex at birth:", "single_select", "Female|Male|Intersex|Decline to answer", "N", "@age", "18+y", "Today's visit"],
+  ["shccore", "shccore-51", 200, "Middle name:", "text", "", "N", "@age", "18+y", "Today's visit"],
+  ["shccore", "shccore-52", 210, "Name you go by:", "text", "", "N", "@age", "18+y", "Today's visit"],
+  ["shccore", "shccore-53", 220, "Regular doctor or clinic (name, phone or fax):", "text", "", "N", "@age", "18+y", "Today's visit"],
+  ["shccore", "shccore-54", 230, "School or employer, if this visit is for a school or work form:", "text", "", "N", "@age", "18+y", "Today's visit"],
+  ["shccore", "shccore-55", 240, "Is this visit related to a work injury or an accident?", "single_select", "No|Yes, work|Yes, auto|Yes, other", "N", "@age", "18+y", "Today's visit"],
+  ["shccore", "shccore-56", 250, "Gender identity:", "single_select", "Woman|Man|Non-binary|Trans man|Trans woman|Two Spirit", "N", "@age", "18+y", "About you"],
+  ["shccore", "shccore-57", 260, "Sexual orientation:", "single_select", "Straight|Gay|Lesbian|Queer|Bisexual|Questioning", "N", "@age", "18+y", "About you"],
+  ["shccore", "shccore-58", 270, "Disabilities:", "multi_select", "None|Blind or low vision|Deaf or hard of hearing|Medical|Physical", "N", "@age", "18+y", "About you"],
   ["shccore", "shccore-19", 280, "Your name (print):", "text", "", "N", "", "", "Parent or guardian filling this out"],
-  ["shccore", "shccore-20", 290, "Relationship to child:", "text", "", "N", "@age", "0-3|4-11|12-17", "Parent or guardian filling this out"],
-  ["shccore", "shccore-21", 300, "Second household contact (name, phone):", "text", "", "N", "@age", "0-3|4-11|12-17", "Parent or guardian filling this out"],
+  ["shccore", "shccore-20", 290, "Relationship to child:", "text", "", "N", "@age", "0-3y|4-11y|12-17y", "Parent or guardian filling this out"],
+  ["shccore", "shccore-21", 300, "Second household contact (name, phone):", "text", "", "N", "@age", "0-3y|4-11y|12-17y", "Parent or guardian filling this out"],
   ["shccore", "shccore-22", 310, "Emergency contact (name, phone):", "text", "", "N", "", "", "Parent or guardian filling this out"],
   ["shccore", "shccore-23", 320, "Preferred pharmacy (name, location):", "text", "", "N", "", "", "Parent or guardian filling this out"],
-  ["shccore", "shccore-24", 330, "Are you the child's legal guardian?", "single_select", "Yes|No. Guardian name and phone: ________", "N", "@age", "0-3|4-11|12-17", "Parent or guardian filling this out"],
-  ["shccore", "shccore-25", 340, "Patient portal:", "single_select", "Sign me up; email: ______________|Already have it|No thank you", "N", "@age", "0-3|4-11|12-17", "Parent or guardian filling this out"],
-  ["shccore", "shccore-26", 350, "Type:", "single_select", "Medicaid / All Kids|Private|None or not sure|Prefer not to say", "Y", "@age", "0-3|4-11|12-17", "Insurance"],
-  ["shccore", "shccore-27", 360, "Type:", "single_select", "Medicare|Medicaid|CHIP / All Kids|VA / TriCare|Private|None or not sure|Prefer not to say", "Y", "@age", "18+", "Insurance"],
+  ["shccore", "shccore-24", 330, "Are you the child's legal guardian?", "single_select", "Yes|No. Guardian name and phone: ________", "N", "@age", "0-3y|4-11y|12-17y", "Parent or guardian filling this out"],
+  ["shccore", "shccore-25", 340, "Patient portal:", "single_select", "Sign me up; email: ______________|Already have it|No thank you", "N", "@age", "0-3y|4-11y|12-17y", "Parent or guardian filling this out"],
+  ["shccore", "shccore-26", 350, "Type:", "single_select", "Medicaid / All Kids|Private|None or not sure|Prefer not to say", "Y", "@age", "0-3y|4-11y|12-17y", "Insurance"],
+  ["shccore", "shccore-27", 360, "Type:", "single_select", "Medicare|Medicaid|CHIP / All Kids|VA / TriCare|Private|None or not sure|Prefer not to say", "Y", "@age", "18+y", "Insurance"],
   ["shccore", "shccore-28", 370, "If Medicaid, which plan?", "single_select", "CountyCare|Meridian|Molina|Aetna Better Health|BCBS Community|YouthCare|Not sure", "N", "shccore-26|shccore-27", "Medicaid / All Kids|Medicaid|CHIP / All Kids", "Insurance"],
   ["shccore", "shccore-29", 380, "Plan name:", "text", "", "N", "", "", "Insurance"],
   ["shccore", "shccore-30", 390, "Member ID:", "text", "", "N", "", "", "Insurance"],
@@ -351,25 +313,25 @@ var QUESTIONS = [
   ["shccore", "shccore-32", 410, "Name on the card:", "text", "", "N", "", "", "Insurance"],
   ["shccore", "shccore-33", 420, "Cardholder date of birth:", "text", "", "N", "", "", "Insurance"],
   ["shccore", "shccore-34", 430, "Any other health insurance?", "single_select", "No|Yes: plan ______________  policyholder ______________", "N", "", "", "Insurance"],
-  ["shccore", "shccore-35", 440, "For free vaccines (Vaccines for Children), the child:", "single_select", "Has Medicaid or All Kids|Has no insurance|Is American Indian or Alaska Native|Has insurance that does not cover vaccines|None of these", "N", "@age", "0-3|4-11|12-17", "Insurance"],
-  ["shccore", "shccore-36", 450, "Child's Medicaid renewal due:", "single_select", "Don't know|Date: ______|Child has no Medicaid", "N", "@age", "0-3|4-11|12-17", "Keeping Medicaid coverage"],
+  ["shccore", "shccore-35", 440, "For free vaccines (Vaccines for Children), the child:", "single_select", "Has Medicaid or All Kids|Has no insurance|Is American Indian or Alaska Native|Has insurance that does not cover vaccines|None of these", "N", "@age", "0-3y|4-11y|12-17y", "Insurance"],
+  ["shccore", "shccore-36", 450, "Child's Medicaid renewal due:", "single_select", "Don't know|Date: ______|Child has no Medicaid", "N", "@age", "0-3y|4-11y|12-17y", "Keeping Medicaid coverage"],
   ["shccore", "shccore-37", 460, "Last renewal letter said:", "single_select", "Nothing to do (Form A)|I must respond (Form B)|Asking me for proof of work or an exemption (answer within 30 days)|Not opened yet|Not sure", "N", "", "", "Keeping Medicaid coverage"],
   ["shccore", "shccore-38", 470, "Moved or new phone this year?", "single_select", "No|Yes, please help me update the State", "N", "", "", "Keeping Medicaid coverage"],
   ["shccore", "shccore-39", 480, "ABE Manage My Case account?", "single_select", "No|Yes|Not sure", "N", "", "", "Keeping Medicaid coverage"],
-  ["shccore", "shccore-40", 490, "Parent's Medicaid letter says the group is:", "single_select", "FamilyCare|ACA Adult|Other group or none|Not sure", "N", "@age", "0-3|4-11|12-17", "Keeping Medicaid coverage"],
+  ["shccore", "shccore-40", 490, "Parent's Medicaid letter says the group is:", "single_select", "FamilyCare|ACA Adult|Other group or none|Not sure", "N", "@age", "0-3y|4-11y|12-17y", "Keeping Medicaid coverage"],
   ["shccore", "shccore-41", 500, "If ACA Adult: in any one month since your last renewal, did you:", "single_select", "Earn $580 or more|Work, volunteer, or school 80 hours|Attend school at least half time|None of these", "N", "shccore-40|shccore-60", "ACA Adult", "Keeping Medicaid coverage"],
   ["shccore", "shccore-42", 510, "If none, check any that fit:", "multi_select", "Caring for a child or a disabled person|Pregnant, or had a baby (or lost a pregnancy) in last 12 months|Medical condition, disability, or serious mental illness limits work|In drug or alcohol treatment|Veteran with 100% disability|Former foster youth under 26|Turned 19, or left jail, in last 3 months|Hospital or nursing home stay recently", "N", "shccore-41", "None of these", "Keeping Medicaid coverage"],
   ["shccore", "shccore-43", 520, "If Medicaid ends, help you would like:", "multi_select", "HFS Family Planning Program (STI and HIV tests, birth control, vaccines, Paps, mammograms)|Community health center with a sliding fee|Hospital charity care|Marketplace plan|Not needed", "N", "", "", "Keeping Medicaid coverage"],
-  ["shccore", "shccore-59", 530, "Your Medicaid renewal due:", "single_select", "Don't know|Date: ______|No Medicaid", "N", "@age", "18+", "Keeping Medicaid coverage"],
-  ["shccore", "shccore-60", 540, "Your Medicaid letter says the group is:", "single_select", "ACA Adult|FamilyCare, AABD, Moms & Babies, or other|Not sure", "N", "@age", "18+", "Keeping Medicaid coverage"],
+  ["shccore", "shccore-59", 530, "Your Medicaid renewal due:", "single_select", "Don't know|Date: ______|No Medicaid", "N", "@age", "18+y", "Keeping Medicaid coverage"],
+  ["shccore", "shccore-60", 540, "Your Medicaid letter says the group is:", "single_select", "ACA Adult|FamilyCare, AABD, Moms & Babies, or other|Not sure", "N", "@age", "18+y", "Keeping Medicaid coverage"],
   ["shccore", "shccore-63", 550, "Best way to reach you for follow-up:", "single_select", "Phone|Text|Video", "N", "", "", "Reaching you about results"],
   ["shccore", "shccore-64", 560, "Best days and times to reach you:", "text", "", "N", "", "", "Reaching you about results"],
-  ["shccore", "shccore-44", 570, "May Prism send the school health form and shot record to the school?", "single_select", "Yes|No, I will deliver it myself", "N", "@age", "0-3|4-11|12-17", "Sharing and your signature"],
+  ["shccore", "shccore-44", 570, "May Prism send the school health form and shot record to the school?", "single_select", "Yes|No, I will deliver it myself", "N", "@age", "0-3y|4-11y|12-17y", "Sharing and your signature"],
   ["shccore", "shccore-45", 580, "Anything else you'd like us to know?", "text_area", "", "N", "", "", "Sharing and your signature"],
-  ["shccore", "shccore-46", 590, "Parent or guardian (print):", "text", "", "N", "@age", "0-3|4-11|12-17", "Sharing and your signature"],
+  ["shccore", "shccore-46", 590, "Parent or guardian (print):", "text", "", "N", "@age", "0-3y|4-11y|12-17y", "Sharing and your signature"],
   ["shccore", "shccore-47", 600, "Signature and date:", "text", "", "N", "", "", "Sharing and your signature"],
-  ["shccore", "shccore-61", 630, "Right now, are you having any thoughts of hurting yourself?", "single_select", "No|Yes", "N", "@age", "18+", "Sharing and your signature"],
-  ["shccore", "shccore-62", 640, "May Prism send the physical or shot record to your school or college?", "single_select", "Yes|No, I will deliver it myself|Does not apply", "N", "@age", "18+", "Sharing and your signature"],
+  ["shccore", "shccore-61", 630, "Right now, are you having any thoughts of hurting yourself?", "single_select", "No|Yes", "N", "@age", "18+y", "Sharing and your signature"],
+  ["shccore", "shccore-62", 640, "May Prism send the physical or shot record to your school or college?", "single_select", "Yes|No, I will deliver it myself|Does not apply", "N", "@age", "18+y", "Sharing and your signature"],
   ["shc0003", "shc0003-1", 101, "Is your child under 3 and did they miss the 9 to 12 month or 24 month test? OR is your child 3 to 6 and never tested?", "scored", "Yes|No|Don't know", "N", "", "", "Illinois lead risk questions"],
   ["shc0003", "shc0003-2", 102, "Since the last check, moved to, or often visits, a building built before 1978?", "scored", "Yes|No|Don't know", "N", "", "", "Illinois lead risk questions"],
   ["shc0003", "shc0003-3", 103, "Been around repairs, repainting, or remodeling of a building built before 1978?", "scored", "Yes|No|Don't know", "N", "", "", "Illinois lead risk questions"],
@@ -481,9 +443,9 @@ var QUESTIONS = [
   ["shc0411", "shc0411-56", 1256, "Distracts easily", "scored", "Never|Sometimes|Often", "N", "", "", "How your child is doing: Pediatric Symptom Checklist (PSC-17)"],
   ["shc0411", "shc0411-57", 1257, "Any big changes at home (move, new baby, separation, loss)?", "single_select", "No|Yes", "N", "", "", "How your child is doing: Pediatric Symptom Checklist (PSC-17)"],
   ["shc0411", "shc0411-58", 1258, "Sleeping and eating:", "single_select", "Fine|Some issues|I have concerns", "N", "", "", "How your child is doing: Pediatric Symptom Checklist (PSC-17)"],
-  ["shc0411", "shc0411-59", 1359, "Nervous, anxious, or on edge", "scored", "Not at all|Several days|More than half the days|Nearly every day", "N", "@age", "8-11", "For children 8 to 11"],
-  ["shc0411", "shc0411-60", 1360, "Down, sad, or not interested in things", "scored", "Not at all|Several days|More than half the days|Nearly every day", "N", "@age", "8-11", "For children 8 to 11"],
-  ["shc0411", "shc0411-61", 1361, "Anything you'd like the provider to know?", "text", "", "N", "@age", "8-11", "For children 8 to 11"],
+  ["shc0411", "shc0411-59", 1359, "Nervous, anxious, or on edge", "scored", "Not at all|Several days|More than half the days|Nearly every day", "N", "@age", "8-11y", "For children 8 to 11"],
+  ["shc0411", "shc0411-60", 1360, "Down, sad, or not interested in things", "scored", "Not at all|Several days|More than half the days|Nearly every day", "N", "@age", "8-11y", "For children 8 to 11"],
+  ["shc0411", "shc0411-61", 1361, "Anything you'd like the provider to know?", "text", "", "N", "@age", "8-11y", "For children 8 to 11"],
   ["shc0411", "shc0411-62", 1462, "Any of these in the last 30 days?", "multi_select", "No|Hospital stay: mental health|ER visit: mental health|Hospital or ER: alcohol or drugs|Detox or live-in program|Mobile crisis team came|Hospital or ER: medical or surgical", "N", "", "", "Recent hospital, ER, or crisis care"],
   ["shc0411", "shc0411-63", 1463, "Date left, or date of the visit:", "text", "", "N", "", "", "Recent hospital, ER, or crisis care"],
   ["shc0411", "shc0411-64", 1464, "Hospital name and city:", "text", "", "N", "", "", "Recent hospital, ER, or crisis care"],
@@ -591,13 +553,13 @@ var QUESTIONS = [
   ["shcadult", "shcadult-52", 1152, "How hard is it to pay for basics?", "single_select", "Not hard|A little|Somewhat|Hard|Very hard", "N", "", "", "Safety and support"],
   ["shcadult", "shcadult-53", 1153, "Want help with work or school?", "single_select", "No|Yes|Not now", "N", "", "", "Safety and support"],
   ["shcadult", "shcadult-54", 1154, "How often do you feel lonely or cut off?", "single_select", "Never|Rarely|Sometimes|Often|Always", "N", "", "", "Safety and support"],
-  ["shcadult", "shcadult-55", 1255, "Need help from another person with:", "multi_select", "None|Bathing|Dressing|Toilet|Moving from bed or chair|Eating|Medicines|Shopping, meals, or money", "N", "@age", "65+", "If you are 65 or older"],
-  ["shcadult", "shcadult-56", 1256, "Walking:", "single_select", "No trouble|Some trouble|Cane or walker|Wheelchair", "N", "@age", "65+", "If you are 65 or older"],
-  ["shcadult", "shcadult-57", 1257, "Fallen, unsteady, or worried about falling?", "single_select", "No|Fell|Unsteady|Worried", "N", "@age", "65+", "If you are 65 or older"],
-  ["shcadult", "shcadult-58", 1258, "Vision:", "single_select", "Fine|Some trouble|A lot of trouble", "N", "@age", "65+", "If you are 65 or older"],
-  ["shcadult", "shcadult-59", 1259, "Hearing:", "single_select", "Fine|Some trouble|A lot of trouble", "N", "@age", "65+", "If you are 65 or older"],
-  ["shcadult", "shcadult-60", 1260, "Changes in memory or thinking?", "single_select", "No|Yes|Not sure", "N", "@age", "65+", "If you are 65 or older"],
-  ["shcadult", "shcadult-61", 1261, "Living will, POLST, or health care power of attorney?", "single_select", "No|Yes|Not sure|I'd like to talk about it", "N", "@age", "65+", "If you are 65 or older"],
+  ["shcadult", "shcadult-55", 1255, "Need help from another person with:", "multi_select", "None|Bathing|Dressing|Toilet|Moving from bed or chair|Eating|Medicines|Shopping, meals, or money", "N", "@age", "65+y", "If you are 65 or older"],
+  ["shcadult", "shcadult-56", 1256, "Walking:", "single_select", "No trouble|Some trouble|Cane or walker|Wheelchair", "N", "@age", "65+y", "If you are 65 or older"],
+  ["shcadult", "shcadult-57", 1257, "Fallen, unsteady, or worried about falling?", "single_select", "No|Fell|Unsteady|Worried", "N", "@age", "65+y", "If you are 65 or older"],
+  ["shcadult", "shcadult-58", 1258, "Vision:", "single_select", "Fine|Some trouble|A lot of trouble", "N", "@age", "65+y", "If you are 65 or older"],
+  ["shcadult", "shcadult-59", 1259, "Hearing:", "single_select", "Fine|Some trouble|A lot of trouble", "N", "@age", "65+y", "If you are 65 or older"],
+  ["shcadult", "shcadult-60", 1260, "Changes in memory or thinking?", "single_select", "No|Yes|Not sure", "N", "@age", "65+y", "If you are 65 or older"],
+  ["shcadult", "shcadult-61", 1261, "Living will, POLST, or health care power of attorney?", "single_select", "No|Yes|Not sure|I'd like to talk about it", "N", "@age", "65+y", "If you are 65 or older"],
   ["shcadult", "shcadult-62", 1362, "Would you like a pregnancy test today?", "single_select", "No|Yes", "N", "", "", "If you came for pregnancy or after-baby care"],
   ["shcadult", "shcadult-63", 1363, "First day of your last period, and weeks pregnant:", "text", "___/___/____    ______ weeks", "N", "", "", "If you came for pregnancy or after-baby care"],
   ["shcadult", "shcadult-64", 1364, "Delivery date, if you just had a baby:", "text", "___/___/____", "N", "", "", "If you came for pregnancy or after-baby care"],
@@ -677,8 +639,7 @@ function runImport_(dryRun) {
   log.push(upsert_(book, 'Core Field Map', CORE_FIELD_MAP, [0, 1], 3, dryRun,
                    ['QuestionID', 'FormID', 'Paper field ID']));
   log.push(retireQuestions_(book, dryRun));
-  log.push(migrateAgeBands_(book, dryRun));
-  log.push(migrateQuestionAgeTriggers_(book, dryRun));
+  log.push(suffixAgeValues_(book, dryRun));
 
   var report = (dryRun ? 'PREVIEW - nothing written\n\n' : 'IMPORT COMPLETE\n\n') + log.join('\n');
   console.log(report);
@@ -844,52 +805,6 @@ function upsertConsentItems_(book, dryRun) {
 }
 
 /**
- * Restates the stale `@age` trigger values named in TRIGGER_MIGRATION.
- *
- * Guarded the same way as the Service Types migration: a value that is not the
- * one expected has been edited since, so it is named and left alone.
- */
-function migrateQuestionAgeTriggers_(book, dryRun) {
-  var sheet = book.getSheetByName('Form Questions');
-  var last = sheet.getLastRow();
-  if (last < 2) return 'Question @age triggers: no rows.';
-
-  // Display values, not raw ones. Sheets reads "12-18" as December 18 and
-  // stores a date behind a MM-DD format, so getValues() hands back a Date whose
-  // string form matches nothing - which is why the 0-12 rows migrated and the
-  // 12-18 rows did not. What the sheet shows is what the published CSV carries
-  // and what this is comparing against.
-  var shown = sheet.getRange(2, 1, last - 1, QUESTION_WIDTH).getDisplayValues();
-  var index = {};
-  shown.forEach(function (row, i) { index[String(row[1]).trim()] = i; });
-
-  var notes = [];
-  TRIGGER_MIGRATION.forEach(function (m) {
-    var id = m[0], expected = m[1], replacement = m[2];
-    if (!(id in index)) { notes.push(id + ' not found'); return; }
-
-    var at = index[id];
-    var current = String(shown[at][8]).trim();
-    if (current === replacement) { notes.push(id + ' already done'); return; }
-    if (current !== expected) {
-      notes.push(id + ' SKIPPED (found "' + current + '")');
-      return;
-    }
-
-    notes.push(id + ' "' + current + '" -> "' + replacement + '"');
-    if (!dryRun) {
-      // Plain text first, or "12-17" is read as December 17 and the cell ends
-      // up holding another date rather than the range it is meant to hold.
-      var cell = sheet.getRange(at + 2, 9);
-      cell.setNumberFormat('@');
-      cell.setValue(replacement);
-    }
-  });
-
-  return 'Question @age triggers: ' + notes.join('; ');
-}
-
-/**
  * Deletes the rows of RETIRED_QUESTIONS.
  *
  * Upserts never remove anything, so a question dropped from the generator would
@@ -914,47 +829,69 @@ function retireQuestions_(book, dryRun) {
   return 'Retired questions (' + RETIRED_QUESTIONS.join(', ') + '): ' + notes.join('; ');
 }
 
-/** Restates Age Eligibility on the existing services in the new bands. */
-function migrateAgeBands_(book, dryRun) {
-  var sheet = book.getSheetByName('Service Types');
-  if (!sheet) return 'Age bands: Service Types missing, nothing written.';
-
-  var last = sheet.getLastRow();
-  if (last < 2) return 'Age bands: no rows.';
-  // Display values, for the same reason as the @age triggers: SPRTPHYS's lone
-  // "12-18" is stored as December 18, and its Date never matched "12-18".
-  var values = sheet.getRange(2, 1, last - 1, 8).getDisplayValues();
-
+/**
+ * Adds the `y` to every bare age range in the workbook.
+ *
+ * Age Eligibility on Service Types and the TriggerValue of every `@age` row on
+ * Form Questions, not only the School Health ones: `12-17` becomes `12-17y`,
+ * `18+` becomes `18+y`. Google Sheets reads a bare `12-17` as December 17, which
+ * is how SPRTPHYS and four `@age` rows were skipped by earlier migrations. The
+ * page reads both forms, so this can run before or after it deploys.
+ *
+ * Only `@age` rows are touched on Form Questions - an answer option that happens
+ * to look like a range ("1-2 times") is somebody's answer, not an age. Display
+ * values are read for the same reason as everywhere else here, and each cell is
+ * set to plain text before it is written.
+ */
+function suffixAgeValues_(book, dryRun) {
   var notes = [];
-  AGE_MIGRATION.forEach(function (m) {
-    var id = m[0], expected = m[1], replacement = m[2];
-    for (var i = 0; i < values.length; i++) {
-      if (String(values[i][0]).trim() !== id) continue;
 
-      var current = String(values[i][5]).trim();
-      if (current === replacement) {
-        notes.push('  ' + id + ': already migrated.');
-      } else if (normalise_(current) !== normalise_(expected)) {
-        // Someone edited it since this was generated; leave it alone and say so.
-        notes.push('  ' + id + ': SKIPPED - expected "' + expected + '" but found "' +
-                   current + '".');
-      } else {
-        notes.push('  ' + id + ': "' + current + '" -> "' + replacement + '"');
-        if (!dryRun) {
-          // Text first, or "12-17" goes in as December 17.
-          var cell = sheet.getRange(i + 2, 6);
-          cell.setNumberFormat('@');
-          cell.setValue(replacement);
-        }
-      }
-      return;
-    }
-    notes.push('  ' + id + ': not found.');
-  });
-  return 'Age bands:\n' + notes.join('\n');
+  var types = book.getSheetByName('Service Types');
+  if (types && types.getLastRow() > 1) {
+    var shown = types.getRange(2, 1, types.getLastRow() - 1, 6).getDisplayValues();
+    shown.forEach(function (row, i) {
+      var next = suffixAgeList_(row[5]);
+      if (next === null) return;
+      notes.push(row[0] + ' "' + row[5] + '" -> "' + next + '"');
+      if (!dryRun) writeText_(types.getRange(i + 2, 6), next);
+    });
+  }
+
+  var questions = book.getSheetByName('Form Questions');
+  if (questions && questions.getLastRow() > 1) {
+    var rows = questions.getRange(2, 1, questions.getLastRow() - 1, 9).getDisplayValues();
+    rows.forEach(function (row, i) {
+      if (String(row[7]).trim() !== '@age') return;
+      var next = suffixAgeList_(row[8]);
+      if (next === null) return;
+      notes.push(row[1] + ' "' + row[8] + '" -> "' + next + '"');
+      if (!dryRun) writeText_(questions.getRange(i + 2, 9), next);
+    });
+  }
+
+  return 'Age ranges: ' + (notes.length ? notes.length + ' to suffix\n  ' + notes.join('\n  ')
+                                         : 'all already carry their y.');
 }
 
-function normalise_(value) {
-  return String(value).split(',').map(function (s) { return s.trim(); })
-    .filter(String).sort().join(',');
+/** The list with a `y` on each bare range, or null when nothing changes. */
+function suffixAgeList_(value) {
+  var raw = String(value || '').trim();
+  if (!raw) return null;
+  var sep = raw.indexOf('|') !== -1 ? '|' : ',';
+  var changed = false;
+  var next = raw.split(sep).map(function (entry) {
+    var token = entry.trim();
+    if (/^\d+\s*(-\s*\d+|\+)$/.test(token)) {
+      changed = true;
+      return token.replace(/\s+/g, '') + 'y';
+    }
+    return token;
+  }).join(sep);
+  return changed ? next : null;
+}
+
+/** Plain text first, or Sheets parses a range-shaped value on the way in. */
+function writeText_(cell, value) {
+  cell.setNumberFormat('@');
+  cell.setValue(value);
 }

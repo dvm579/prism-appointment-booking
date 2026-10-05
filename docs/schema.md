@@ -87,41 +87,43 @@ nothing on the page reads them and the last two hold patient data.
 
 ## Age bands and eligibility
 
-Three bands, half-open so the labels never overlap:
+Every age value in the sheet is an inclusive **range of whole years**, written
+with a `y`:
 
-| Band | Means |
+| Value | Means |
 | --- | --- |
-| `0-3` | under 4 |
-| `4-11` | 4 up to but not including 12 |
-| `12-17` | 12 up to but not including 18 |
-| `18+` | 18 and over |
+| `0-3y` | 0 through 3 |
+| `4-11y` | 4 through 11 |
+| `12-17y` | 12 through 17 |
+| `18+y` | 18 and over |
 
-These replaced `0-12 / 12-18 / 18+` when the School Health intake forms arrived,
-which split the under-12s into 0-3 and 4-11. The old labels map onto the new ones
-exactly — `0-12` is {`0-3`, `4-11`} and `12-18` is `12-17` — so restating the
-existing `Age Eligibility` values changed nobody's eligibility. **The sheet and
-`src/patient.js` must agree**: a band the page computes but the sheet never names
-hides every service that gates on age.
+Those four are the bands the School Health forms split on, so a patient turning
+4, 12 or 18 falls in exactly one of them, but any range works the same way —
+`8-11y`, `65+y`. Age is computed from the date of birth in the demographics
+section; it is never asked for separately.
 
-A patient turning 4, 12 or 18 therefore falls in exactly one band. The band is
-computed from the date of birth in the demographics section — it is never asked
-for separately.
+**The `y` is not decoration.** A bare `12-17` typed into a sheet cell is read as
+December 17 and stored as a date — see *A hazard with range-shaped cells*. The
+page still reads the bare form too (`12-17`, `18+`), so the sheet can be
+migrated before or after a deploy; `suffixAgeValues_` in the importer adds the
+`y` everywhere.
 
 `Age Eligibility` and `Gender Eligibility` on Service Types hide services the
-patient cannot receive. Both are lists — `0-3|4-11|12-17` for any
-minor, `12-17|18+` for 12 and over — and a service is offered if the patient
-matches any entry. Both are empty by default, meaning no restriction, and a
-restriction only applies once the demographic it depends on is known: gating on a
-blank date of birth would hide every service before the patient has filled the
-form in.
+patient cannot receive. Both are lists — `0-3y,4-11y,12-17y` for any minor,
+`12-17y,18+y` for 12 and over — and a service is offered if the patient matches
+any entry. Both are empty by default, meaning no restriction, and a restriction
+only applies once the demographic it depends on is known: gating on a blank date
+of birth would hide every service before the patient has filled the form in.
 
 Two rules worth knowing:
 
-- **Eligibility is a plain membership test**, exactly like an `@age` or `@gender`
-  question trigger. There is no special handling for Other or Decline to Answer:
-  a service listing `Female` is hidden from them. Whenever a gender-restricted
-  service should still be offered to those patients, list the values —
-  `Female, Other, Decline to Answer`.
+- **Eligibility behaves exactly like an `@age` or `@gender` question trigger.**
+  Age is a range test, so the sheet and the page no longer have to agree on a
+  fixed list of band names — which is what used to hide every age-gated service
+  whenever one changed without the other. Gender is a plain membership test with
+  no special handling for Other or Decline to Answer: a service listing `Female`
+  is hidden from them. Whenever a gender-restricted service should still be
+  offered to those patients, list the values — `Female, Other, Decline to Answer`.
 - **Changing the date of birth or gender re-evaluates immediately.** A service
   that becomes ineligible while ticked is unticked, which withdraws its forms and
   consent too. If a correction leaves nothing eligible, the picker says so rather
@@ -205,7 +207,7 @@ value keep their sheet position, at the end.
 | --- | --- |
 | a QuestionID | Show when that question is answered with `TriggerValue` |
 | several QuestionIDs | Show when **any** of them is both asked and answered with `TriggerValue` |
-| `@age` | Show when the patient's age matches `TriggerValue` — a band name or a range |
+| `@age` | Show when the patient's age falls in `TriggerValue`, a range of years such as `12-17y` |
 | `@gender` | Show when the selected gender equals `TriggerValue` |
 
 **`TriggerID` may name several questions**, split the same way as `Options`.
@@ -214,23 +216,19 @@ follow either the child or the adult variant of a question rather than needing a
 copy per age band — "If Medicaid, which plan?" follows both. A list is either
 all question ids or a single `@` trigger; the two cannot be mixed.
 
-**`@age` accepts a plain range** — `8-11`, `65+` — as well as a band name. Both
-are read the same way, because the band names are themselves exactly those
-ranges: `0-3` is 0 to 3, `18+` is 18 and over. Ranges exist because sections like
-*For children 8 to 11* and *If you are 65 or older* do not line up with the
-bands, and inventing bands for them would change what every service's
-`Age Eligibility` means. Reading them as ranges also means a value left behind by
-an older band vocabulary lands roughly where it was meant to rather than matching
-nothing and hiding its question for good — which is how eight rows on
-`c2e4d150`, including a self-harm question, were silently hidden by the band
-change until the importer restated them.
+**`@age` takes any range of years**, read exactly as `Age Eligibility` is:
+`8-11y` and `65+y` gate *For children 8 to 11* and *If you are 65 or older*,
+which do not line up with the bands. Because values are ranges rather than names,
+one left behind by an older vocabulary still lands roughly where it was meant to
+instead of matching nothing — which is how eight rows on `c2e4d150`, including a
+self-harm question, were silently hidden when the bands last changed.
 
 `@`-prefixed triggers read the demographics section instead of a question, so a
 form can branch on age or gender without asking for it twice.
 
 `TriggerValue` is a **list**, so one row can list several values and the
-question appears if *any* of them matches — `0-3|4-11|12-17` for any minor,
-`12-17|18+` for 12 and over, or `Yes|Not sure` to catch both answers. It splits
+question appears if *any* of them matches — `0-3y|4-11y|12-17y` for any minor,
+`12-17y|18+y` for 12 and over, or `Yes|Not sure` to catch both answers. It splits
 the same way as `Options` — see below. A blank `TriggerValue`
 alongside a `TriggerID` means `Yes`.
 
@@ -425,10 +423,12 @@ default-formatted cell, `12-18` becomes December 18 stored as a date behind an
 still *carries* `12-18`, but `getValues()` in Apps Script hands back a `Date`.
 
 That is invisible until something compares the cell to a string, which is how
-four `@age` rows survived a migration that fixed their four siblings: `0-12` has
-no valid month, so it stayed text, while `12-18` did not.
+four `@age` rows and `SPRTPHYS` survived migrations that fixed their siblings:
+`0-12` has no valid month, so it stayed text, while `12-18` did not.
 
-Anything in Apps Script that reads these columns should use
+Age values now carry a `y` (`12-17y`), which Sheets does not parse, so this no
+longer bites anything typed by hand. It still applies to any other range-shaped
+answer or option. Anything in Apps Script that reads such a column should use
 `getDisplayValues()`, and anything writing a range-shaped value should set the
 cell's number format to `@` first, or the value it writes is parsed as a date on
 the way in. The published CSV is unaffected either way, so the page never sees

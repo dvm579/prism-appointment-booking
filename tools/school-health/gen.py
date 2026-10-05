@@ -24,8 +24,9 @@ CORE_SECTIONS = {'Parent 0-3': {2, 3, 4, 5, 6, 15}, 'Parent 4-11': {2, 3, 4, 5, 
 FORM_ID = {'Parent 0-3': 'shc0003', 'Parent 4-11': 'shc0411',
            'Parent 12-17': 'shc1217', 'Adult': 'shcadult',
            'PRISM_Vaccine_Consent': 'shcvax26'}
-BAND = {'Parent 0-3': '0-3', 'Parent 4-11': '4-11', 'Parent 12-17': '12-17', 'Adult': '18+'}
-CHILD_BANDS = '0-3|4-11|12-17'
+# Age ranges carry a `y` so Google Sheets cannot read `12-17` as December 17.
+BAND = {'Parent 0-3': '0-3y', 'Parent 4-11': '4-11y', 'Parent 12-17': '12-17y', 'Adult': '18+y'}
+CHILD_BANDS = '0-3y|4-11y|12-17y'
 
 # The two signature sections say the same thing in different words. The core
 # asks each question once, so it must not carry two names for one section.
@@ -195,8 +196,8 @@ SECTION_TRIGGERS = {
     # asked, and the heading already tells anyone it does not apply to that they
     # can move on. Nothing in it is required.
     # Neither of these lines up with an age band, so they use a plain range.
-    ('shcadult', 'If you are 65 or older'): ('@age', '65+'),
-    ('shc0411', 'For children 8 to 11'): ('@age', '8-11'),
+    ('shcadult', 'If you are 65 or older'): ('@age', '65+y'),
+    ('shc0411', 'For children 8 to 11'): ('@age', '8-11y'),
 }
 
 

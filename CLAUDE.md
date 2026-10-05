@@ -22,16 +22,18 @@ something is shaped the way it is are answered there.
 
 ## Things that have bitten
 
-- **The sheet and the page ship together.** `src/patient.js` computes an age
-  band and `Service Types` gates on the same vocabulary. Deploying one without
-  the other hides every age-gated service.
+- **Age values are ranges of years with a `y`** — `12-17y`, `18+y`. Eligibility
+  and `@age` triggers both test the patient's age against the range, so the sheet
+  and the page no longer have to agree on band names. A band rename shipped
+  without its sheet migration used to hide every age-gated service.
 - **The Drive connector cannot write cells.** Its `update_file` changes only
   title and parent. Sheet rows have to go through an Apps Script the user runs,
   with a preview mode and upserts keyed by row id.
 - **Range-shaped values become dates.** Google Sheets reads `12-18` as December
   18 and stores a date behind an `MM-DD` format, so the cell still shows and
-  exports `12-18` while `getValues()` returns a `Date`. Apps Script reading those
-  columns should use `getDisplayValues()`. See the hazard note in `docs/schema.md`.
+  exports `12-18` while `getValues()` returns a `Date`. The `y` avoids this for
+  ages; Apps Script reading any other range-shaped column should use
+  `getDisplayValues()`. See the hazard note in `docs/schema.md`.
 - **The workbook is "Events Management"** (`17226ud6cLY7gbLyv0IS_3k1mylHeWuoHHKyr96hoy1I`),
   not "Campaigns, Events, Facilities" — that one has an unrelated `Events` sheet
   and none of the booking sheets.

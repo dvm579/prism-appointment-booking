@@ -29,8 +29,8 @@ TEMPLATE = '''/**
  * One-off loader for the School Health Clinic Program forms.
  *
  * Writes Forms, Form Questions, Service Types, Consent Blocks and the new
- * Consent Items into the scheduling workbook, and restates the existing Age
- * Eligibility values in the four new age bands.
+ * Consent Items into the scheduling workbook, retires withdrawn questions,
+ * and gives every age range in the workbook its `y` suffix.
  *
  * Every write is an upsert keyed by the row's own id, so running this twice
  * updates in place rather than duplicating. Run `previewSchoolHealthImport()`
@@ -70,44 +70,11 @@ var SECTION_COL = 10;
 var QUESTION_WIDTH = 10;
 
 /**
- * Age bands changed from {0-12, 12-18, 18+} to {0-3, 4-11, 12-17, 18+}.
- *
- * The mapping is exact - 0-12 is {0-3, 4-11} and 12-18 is 12-17 - so no
- * patient's eligibility changes. It must ship together with the matching
- * AGE_BANDS change in src/patient.js, or the page will compute a band the
- * sheet does not use and every gated service will disappear.
- */
-var AGE_MIGRATION = [
-__AGEMIG__
-];
-
-/**
- * `@age` triggers left behind by the old band vocabulary.
- *
- * The band change restated Age Eligibility on Service Types but not the `@age`
- * triggers inside Form Questions, so these eight rows on the WOW pediatric form
- * were left asking for bands `ageBand()` no longer returns - which hid them
- * outright, including the teen self-harm question.
- *
- * QuestionID, the value expected there, the value it should be.
- */
-/**
  * Questions withdrawn from the generator, deleted from Form Questions and Core
  * Field Map. The staff-only fields: who ran a phone interview, and the initials
  * confirming the read-back. Staff record those in the EMR, never the patient.
  */
 var RETIRED_QUESTIONS = __RETIRED__;
-
-var TRIGGER_MIGRATION = [
-  ['c2e4d150-34', '0-12', '0-3|4-11'],
-  ['c2e4d150-35', '0-12', '0-3|4-11'],
-  ['c2e4d150-36', '0-12', '0-3|4-11'],
-  ['c2e4d150-37', '0-12', '0-3|4-11'],
-  ['c2e4d150-38', '12-18', '12-17'],
-  ['c2e4d150-39', '12-18', '12-17'],
-  ['c2e4d150-40', '12-18', '12-17'],
-  ['c2e4d150-41', '12-18', '12-17']
-];
 
 var FORMS = [
 __FORMS__
@@ -181,8 +148,7 @@ function runImport_(dryRun) {
   log.push(upsert_(book, 'Core Field Map', CORE_FIELD_MAP, [0, 1], 3, dryRun,
                    ['QuestionID', 'FormID', 'Paper field ID']));
   log.push(retireQuestions_(book, dryRun));
-  log.push(migrateAgeBands_(book, dryRun));
-  log.push(migrateQuestionAgeTriggers_(book, dryRun));
+  log.push(suffixAgeValues_(book, dryRun));
 
   var report = (dryRun ? 'PREVIEW - nothing written\\n\\n' : 'IMPORT COMPLETE\\n\\n') + log.join('\\n');
   console.log(report);
@@ -348,52 +314,6 @@ function upsertConsentItems_(book, dryRun) {
 }
 
 /**
- * Restates the stale `@age` trigger values named in TRIGGER_MIGRATION.
- *
- * Guarded the same way as the Service Types migration: a value that is not the
- * one expected has been edited since, so it is named and left alone.
- */
-function migrateQuestionAgeTriggers_(book, dryRun) {
-  var sheet = book.getSheetByName('Form Questions');
-  var last = sheet.getLastRow();
-  if (last < 2) return 'Question @age triggers: no rows.';
-
-  // Display values, not raw ones. Sheets reads "12-18" as December 18 and
-  // stores a date behind a MM-DD format, so getValues() hands back a Date whose
-  // string form matches nothing - which is why the 0-12 rows migrated and the
-  // 12-18 rows did not. What the sheet shows is what the published CSV carries
-  // and what this is comparing against.
-  var shown = sheet.getRange(2, 1, last - 1, QUESTION_WIDTH).getDisplayValues();
-  var index = {};
-  shown.forEach(function (row, i) { index[String(row[1]).trim()] = i; });
-
-  var notes = [];
-  TRIGGER_MIGRATION.forEach(function (m) {
-    var id = m[0], expected = m[1], replacement = m[2];
-    if (!(id in index)) { notes.push(id + ' not found'); return; }
-
-    var at = index[id];
-    var current = String(shown[at][8]).trim();
-    if (current === replacement) { notes.push(id + ' already done'); return; }
-    if (current !== expected) {
-      notes.push(id + ' SKIPPED (found "' + current + '")');
-      return;
-    }
-
-    notes.push(id + ' "' + current + '" -> "' + replacement + '"');
-    if (!dryRun) {
-      // Plain text first, or "12-17" is read as December 17 and the cell ends
-      // up holding another date rather than the range it is meant to hold.
-      var cell = sheet.getRange(at + 2, 9);
-      cell.setNumberFormat('@');
-      cell.setValue(replacement);
-    }
-  });
-
-  return 'Question @age triggers: ' + notes.join('; ');
-}
-
-/**
  * Deletes the rows of RETIRED_QUESTIONS.
  *
  * Upserts never remove anything, so a question dropped from the generator would
@@ -418,55 +338,76 @@ function retireQuestions_(book, dryRun) {
   return 'Retired questions (' + RETIRED_QUESTIONS.join(', ') + '): ' + notes.join('; ');
 }
 
-/** Restates Age Eligibility on the existing services in the new bands. */
-function migrateAgeBands_(book, dryRun) {
-  var sheet = book.getSheetByName('Service Types');
-  if (!sheet) return 'Age bands: Service Types missing, nothing written.';
-
-  var last = sheet.getLastRow();
-  if (last < 2) return 'Age bands: no rows.';
-  // Display values, for the same reason as the @age triggers: SPRTPHYS's lone
-  // "12-18" is stored as December 18, and its Date never matched "12-18".
-  var values = sheet.getRange(2, 1, last - 1, 8).getDisplayValues();
-
+/**
+ * Adds the `y` to every bare age range in the workbook.
+ *
+ * Age Eligibility on Service Types and the TriggerValue of every `@age` row on
+ * Form Questions, not only the School Health ones: `12-17` becomes `12-17y`,
+ * `18+` becomes `18+y`. Google Sheets reads a bare `12-17` as December 17, which
+ * is how SPRTPHYS and four `@age` rows were skipped by earlier migrations. The
+ * page reads both forms, so this can run before or after it deploys.
+ *
+ * Only `@age` rows are touched on Form Questions - an answer option that happens
+ * to look like a range ("1-2 times") is somebody's answer, not an age. Display
+ * values are read for the same reason as everywhere else here, and each cell is
+ * set to plain text before it is written.
+ */
+function suffixAgeValues_(book, dryRun) {
   var notes = [];
-  AGE_MIGRATION.forEach(function (m) {
-    var id = m[0], expected = m[1], replacement = m[2];
-    for (var i = 0; i < values.length; i++) {
-      if (String(values[i][0]).trim() !== id) continue;
 
-      var current = String(values[i][5]).trim();
-      if (current === replacement) {
-        notes.push('  ' + id + ': already migrated.');
-      } else if (normalise_(current) !== normalise_(expected)) {
-        // Someone edited it since this was generated; leave it alone and say so.
-        notes.push('  ' + id + ': SKIPPED - expected "' + expected + '" but found "' +
-                   current + '".');
-      } else {
-        notes.push('  ' + id + ': "' + current + '" -> "' + replacement + '"');
-        if (!dryRun) {
-          // Text first, or "12-17" goes in as December 17.
-          var cell = sheet.getRange(i + 2, 6);
-          cell.setNumberFormat('@');
-          cell.setValue(replacement);
-        }
-      }
-      return;
-    }
-    notes.push('  ' + id + ': not found.');
-  });
-  return 'Age bands:\\n' + notes.join('\\n');
+  var types = book.getSheetByName('Service Types');
+  if (types && types.getLastRow() > 1) {
+    var shown = types.getRange(2, 1, types.getLastRow() - 1, 6).getDisplayValues();
+    shown.forEach(function (row, i) {
+      var next = suffixAgeList_(row[5]);
+      if (next === null) return;
+      notes.push(row[0] + ' "' + row[5] + '" -> "' + next + '"');
+      if (!dryRun) writeText_(types.getRange(i + 2, 6), next);
+    });
+  }
+
+  var questions = book.getSheetByName('Form Questions');
+  if (questions && questions.getLastRow() > 1) {
+    var rows = questions.getRange(2, 1, questions.getLastRow() - 1, 9).getDisplayValues();
+    rows.forEach(function (row, i) {
+      if (String(row[7]).trim() !== '@age') return;
+      var next = suffixAgeList_(row[8]);
+      if (next === null) return;
+      notes.push(row[1] + ' "' + row[8] + '" -> "' + next + '"');
+      if (!dryRun) writeText_(questions.getRange(i + 2, 9), next);
+    });
+  }
+
+  return 'Age ranges: ' + (notes.length ? notes.length + ' to suffix\\n  ' + notes.join('\\n  ')
+                                         : 'all already carry their y.');
 }
 
-function normalise_(value) {
-  return String(value).split(',').map(function (s) { return s.trim(); })
-    .filter(String).sort().join(',');
+/** The list with a `y` on each bare range, or null when nothing changes. */
+function suffixAgeList_(value) {
+  var raw = String(value || '').trim();
+  if (!raw) return null;
+  var sep = raw.indexOf('|') !== -1 ? '|' : ',';
+  var changed = false;
+  var next = raw.split(sep).map(function (entry) {
+    var token = entry.trim();
+    if (/^\\d+\\s*(-\\s*\\d+|\\+)$/.test(token)) {
+      changed = true;
+      return token.replace(/\\s+/g, '') + 'y';
+    }
+    return token;
+  }).join(sep);
+  return changed ? next : null;
+}
+
+/** Plain text first, or Sheets parses a range-shaped value on the way in. */
+function writeText_(cell, value) {
+  cell.setNumberFormat('@');
+  cell.setValue(value);
 }
 '''
 
 out = (TEMPLATE
        .replace('__WORKBOOK__', '17226ud6cLY7gbLyv0IS_3k1mylHeWuoHHKyr96hoy1I')
-       .replace('__AGEMIG__', rows(s['ageMigration']))
        .replace('__FORMS__', rows(s['forms']))
        .replace('__SERVICES__', rows(s['serviceTypes']))
        .replace('__CONSENTBLOCK__', j(list(s['consentBlock'])))
