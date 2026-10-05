@@ -72,9 +72,12 @@ function wrap(font, text, size, width, height) {
  *   kind: 'c' check, 't' line of text, 'a' write-in area, 'i' image
  * @param {(field) => string|boolean|Buffer|null} valueOf
  *   a check is drawn when truthy; text and areas take a string; an image takes PNG bytes
+ * @param {{textInset?: number}} [options]
+ *   textInset: points from the bottom of a text box to the baseline, for tables
+ *   measured down to the printed rule. Without it, text is centred in its box.
  * @returns {Promise<Uint8Array>}
  */
-export async function fillPdf(source, fields, valueOf) {
+export async function fillPdf(source, fields, valueOf, { textInset } = {}) {
     const doc = await PDFDocument.load(source);
     const font = await doc.embedFont(StandardFonts.Helvetica);
     const pages = doc.getPages();
@@ -107,8 +110,9 @@ export async function fillPdf(source, fields, valueOf) {
         } else {
             const { text, size } = fitLine(font, encodable(font, value), field.size || 9, field.width);
             // On the printed rule: the baseline sits a little above the box's bottom.
+            const lift = textInset ?? Math.max(1.5, (field.height - size) / 2);
             page.drawText(text, {
-                x: field.left, y: H - field.top - field.height + Math.max(1.5, (field.height - size) / 2),
+                x: field.left, y: H - field.top - field.height + lift,
                 size, font, color: INK
             });
         }

@@ -51,8 +51,20 @@ const PREFILLED = {
     'shccore-3': () => field('parentContact') || field('cell'),
     'shccore-50': () => field('cell'),
     // The consent signature at the end of the form is the signature.
-    'shccore-47': () => `Signed electronically ${new Date().toISOString().slice(0, 10)}`
+    'shccore-47': () => signedToday(),
+
+    // The vaccine consent's own header block repeats the panel too.
+    'shcvax26-1': () => fullName(),                // Child's name
+    'shcvax26-2': () => field('dob'),              // Date of birth
+    'shcvax26-4': () => [field('parentName'), field('parentRel')].filter(Boolean).join(', '),
+    'shcvax26-13': () => signedToday(),            // Parent or guardian signature
+    'shcvax26-14': () => new Date().toISOString().slice(0, 10),
+    'shcvax26-15': () => field('parentContact') || field('cell')
 };
+
+function signedToday() {
+    return `Signed electronically ${new Date().toISOString().slice(0, 10)}`;
+}
 
 /** True when a question is answered from the panel rather than asked. */
 export function isPrefilled(questionId) {

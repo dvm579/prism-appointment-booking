@@ -18,8 +18,14 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const FIELDS = JSON.parse(readFileSync(path.join(here, 'fields.json'), 'utf8'));
 const ASSETS = path.join(here, '..', '..', '..', 'assets', 'forms');
 
-/** "Completed Forms/Wellness on Wheels", where AppSheet looks for these. */
-const FOLDER_ID = '1gdwPfu9kRXZi8Lht-yX3OkaSJhmsKDCD';
+/**
+ * "Completed Forms/Wellness on Wheels", where AppSheet looks for these.
+ *
+ * The Apps Script generators wrote to `1gdwPfu9...`, which is "Vaccination 2025",
+ * while logging this path - so AppSheet never found their PDFs. This folder was
+ * created on 2026-10-05 to match the path.
+ */
+const FOLDER_ID = '1codkEZFLS1Bxn8d3jQqWSMLvPQ9HnVLs';
 const FOLDER_PATH = 'Completed Forms/Wellness on Wheels/';
 
 const FORMS = {

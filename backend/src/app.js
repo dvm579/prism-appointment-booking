@@ -48,10 +48,17 @@ export function createApp({ slots, submitForm, verifySweep }) {
         try {
             res.json(await action(request.payload || {}));
         } catch (error) {
+            // Our own refusals carry a string code and a message written for the
+            // patient. Anything else - a Google API error included, whose code is
+            // a number - is ours to log and not theirs to read.
+            const ours = typeof error.code === 'string';
             // Never the payload: it is a patient's registration.
-            console.error(`${request.action} failed: ${error.code || 'UNHANDLED'} ${error.message}`);
-            res.json({ status: 'error', code: error.code || 'UNHANDLED', message: error.code ? error.message
-                : 'Something went wrong on our side. Please try again.' });
+            console.error(`${request.action} failed: ${error.code ?? 'UNHANDLED'} ${error.message}`);
+            res.json({
+                status: 'error',
+                code: ours ? error.code : 'UNHANDLED',
+                message: ours ? error.message : 'Something went wrong on our side. Please try again.'
+            });
         }
     });
 
@@ -66,6 +73,7 @@ export function createApp({ slots, submitForm, verifySweep }) {
         }
     });
 
-    app.get('/healthz', (req, res) => res.send('ok'));
+    // Not /healthz: Cloud Run reserves paths ending in z.
+    app.get('/health', (req, res) => res.send('ok'));
     return app;
 }

@@ -3,10 +3,12 @@
 // this service once every one of its services is covered (see RUN_SERVICES in
 // src/config.js of the page).
 
+import { shcFillers } from './shc/index.js';
 import { wowClinicalRows, wowFillers } from './wow/index.js';
 
 export const fillers = {
-    ...wowFillers
+    ...wowFillers,
+    ...shcFillers
 };
 
 export async function clinicalRows(job, sheets) {

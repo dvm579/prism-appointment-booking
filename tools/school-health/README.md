@@ -15,7 +15,13 @@ python gen.py            # dd.json            -> questions_out.json, core_mappin
 python sheets.py         # consent_html.html  -> sheets_out.json
 python emit_importer.py  # both               -> apps-script/tools/importSchoolHealthForms.gs
 node imptest.js          # 51 checks against a stubbed workbook
+python measure_pdfs.py   # the bundle's PDFs -> backend/src/docs/shc/fields.json, measure_report.md
 ```
+
+`measure_pdfs.py` needs `pip install pymupdf` and the program bundle (path in
+`BUNDLE`, or set `SHC_BUNDLE`). It locates every question's check boxes and
+write-in blanks on the printed intake PDFs; `--proof DIR` also renders each page
+with dummy marks so the positions can be checked by eye.
 
 The three `*_out.json` / `core_mapping.json` files are intermediates and are not
 tracked. Re-running the four commands on a clean checkout should leave
