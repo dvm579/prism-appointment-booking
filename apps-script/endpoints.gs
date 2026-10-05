@@ -443,12 +443,16 @@ function submitForm1(data) {
     .filter(function (part) { return part; })
     .join(', ');
 
+  // A ZIP is text: appendRow parses values as if typed, so `02134` would become
+  // the number 2134. The leading apostrophe marks text and is not stored.
+  const zipText = demographics.zip ? "'" + demographics.zip : '';
+
   sheet_(mainBook, 'Patients').appendRow([
     now, patientID, event.facilityID, event.facilityName,
     demographics.firstName, demographics.middleName, demographics.lastName,
     demographics.dob, demographics.gender, demographics.race,
-    demographics.ethnicity, fullAddress, demographics.street,
-    demographics.city, demographics.state, demographics.zip,
+    demographics.ethnicity, /^\d+$/.test(fullAddress) ? "'" + fullAddress : fullAddress,
+    demographics.street, demographics.city, demographics.state, zipText,
     demographics.cell, demographics.home, demographics.email,
     demographics.ssn, demographics.parentName, demographics.parentRel,
     demographics.parentContact, insurance.primaryIns, insurance.primaryPayer,

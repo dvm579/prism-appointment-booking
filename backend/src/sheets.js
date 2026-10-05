@@ -34,16 +34,21 @@ export class GoogleSheets {
      * Chicago, showed when this service first wrote Chicago time into it.
      */
     async timeZone(spreadsheetId) {
-        if (!this.zones.has(spreadsheetId)) {
-            this.zones.set(spreadsheetId, this.api.spreadsheets
+        // Re-read every ten minutes, so a workbook whose zone is changed in its
+        // settings is followed without restarting the service.
+        const cached = this.zones.get(spreadsheetId);
+        if (!cached || Date.now() - cached.at > 10 * 60 * 1000) {
+            const zone = this.api.spreadsheets
                 .get({ spreadsheetId, fields: 'properties.timeZone' })
                 .then(({ data }) => data.properties.timeZone || TIME_ZONE)
                 .catch(error => {
+                    if (cached) return cached.zone;   // keep the last good answer
                     this.zones.delete(spreadsheetId);
                     throw error;
-                }));
+                });
+            this.zones.set(spreadsheetId, { zone, at: Date.now() });
         }
-        return this.zones.get(spreadsheetId);
+        return this.zones.get(spreadsheetId).zone;
     }
 
     /** `date` as a timestamp cell of this spreadsheet. */

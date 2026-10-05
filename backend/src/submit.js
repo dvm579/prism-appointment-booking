@@ -60,6 +60,18 @@ export function formsUsed(selectedServices) {
     return [...seen];
 }
 
+/**
+ * A value Sheets must keep as typed text.
+ *
+ * Rows are written as if typed, so `02134` would become the number 2134 and lose
+ * its leading zero - a ZIP in most of New England. A leading apostrophe tells
+ * Sheets "this is text" and is not stored.
+ */
+export function asText(value) {
+    const text = String(value ?? '').trim();
+    return text ? `'${text}` : '';
+}
+
 /** A stopwatch that reports step durations without ever touching patient data. */
 function stopwatch() {
     const start = Date.now();
@@ -185,8 +197,9 @@ export function submitAction({ sheets, store, slots, drive, mailer, documents, n
             mainStamp, patientID, event.facilityID, event.facilityName,
             demographics.firstName, demographics.middleName, demographics.lastName,
             demographics.dob, demographics.gender, demographics.race,
-            demographics.ethnicity, fullAddress, demographics.street,
-            demographics.city, demographics.state, demographics.zip,
+            // A Full Address that is only a ZIP would turn into a number too.
+            demographics.ethnicity, /^\d+$/.test(fullAddress) ? asText(fullAddress) : fullAddress, demographics.street,
+            demographics.city, demographics.state, asText(demographics.zip),
             demographics.cell, demographics.home, demographics.email,
             demographics.ssn, demographics.parentName, demographics.parentRel,
             demographics.parentContact, insurance.primaryIns, insurance.primaryPayer,

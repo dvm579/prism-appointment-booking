@@ -64,7 +64,7 @@ function payload(extra = {}) {
         signature: 'data:image/png;base64,' + Buffer.from('png').toString('base64'),
         additionalSignatures: [],
         consentDeclines: [{ consentId: 'cfs20267', itemId: 'othertest', label: 'Another test', note: 'Strep' }],
-        demographics: { firstName: 'Test', lastName: 'Declines', dob: '2018-04-02', email: 'x@example.com', zip: '60601' },
+        demographics: { firstName: 'Test', lastName: 'Declines', dob: '2018-04-02', email: 'x@example.com', zip: '02134' },
         insurance: {},
         consentCalls: true, consentTexts: true, consentEmails: true, electronicConsent: true, vaxConsent: true,
         ...extra
@@ -211,6 +211,15 @@ test('a filled document is uploaded and logged once per service that used it', a
     assert.equal(row.length, 18);
     assert.deepEqual([row[1], row[9], row[10], row[11], row[17]],
         [result.appointmentID, '10-03-2026', 'School Health core', 'File', 'Completed Forms/School Health/DeclinesTest_Core_10032026.pdf']);
+});
+
+test('a ZIP is written as text, so a leading zero survives', async () => {
+    const w = world();
+    await w.slots.bookSlot({ eventId: 'ev1', startTime: '10:00' });
+    await w.submitForm(payload());
+    const [patient] = w.rows(MAIN, 'Patients').slice(1);
+    assert.equal(patient[15], "'02134");   // Zip
+    assert.equal(patient[11], "'02134");   // Full Address, which is only the ZIP here
 });
 
 test('the signature link in Patients is the file that was uploaded', async () => {

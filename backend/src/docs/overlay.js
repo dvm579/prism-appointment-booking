@@ -9,6 +9,7 @@
 
 import fs from 'node:fs';
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
+import { inkOnly } from './ink.js';
 
 const INK = rgb(0.05, 0.1, 0.45);
 const MIN_SIZE = 6;
@@ -97,7 +98,9 @@ export async function fillPdf(source, fields, valueOf, { textInset } = {}) {
                 size, font, color: INK
             });
         } else if (field.kind === 'i') {
-            const image = await doc.embedPng(value);
+            const ink = inkOnly(value);
+            if (!ink) continue; // an untouched pad: leave the line blank
+            const image = await doc.embedPng(ink);
             const scale = Math.min(field.width / image.width, field.height / image.height);
             const w = image.width * scale;
             const h = image.height * scale;
