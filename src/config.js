@@ -15,7 +15,7 @@ export const GAS_API_URL =
  * so no registration loses a document halfway through the migration. Leave
  * RUN_API_URL empty to send everything to Apps Script.
  */
-export const RUN_API_URL = '';
+export const RUN_API_URL = 'https://registration-806276743303.us-central1.run.app';
 
 export const RUN_SERVICES = [
     // Wellness on Wheels / mobile health: four forms and their clinical rows.
