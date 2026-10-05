@@ -12,12 +12,35 @@ export function driveUrl(id) {
 export class GoogleDrive {
     constructor(auth) {
         this.api = google.drive({ version: 'v3', auth });
+        this.ids = [];
+        this.refilling = null;
+    }
+
+    /**
+     * A Drive file id, before the file exists.
+     *
+     * Drive hands out ids in advance, so a row can carry a file's link while the
+     * upload is still running beside it rather than ahead of it. Ids come from a
+     * pool topped up in the background; an empty pool waits for one refill.
+     */
+    async reserveId() {
+        if (this.ids.length < 20) this.refill();
+        if (!this.ids.length) await this.refilling;
+        return this.ids.pop();
+    }
+
+    refill() {
+        this.refilling ||= this.api.files
+            .generateIds({ count: 100, space: 'drive', type: 'files' })
+            .then(({ data }) => { this.ids.push(...data.ids); })
+            .finally(() => { this.refilling = null; });
+        return this.refilling;
     }
 
     /** @returns {{id: string, url: string, name: string}} */
-    async upload(name, mimeType, buffer, folderId = UPLOAD_FOLDER_ID) {
+    async upload(name, mimeType, buffer, folderId = UPLOAD_FOLDER_ID, id = undefined) {
         const { data } = await this.api.files.create({
-            requestBody: { name, parents: [folderId] },
+            requestBody: { name, parents: [folderId], ...(id && { id }) },
             media: { mimeType, body: Readable.from(buffer) },
             fields: 'id',
             supportsAllDrives: true
@@ -29,10 +52,14 @@ export class GoogleDrive {
 export class FakeDrive {
     constructor() {
         this.files = [];
+        this.next = 0;
     }
-    async upload(name, mimeType, buffer) {
-        const id = `fake${this.files.length + 1}`;
-        this.files.push({ id, name, mimeType, bytes: buffer.length });
+    async reserveId() {
+        return `fake${++this.next}`;
+    }
+    async upload(name, mimeType, buffer, folderId, id) {
+        id ||= `fake${++this.next}`;
+        this.files.push({ id, name, mimeType, bytes: buffer.length, folderId });
         return { id, url: driveUrl(id), name };
     }
 }

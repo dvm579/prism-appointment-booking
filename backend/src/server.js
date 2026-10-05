@@ -23,6 +23,8 @@ const auth = new GoogleAuth({
 
 const sheets = new GoogleSheets(auth);
 const drive = new GoogleDrive(auth);
+// Reserve Drive ids before the first registration needs one.
+drive.refill().catch(error => console.warn('Could not reserve Drive ids:', error.message));
 const store = new FirestoreStore(new Firestore());
 const slots = slotActions({ sheets, store });
 const documents = documentGenerator({ drive, sheets, fillers, rows: job => clinicalRows(job, sheets) });

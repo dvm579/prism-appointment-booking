@@ -90,8 +90,7 @@ export function slotActions({ sheets, store, now = () => new Date() }) {
                 throw coded('SLOT_UNAVAILABLE', 'That slot is no longer available. Please choose another.');
             }
 
-            await setStatus(open, ['Pending', sheetTimestamp(now())]);
-            await rememberHold(payload);
+            await Promise.all([setStatus(open, ['Pending', sheetTimestamp(now())]), rememberHold(payload)]);
             return { status: 'success', message: 'Slot reserved.' };
         });
     }

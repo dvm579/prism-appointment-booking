@@ -2,17 +2,19 @@
 // writing the same rows in the same column order.
 //
 // The order is still deliberate: claim the slot, write every record, and only
-// then do the extras that may fail without costing the patient the appointment.
-// What changes is the cost of each step. Apps Script appended row by row through
-// SpreadsheetApp; here each sheet takes one batched append, the independent
-// writes run concurrently, and documents are filled in-process rather than queued.
+// then log the extras that may fail without costing the patient the appointment.
+// What changes is how much waits on what. Apps Script appended row by row and
+// saved each file before the row that linked to it; here every Drive id is
+// reserved up front, so signature uploads, the batched row writes and the filling
+// and uploading of the documents all run at once. Only the records that point at
+// a registration - Attachments, clinical rows, the email - wait for it to exist.
 
 import { randomUUID } from 'node:crypto';
 import QRCode from 'qrcode';
 import {
-    BOOKING_SPREADSHEET_ID, MAIN_SPREADSHEET_ID, RESPONSES_SPREADSHEET_ID
+    BOOKING_SPREADSHEET_ID, MAIN_SPREADSHEET_ID, RESPONSES_SPREADSHEET_ID, UPLOAD_FOLDER_ID
 } from './config.js';
-import { dataUrlBytes } from './drive.js';
+import { dataUrlBytes, driveUrl } from './drive.js';
 import { confirmationMessage } from './email.js';
 import { coded } from './errors.js';
 import { serviceDate, sheetTimestamp } from './time.js';
@@ -70,25 +72,40 @@ function stopwatch() {
 }
 
 export function submitAction({ sheets, store, slots, drive, mailer, documents, now = () => new Date() }) {
-    async function saveSignature(dataUrl, filename) {
-        const bytes = dataUrlBytes(dataUrl);
-        return bytes ? drive.upload(filename, 'image/png', bytes) : null;
-    }
+    /**
+     * Reserves a Drive id for every signature and starts the uploads.
+     *
+     * The links exist at once, so the rows that carry them do not wait for the
+     * files. The consent signature is part of the registration - if it cannot be
+     * stored, the registration fails, as it did in endpoints.gs. A signature a
+     * question asked for is logged and skipped instead.
+     */
+    async function planSignatures(data, at) {
+        const wanted = [];
+        const consent = dataUrlBytes(data.signature);
+        if (consent) wanted.push({ bytes: consent, name: `sig_${data.eventId}_${at.getTime()}.png` });
+        (data.additionalSignatures || []).forEach((signature, index) => {
+            const bytes = dataUrlBytes(signature.data);
+            if (bytes) wanted.push({
+                bytes, questionId: signature.questionId,
+                name: `sig_${data.eventId}_${signature.questionId}_${at.getTime()}_${index}.png`
+            });
+        });
+        const planned = await Promise.all(wanted.map(async w => ({ ...w, id: await drive.reserveId() })));
 
-    async function saveAdditionalSignatures(signatures, eventId, at) {
-        const urls = {};
-        await Promise.all((signatures || []).map(async (signature, index) => {
-            try {
-                const file = await saveSignature(
-                    signature.data,
-                    `sig_${eventId}_${signature.questionId}_${at.getTime()}_${index}.png`
-                );
-                if (file) urls[signature.questionId] = file.url;
-            } catch (error) {
-                console.error(`Could not store the "${signature.questionId}" signature:`, error.message);
-            }
+        let sigFile = null;
+        const signatureUrls = {};
+        for (const p of planned) {
+            if (p.questionId) signatureUrls[p.questionId] = driveUrl(p.id);
+            else sigFile = { id: p.id, url: driveUrl(p.id), name: p.name };
+        }
+        const uploads = Promise.all(planned.map(p => {
+            const upload = drive.upload(p.name, 'image/png', p.bytes, UPLOAD_FOLDER_ID, p.id);
+            return p.questionId
+                ? upload.catch(error => console.error(`Could not store the "${p.questionId}" signature:`, error.message))
+                : upload;
         }));
-        return urls;
+        return { sigFile, signatureUrls, uploads };
     }
 
     /** Losing answers is bad; failing a registration that is already recorded is worse. */
@@ -152,12 +169,7 @@ export function submitAction({ sheets, store, slots, drive, mailer, documents, n
         if (!data.isWaitlist) await slots.confirmSlot(data.eventId, data.slotTime, appointmentID, at);
         clock.lap('slot');
 
-        // Signatures go to Drive before the rows that link to them.
-        const [sigFile, signatureUrls] = await Promise.all([
-            data.signature ? saveSignature(data.signature, `sig_${data.eventId}_${at.getTime()}.png`) : null,
-            saveAdditionalSignatures(data.additionalSignatures, data.eventId, at)
-        ]);
-        clock.lap('signatures');
+        const { sigFile, signatureUrls, uploads } = await planSignatures(data, at);
 
         const fullAddress = [
             demographics.street,
@@ -185,7 +197,7 @@ export function submitAction({ sheets, store, slots, drive, mailer, documents, n
         ].map(value => value ?? '');
 
         if (data.isWaitlist) {
-            await sheets.append(MAIN_SPREADSHEET_ID, 'Patients', [patientRow]);
+            await Promise.all([uploads, sheets.append(MAIN_SPREADSHEET_ID, 'Patients', [patientRow])]);
             await sheets.append(BOOKING_SPREADSHEET_ID, 'Appointment Waitlist', [[data.eventId, patientID]]);
             await email(data, patientID, null, null, event);
             const result = { status: 'success', isWaitlist: true, patientID };
@@ -216,10 +228,20 @@ export function submitAction({ sheets, store, slots, drive, mailer, documents, n
             decline.itemId || '', decline.label || '', decline.note || ''
         ]);
 
+        // Documents start now: filling and uploading needs nothing the rows
+        // write, and is the longest step. What logs them waits, below.
+        const job = {
+            data, patientID, appointmentID, sigFile, signatureUrls,
+            event, forms: formsUsed(selectedServices), formToService, services: renderedServices,
+            stamp
+        };
+        const prepared = guarded('Documents', () => documents.prepare(job));
+
         // Patients, Appointments and Services Rendered are the appointment
         // itself: if any of them fails, the registration fails. Responses and
         // declines are guarded like endpoints.gs guarded them.
         await Promise.all([
+            uploads,
             sheets.append(MAIN_SPREADSHEET_ID, 'Patients', [patientRow]),
             sheets.append(MAIN_SPREADSHEET_ID, 'Appointments', [[
                 appointmentID, '', event.facilityID, '', event.facilityName, patientID,
@@ -241,15 +263,11 @@ export function submitAction({ sheets, store, slots, drive, mailer, documents, n
         ]);
         clock.lap('rows');
 
-        // The extras. Documents and email run together; none may fail the booking.
+        // The registration exists. Log its documents and send the email; none of
+        // this may fail the booking.
         const qrBase64 = await qrCode(appointmentID);
-        const job = {
-            data, patientID, appointmentID, sigFile, signatureUrls,
-            event, forms: formsUsed(selectedServices), formToService, services: renderedServices,
-            stamp
-        };
         await Promise.all([
-            guarded('Documents', () => documents.generate(job)),
+            guarded('Document log', async () => documents.record(job, (await prepared) || [])),
             email(data, patientID, appointmentID, qrBase64, event)
         ]);
         clock.lap('extras');

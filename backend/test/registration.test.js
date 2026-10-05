@@ -213,6 +213,30 @@ test('a filled document is uploaded and logged once per service that used it', a
         [result.appointmentID, '10-03-2026', 'School Health core', 'File', 'Completed Forms/School Health/DeclinesTest_Core_10032026.pdf']);
 });
 
+test('the signature link in Patients is the file that was uploaded', async () => {
+    const w = world();
+    await w.slots.bookSlot({ eventId: 'ev1', startTime: '10:00' });
+    await w.submitForm(payload());
+    const [patient] = w.rows(MAIN, 'Patients').slice(1);
+    const sig = w.drive.files.find(f => f.mimeType === 'image/png');
+    assert.equal(patient[35], `https://drive.google.com/file/d/${sig.id}/view?usp=drivesdk`);
+});
+
+test('a registration whose records fail logs no documents and sends no email', async () => {
+    const fillers = { shccore: async () => [{ name: 'x.pdf', bytes: Buffer.from('%PDF'), folderId: 'f', folderPath: 'p/', description: 'd' }] };
+    const w = world({ fillers });
+    await w.slots.bookSlot({ eventId: 'ev1', startTime: '10:00' });
+    const append = w.sheets.append.bind(w.sheets);
+    w.sheets.append = async (id, sheet, rows) => {
+        if (sheet === 'Appointments') throw new Error('quota');
+        return append(id, sheet, rows);
+    };
+    await assert.rejects(w.submitForm(payload()), /quota/);
+    await new Promise(r => setTimeout(r, 20));
+    assert.equal(w.rows(MAIN, 'Attachments').length, 1);
+    assert.deepEqual(w.mailer.sent, []);
+});
+
 test('a failing filler costs the document, never the registration', async () => {
     const w = world({ fillers: { shccore: async () => { throw new Error('boom'); } } });
     await w.slots.bookSlot({ eventId: 'ev1', startTime: '10:00' });

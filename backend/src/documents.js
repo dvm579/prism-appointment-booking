@@ -43,7 +43,8 @@ function attachmentRow(job, serviceId, pdf) {
  *   needs and is optional.
  */
 export function documentGenerator({ drive, sheets, fillers, rows }) {
-    async function generate(job) {
+    /** Fills and uploads every document the job's forms have a filler for. */
+    async function prepare(job) {
         const pdfs = [];
         await Promise.all(job.forms.map(async formId => {
             const fill = fillers[formId];
@@ -55,11 +56,14 @@ export function documentGenerator({ drive, sheets, fillers, rows }) {
             }
         }));
 
-        const uploaded = await Promise.all(pdfs.map(async pdf => ({
+        return Promise.all(pdfs.map(async pdf => ({
             ...pdf,
             file: await drive.upload(pdf.name, 'application/pdf', pdf.bytes, pdf.folderId)
         })));
+    }
 
+    /** Logs uploaded documents and writes the clinical rows, once the registration exists. */
+    async function record(job, uploaded) {
         const attachmentRows = uploaded.flatMap(pdf =>
             servicesForForm(job, pdf.formId).map(service => attachmentRow(job, service.serviceId, pdf))
         );
@@ -70,5 +74,5 @@ export function documentGenerator({ drive, sheets, fillers, rows }) {
         return uploaded.map(pdf => pdf.file);
     }
 
-    return { generate };
+    return { prepare, record };
 }
