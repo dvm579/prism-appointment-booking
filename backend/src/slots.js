@@ -8,7 +8,7 @@
 
 import { BOOKING_SPREADSHEET_ID, PENDING_GRACE_MS } from './config.js';
 import { coded } from './errors.js';
-import { normalizeTime, parseSheetDate, sheetTimestamp, wallClockToEpoch } from './time.js';
+import { normalizeTime, parseSheetDate, wallClockToEpoch } from './time.js';
 
 const SLOTS = 'Appointment Slots';
 
@@ -46,6 +46,8 @@ function holdKey(eventId, startTime) {
 }
 
 export function slotActions({ sheets, store, now = () => new Date() }) {
+    const stamp = date => sheets.stamp(BOOKING_SPREADSHEET_ID, date);
+
     async function setStatus(row, values) {
         await sheets.update(BOOKING_SPREADSHEET_ID, SLOTS, row, COL.status, [values]);
     }
@@ -90,7 +92,7 @@ export function slotActions({ sheets, store, now = () => new Date() }) {
                 throw coded('SLOT_UNAVAILABLE', 'That slot is no longer available. Please choose another.');
             }
 
-            await Promise.all([setStatus(open, ['Pending', sheetTimestamp(now())]), rememberHold(payload)]);
+            await Promise.all([setStatus(open, ['Pending', await stamp(now())]), rememberHold(payload)]);
             return { status: 'success', message: 'Slot reserved.' };
         });
     }
@@ -107,7 +109,7 @@ export function slotActions({ sheets, store, now = () => new Date() }) {
                 await forgetHold(payload);
                 return { status: 'success', message: 'Slot was not in a pending state.' };
             }
-            await setStatus(row, ['Open', sheetTimestamp(now())]);
+            await setStatus(row, ['Open', await stamp(now())]);
             await forgetHold(payload);
             return { status: 'success', message: 'Slot released.' };
         });
@@ -124,7 +126,7 @@ export function slotActions({ sheets, store, now = () => new Date() }) {
                     'We could not confirm your slot — the reservation may have expired. Please choose a slot again.'
                 );
             }
-            await setStatus(row, ['Booked', sheetTimestamp(at), appointmentId]);
+            await setStatus(row, ['Booked', await stamp(at), appointmentId]);
         });
     }
 
@@ -140,12 +142,13 @@ export function slotActions({ sheets, store, now = () => new Date() }) {
         return exclusive(async () => {
             const rows = await sheets.read(BOOKING_SPREADSHEET_ID, SLOTS);
             const cutoff = now().getTime() - PENDING_GRACE_MS;
+            const zone = await sheets.timeZone(BOOKING_SPREADSHEET_ID);
             let reopened = 0;
             for (let i = 1; i < rows.length; i++) {
                 if (rows[i][COL.status - 1] !== 'Pending') continue;
-                const stamp = parseSheetDate(rows[i][COL.updatedAt - 1]);
-                if (!stamp || wallClockToEpoch(stamp) > cutoff) continue;
-                await setStatus(i + 1, ['Open', sheetTimestamp(now())]);
+                const held = parseSheetDate(rows[i][COL.updatedAt - 1]);
+                if (!held || wallClockToEpoch(held, zone) > cutoff) continue;
+                await setStatus(i + 1, ['Open', await stamp(now())]);
                 reopened++;
             }
             return { status: 'success', reopened };

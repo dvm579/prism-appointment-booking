@@ -3,7 +3,9 @@
 import { Firestore } from '@google-cloud/firestore';
 import { GoogleAuth, OAuth2Client } from 'google-auth-library';
 import { createApp } from './app.js';
-import { PORT, SWEEP_CALLER } from './config.js';
+import {
+    BOOKING_SPREADSHEET_ID, MAIN_SPREADSHEET_ID, PORT, RESPONSES_SPREADSHEET_ID, SWEEP_CALLER
+} from './config.js';
 import { documentGenerator } from './documents.js';
 import { GoogleDrive } from './drive.js';
 import { GmailSender } from './email.js';
@@ -22,6 +24,12 @@ const auth = new GoogleAuth({
 });
 
 const sheets = new GoogleSheets(auth);
+// Each workbook's time zone, read once up front and logged: they differ.
+for (const [name, id] of Object.entries({ BOOKING_SPREADSHEET_ID, MAIN_SPREADSHEET_ID, RESPONSES_SPREADSHEET_ID })) {
+    sheets.timeZone(id)
+        .then(zone => console.info(`${name} time zone: ${zone}`))
+        .catch(error => console.warn(`Could not read the ${name} time zone:`, error.message));
+}
 const drive = new GoogleDrive(auth);
 // Reserve Drive ids before the first registration needs one.
 drive.refill().catch(error => console.warn('Could not reserve Drive ids:', error.message));

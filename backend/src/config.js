@@ -19,8 +19,12 @@ export const CLINICAL_SPREADSHEET_ID = env.CLINICAL_SPREADSHEET_ID || '1h45EaaeX
 export const UPLOAD_FOLDER_ID = env.UPLOAD_FOLDER_ID || '1LydgJoBKURyzl-_nYDWRn4dYL51AeM2k';
 
 /**
- * Every date and time the sheets hold is Chicago wall-clock time, which is what
- * the Apps Script project ran in. Timestamps are written in it and read back in it.
+ * The fallback zone, used only until a spreadsheet's own zone has been read.
+ *
+ * Timestamps are written in each spreadsheet's own time zone (see
+ * `GoogleSheets.stamp`), because that is where Apps Script's Date objects
+ * landed - and the workbooks do not agree: Main DB shows a 9:14 Chicago
+ * booking as 8:14.
  */
 export const TIME_ZONE = env.TIME_ZONE || 'America/Chicago';
 

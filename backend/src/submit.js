@@ -17,7 +17,7 @@ import {
 import { dataUrlBytes, driveUrl } from './drive.js';
 import { confirmationMessage } from './email.js';
 import { coded } from './errors.js';
-import { serviceDate, sheetTimestamp } from './time.js';
+import { serviceDate } from './time.js';
 
 /** Looks up an Events row by EventID. */
 async function findEvent(sheets, eventId) {
@@ -158,7 +158,11 @@ export function submitAction({ sheets, store, slots, drive, mailer, documents, n
         clock.lap('event');
 
         const at = now();
-        const stamp = sheetTimestamp(at);
+        // One instant, written in each workbook's own zone.
+        const [mainStamp, responsesStamp] = await Promise.all([
+            sheets.stamp(MAIN_SPREADSHEET_ID, at),
+            sheets.stamp(RESPONSES_SPREADSHEET_ID, at)
+        ]);
         const patientID = randomUUID();
         const appointmentID = data.isWaitlist ? '' : randomUUID();
         const selectedServices = data.selectedServices || [];
@@ -178,7 +182,7 @@ export function submitAction({ sheets, store, slots, drive, mailer, documents, n
         ].filter(Boolean).join(', ');
 
         const patientRow = [
-            stamp, patientID, event.facilityID, event.facilityName,
+            mainStamp, patientID, event.facilityID, event.facilityName,
             demographics.firstName, demographics.middleName, demographics.lastName,
             demographics.dob, demographics.gender, demographics.race,
             demographics.ethnicity, fullAddress, demographics.street,
@@ -224,7 +228,7 @@ export function submitAction({ sheets, store, slots, drive, mailer, documents, n
         });
 
         const declineRows = (data.consentDeclines || []).map(decline => [
-            stamp, patientID, appointmentID, decline.consentId || '',
+            responsesStamp, patientID, appointmentID, decline.consentId || '',
             decline.itemId || '', decline.label || '', decline.note || ''
         ]);
 
@@ -233,7 +237,8 @@ export function submitAction({ sheets, store, slots, drive, mailer, documents, n
         const job = {
             data, patientID, appointmentID, sigFile, signatureUrls,
             event, forms: formsUsed(selectedServices), formToService, services: renderedServices,
-            stamp
+            // Attachments lives in Main DB.
+            stamp: mainStamp
         };
         const prepared = guarded('Documents', () => documents.prepare(job));
 

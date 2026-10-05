@@ -19,9 +19,9 @@ function parts(date, zone = TIME_ZONE) {
     return out;
 }
 
-/** `10/5/2026 9:14:01` — a timestamp cell, as the sheet displays one. */
-export function sheetTimestamp(date) {
-    const p = parts(date);
+/** `10/5/2026 9:14:01` — a timestamp cell, as a sheet in `zone` displays one. */
+export function sheetTimestamp(date, zone = TIME_ZONE) {
+    const p = parts(date, zone);
     return `${p.month}/${p.day}/${p.year} ${p.hour}:${String(p.minute).padStart(2, '0')}:${String(p.second).padStart(2, '0')}`;
 }
 

@@ -4,6 +4,8 @@
 // test can swap in `FakeSheets` and drive the real logic without the network.
 
 import { google } from 'googleapis';
+import { TIME_ZONE } from './config.js';
+import { sheetTimestamp } from './time.js';
 
 /** `'Appointment Slots'!E5` style references. */
 function a1(sheet, row, col, rows = 1, cols = 1) {
@@ -21,6 +23,32 @@ export class GoogleSheets {
     constructor(auth) {
         this.api = google.sheets({ version: 'v4', auth });
         this.titles = new Map();
+        this.zones = new Map();
+    }
+
+    /**
+     * The spreadsheet's own time zone, read once.
+     *
+     * A typed timestamp is stored as wall-clock time in that zone, so writing it
+     * in any other zone shifts it - which is what Main DB, an hour behind
+     * Chicago, showed when this service first wrote Chicago time into it.
+     */
+    async timeZone(spreadsheetId) {
+        if (!this.zones.has(spreadsheetId)) {
+            this.zones.set(spreadsheetId, this.api.spreadsheets
+                .get({ spreadsheetId, fields: 'properties.timeZone' })
+                .then(({ data }) => data.properties.timeZone || TIME_ZONE)
+                .catch(error => {
+                    this.zones.delete(spreadsheetId);
+                    throw error;
+                }));
+        }
+        return this.zones.get(spreadsheetId);
+    }
+
+    /** `date` as a timestamp cell of this spreadsheet. */
+    async stamp(spreadsheetId, date) {
+        return sheetTimestamp(date, await this.timeZone(spreadsheetId));
     }
 
     /**
@@ -83,9 +111,18 @@ export class GoogleSheets {
 
 /** In-memory stand-in: `{spreadsheetId: {sheetName: rows}}`, values kept as text. */
 export class FakeSheets {
-    constructor(books = {}) {
+    constructor(books = {}, zones = {}) {
         this.books = books;
+        this.zones = zones;
         this.calls = [];
+    }
+
+    async timeZone(spreadsheetId) {
+        return this.zones[spreadsheetId] || TIME_ZONE;
+    }
+
+    async stamp(spreadsheetId, date) {
+        return sheetTimestamp(date, await this.timeZone(spreadsheetId));
     }
 
     sheet(spreadsheetId, sheet) {

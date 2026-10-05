@@ -17,7 +17,7 @@ import { sheetTimestamp } from '../src/time.js';
 
 const NOW = new Date('2026-10-05T15:00:00Z'); // 10:00 in Chicago
 
-function world({ fillers = {} } = {}) {
+function world({ fillers = {}, zones = {} } = {}) {
     const sheets = new FakeSheets({
         [BOOK]: {
             Events: [
@@ -36,7 +36,7 @@ function world({ fillers = {} } = {}) {
         },
         [MAIN]: { Patients: [['h']], Appointments: [['h']], 'Services Rendered': [['h']], Attachments: [['h']] },
         [RESP]: { 'Question Responses': [['PatientID', 'ServiceID', 'QuestionID', 'Answer']] }
-    });
+    }, zones);
     const store = new MemoryStore();
     const slots = slotActions({ sheets, store, now: () => NOW });
     const drive = new FakeDrive();
@@ -235,6 +235,16 @@ test('a registration whose records fail logs no documents and sends no email', a
     await new Promise(r => setTimeout(r, 20));
     assert.equal(w.rows(MAIN, 'Attachments').length, 1);
     assert.deepEqual(w.mailer.sent, []);
+});
+
+test('each workbook gets the timestamp in its own time zone', async () => {
+    // Main DB is an hour behind Chicago, as the live one is.
+    const w = world({ zones: { [MAIN]: 'America/Denver' } });
+    await w.slots.bookSlot({ eventId: 'ev1', startTime: '10:00' });
+    await w.submitForm(payload());
+    assert.equal(w.rows(MAIN, 'Patients')[1][0], '10/5/2026 9:00:00');          // Denver
+    assert.equal(w.rows(RESP, 'Consent Declines')[1][0], '10/5/2026 10:00:00'); // Chicago
+    assert.equal(slotRow(w, '10:00')[5], '10/5/2026 10:00:00');                  // Chicago
 });
 
 test('a failing filler costs the document, never the registration', async () => {
