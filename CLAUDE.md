@@ -18,6 +18,7 @@ something is shaped the way it is are answered there.
 | `apps-script/` | Mirrors the Apps Script project. `endpoints.gs` is the web app; `pdfHandler.gs` is the document queue; one `.gs` per form generates its PDF. |
 | `apps-script/tools/` | One-off scripts run by hand from the editor, never on a trigger. |
 | `tools/school-health/` | Build step that generates the School Health rows and the importer. See its README. |
+| `tools/stamp-versions.mjs` | Writes the content-hash versions of `src/` and the stylesheet into `index.html`. Run by `.githooks/pre-commit`. |
 | `docs/schema.md` | The data model. |
 
 ## Things that have bitten
@@ -39,6 +40,14 @@ something is shaped the way it is are answered there.
   and none of the booking sheets.
 - **Commit straight to `main`.** No feature branches here, even though `main`
   deploys live.
+- **Every page asset loads under a content hash.** GitHub Pages lets browsers
+  cache each file for ten minutes, and a deploy that added an export once ran a
+  cached `utils.js` beside a fresh `slots.js` that imported it, so the page did
+  not start. An import map in `index.html` now pins each module to a hash of its
+  contents. The pre-commit hook keeps it current; enable it once per clone with
+  `git config core.hooksPath .githooks`. Without the hook, run
+  `node tools/stamp-versions.mjs` before committing page changes; a stale stamp
+  only brings back the old ten-minute risk, it never breaks the page.
 
 ## Verifying UI work
 

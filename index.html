@@ -11,7 +11,39 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Roboto:wght@400;500;700&family=Caveat&display=swap" rel="stylesheet">
-    <link href="assets/css/style.css" rel="stylesheet">
+    <link href="assets/css/style.css?v=0a53768fb4" rel="stylesheet">
+    <!--
+      Every page asset is loaded under a hash of its contents, so a deploy never
+      pairs a browser's cached copy of one module with a fresh copy of another.
+      The import map does this for modules imported by relative path. Written by
+      tools/stamp-versions.mjs from the pre-commit hook; do not edit by hand.
+    -->
+    <!-- asset-versions:start -->
+    <script type="importmap">
+    {
+      "imports": {
+        "./src/api.js": "./src/api.js?v=a4bc49c7d4",
+        "./src/catalog.js": "./src/catalog.js?v=9082199641",
+        "./src/config.js": "./src/config.js?v=a369a58bdc",
+        "./src/consent.js": "./src/consent.js?v=c3a0dbea4b",
+        "./src/dom.js": "./src/dom.js?v=001658d726",
+        "./src/events.js": "./src/events.js?v=c9ea05fc20",
+        "./src/insurance.js": "./src/insurance.js?v=0e3ed6e10b",
+        "./src/intake.js": "./src/intake.js?v=aaae2c3d2b",
+        "./src/main.js": "./src/main.js?v=de28632379",
+        "./src/patient.js": "./src/patient.js?v=17f8af3e3a",
+        "./src/prefill.js": "./src/prefill.js?v=633f4fde4d",
+        "./src/questions.js": "./src/questions.js?v=a19b81a598",
+        "./src/signature.js": "./src/signature.js?v=bd24ceecb4",
+        "./src/slots.js": "./src/slots.js?v=a80621eb6f",
+        "./src/state.js": "./src/state.js?v=566bc4e9c5",
+        "./src/steps.js": "./src/steps.js?v=0d3efdeb68",
+        "./src/submit.js": "./src/submit.js?v=a289628748",
+        "./src/utils.js": "./src/utils.js?v=be6b096393"
+      }
+    }
+    </script>
+    <!-- asset-versions:end -->
   </head>
   <body>
 
@@ -554,7 +586,7 @@
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
-    <script type="module" src="src/main.js"></script>
+    <script type="module" src="src/main.js?v=de28632379"></script>
 
     <script>
       document.getElementById('copyright-year').textContent = new Date().getFullYear();

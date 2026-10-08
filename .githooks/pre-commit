@@ -1,0 +1,22 @@
+#!/bin/sh
+# Keeps index.html's asset versions in step with the files they name.
+# See tools/stamp-versions.mjs. Enabled per clone with:
+#   git config core.hooksPath .githooks
+
+page_files='^(index\.html|src/[^/]+\.js|assets/css/[^/]+\.css)$'
+
+# Nothing on the page is changing: nothing to stamp.
+git diff --cached --name-only | grep -qE "$page_files" || exit 0
+
+if git diff --quiet -- index.html src assets/css; then
+    # The working copy of the page is exactly what is being committed, so stamp
+    # it and stage the result.
+    node tools/stamp-versions.mjs && git add index.html
+else
+    # Part of the page is left unstaged, so the working copy is not what is
+    # being committed. Check the staged files rather than stamp the wrong ones.
+    node tools/stamp-versions.mjs --check --staged || {
+        echo 'pre-commit: stage all of src/ and assets/css/, or stamp and stage index.html yourself.' >&2
+        exit 1
+    }
+fi
