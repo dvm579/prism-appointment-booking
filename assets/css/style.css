@@ -1,30 +1,80 @@
 /*
  * Prism Health appointment booking — theme layer on top of Bootstrap 5.3.
  * Bootstrap is loaded first; everything here is an intentional override.
+ *
+ * The palette, type and shapes are prism.org's: maroon and gold on cream, Poppins
+ * for headings and buttons, Roboto for reading. Field styling follows the site's
+ * own form (prism.org/partner/register), buttons and cards follow its event list,
+ * which is where most patients arrive from. Token names match the site's CSS so
+ * a change there is easy to carry across.
  */
 
 :root {
-    --prism-navy: #002855;
-    --prism-navy-light: #0d3b6e;
-    --prism-navy-lighter: #1a4c85;
-    --prism-blue: #2a7de1;
-    --prism-blue-dark: #1a6bcf;
-    --prism-text: #f0f0f0;
-    --prism-muted: #6c757d;
+    --maroon: #861626;
+    --maroon-deep: #690C1A;
+    --maroon-ink: #4A0812;
+    --maroon-soft: #F6E9EB;
+    --blush: #F3DCE0;
+    --gold: #C9971F;
+    --gold-bright: #E9BC57;
+    --gold-ink: #87620F;
+    --gold-soft: #F5E9CF;
+    --cream: #FAF6F0;
+    --paper: #FFFFFF;
+    --ink: #33302E;
+    --ink-soft: #6E6862;
+    --line: #E9E2DA;
+    --field-line: #C9B8A8;
+
+    --f-body: 'Roboto', system-ui, sans-serif;
+    --f-display: 'Poppins', system-ui, sans-serif;
+
+    --r: 18px;
+    --r-field: 4px;
+    --shadow: 0 10px 30px rgba(105, 12, 26, 0.08);
+    --shadow-lg: 0 22px 55px rgba(60, 8, 16, 0.16);
+    --shadow-btn: 0 6px 18px rgba(134, 22, 38, 0.28);
+    --ease: cubic-bezier(0.25, 0.8, 0.35, 1);
+    --focus: 3px solid var(--gold-bright);
+
+    --maroon-grad:
+        radial-gradient(110% 90% at 88% -12%, rgba(201, 151, 31, 0.16), transparent 55%),
+        radial-gradient(130% 110% at 8% 112%, rgba(30, 2, 8, 0.55), transparent 62%),
+        linear-gradient(156deg, #8C1729 0%, #690C1A 48%, #4E0913 100%);
+
+    /* Bootstrap's own variables, so its components pick the palette up. */
+    --bs-body-font-family: var(--f-body);
+    --bs-body-color: var(--ink);
+    --bs-body-color-rgb: 51, 48, 46;
+    --bs-body-bg: var(--cream);
+    --bs-secondary-color: var(--ink-soft);
+    --bs-tertiary-bg-rgb: 250, 246, 240;
+    --bs-heading-color: var(--maroon-deep);
+    --bs-primary: var(--maroon);
+    --bs-primary-rgb: 134, 22, 38;
+    /* Required-field asterisks, which the site colours as its accent. */
+    --bs-danger-rgb: 134, 22, 38;
+    --bs-link-color: var(--maroon);
+    --bs-link-color-rgb: 134, 22, 38;
+    --bs-link-hover-color: var(--maroon-deep);
+    --bs-link-hover-color-rgb: 105, 12, 26;
+    --bs-border-color: var(--line);
+    --bs-form-invalid-color: var(--maroon);
+    --bs-form-invalid-border-color: var(--maroon);
 }
 
 /* --- Layout ------------------------------------------------------------- */
 
 body {
-    background-color: var(--prism-navy);
-    color: #fff;
-    font-family: 'Poppins', sans-serif;
-    padding-top: 2rem;
-    padding-bottom: 2rem;
+    background-color: var(--cream);
+    color: var(--ink);
+    font-family: var(--f-body);
 }
 
-h1, h2, h3, h4 {
-    font-weight: 700;
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--f-display);
+    font-weight: 600;
+    letter-spacing: -0.01em;
 }
 
 fieldset {
@@ -32,31 +82,220 @@ fieldset {
     min-width: 0; /* Lets flex/grid children shrink inside a fieldset. */
 }
 
+a:focus-visible,
+button:focus-visible,
+.btn:focus-visible,
+.form-control:focus-visible,
+.form-select:focus-visible,
+.form-check-input:focus-visible {
+    outline: var(--focus);
+    outline-offset: 3px;
+    box-shadow: none;
+}
+
+main {
+    padding-top: 2.5rem;
+}
+
+/* A section opens with the site's short gold rule above its heading. */
+#eventSelectionSection > h3,
+#slotSection > h3,
+#formSection > h3,
+#confirmationSection > h2 {
+    font-size: clamp(1.4rem, 3vw, 1.75rem);
+    margin-bottom: 1.25rem;
+}
+
+#eventSelectionSection > h3::before,
+#slotSection > h3::before,
+#formSection > h3::before,
+#confirmationSection > h2::before {
+    content: '';
+    display: block;
+    width: 44px;
+    height: 3px;
+    margin-bottom: 0.9rem;
+    border-radius: 2px;
+    background: var(--gold-bright);
+}
+
+#formSection > h3.text-center::before {
+    margin-inline: auto;
+}
+
+/* --- Header ------------------------------------------------------------- */
+
+.site-hero {
+    background: var(--maroon-grad);
+    color: #fff;
+    padding: 1.25rem 0 2.75rem;
+}
+
+.hero-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+}
+
 #logo {
-    max-height: 60px;
+    display: block;
+    height: 44px;
     width: auto;
 }
 
-.footer-logo {
-    max-height: 50px;
+.lang-switch {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
 }
 
-/* Phone only — centre and shrink the logo. */
+.lang-switch .btn {
+    padding: 0.3rem 0.85rem;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.07);
+    color: #fff;
+    font-family: var(--f-display);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    box-shadow: none;
+}
+
+.lang-switch .btn:hover {
+    border-color: var(--gold-bright);
+    color: var(--gold-bright);
+    transform: none;
+}
+
+.hero-kicker {
+    margin: 0 0 0.6rem;
+    color: var(--gold-bright);
+    font-family: var(--f-display);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.site-hero h1 {
+    margin: 0;
+    color: #fff;
+    font-size: clamp(2rem, 5.5vw, 3.25rem);
+    line-height: 1.1;
+}
+
+.hero-event {
+    margin: 0.85rem 0 0;
+    color: rgba(255, 255, 255, 0.86);
+    font-size: clamp(1rem, 2.4vw, 1.2rem);
+    font-weight: 500;
+    line-height: 1.5;
+    letter-spacing: 0;
+}
+
+.hero-event b {
+    color: #fff;
+    font-weight: 600;
+}
+
+/* Nothing to say until an event has loaded. */
+.hero-event:has(#eventDetails:empty) {
+    display: none;
+}
+
+/* Phone only — the language pills drop under the logo. */
 @media (max-width: 600px) {
-    .logo-wrapper {
-        width: 100%;
-        text-align: center;
+    .site-hero {
+        padding-bottom: 2rem;
     }
 
-    .logo-wrapper #logo {
-        width: 50%;
-        max-height: none;
-        padding-bottom: 1rem;
+    .hero-bar {
+        margin-bottom: 1.75rem;
+    }
+
+    #logo {
+        height: 38px;
     }
 }
 
-footer {
-    background-color: var(--prism-navy);
+/* --- Footer ------------------------------------------------------------- */
+
+.site-footer {
+    margin-top: 4rem;
+    padding: 3.5rem 0 2rem;
+    background: var(--maroon-ink);
+    color: rgba(255, 255, 255, 0.78);
+}
+
+.footer-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr;
+    gap: 2.5rem;
+}
+
+@media (max-width: 767.98px) {
+    .footer-grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+}
+
+.footer-logo {
+    height: 44px;
+    width: auto;
+}
+
+.footer-motto {
+    margin: 1rem 0 0;
+    max-width: 22rem;
+}
+
+.site-footer h3 {
+    margin-bottom: 0.9rem;
+    color: var(--gold-bright);
+    font-size: 0.8125rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.site-footer ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.site-footer li + li {
+    margin-top: 0.4rem;
+}
+
+.site-footer a {
+    color: rgba(255, 255, 255, 0.88);
+    text-decoration: none;
+}
+
+.site-footer a:hover {
+    color: var(--gold-bright);
+}
+
+.footer-social {
+    display: flex;
+    gap: 1.1rem;
+    margin-top: 1.25rem;
+}
+
+.footer-social svg {
+    width: 20px;
+    height: 20px;
+}
+
+.footer-legal {
+    margin: 2.5rem 0 0;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    font-size: 0.85rem;
 }
 
 /* --- Loading overlay ---------------------------------------------------- */
@@ -67,12 +306,14 @@ footer {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(255, 255, 255, 0.85);
+    background: rgba(250, 246, 240, 0.88);
     z-index: 9999;
 }
 
 #loadingOverlay #loadingMessage {
-    color: #000;
+    color: var(--ink);
+    font-family: var(--f-display);
+    font-weight: 500;
 }
 
 /* --- Status banner ------------------------------------------------------ */
@@ -81,30 +322,131 @@ footer {
     position: sticky;
     top: 0;
     z-index: 1020;
+    border-radius: 12px;
+}
+
+/* --- Buttons ------------------------------------------------------------ */
+
+.btn {
+    border-radius: 999px;
+    font-family: var(--f-display);
+    font-weight: 600;
+    transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease),
+        background-color 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.btn-lg {
+    padding: 0.8rem 1.9rem;
+    font-size: 1.02rem;
+}
+
+.btn-primary {
+    --bs-btn-bg: var(--maroon);
+    --bs-btn-border-color: var(--maroon);
+    --bs-btn-hover-bg: var(--maroon-deep);
+    --bs-btn-hover-border-color: var(--maroon-deep);
+    --bs-btn-active-bg: var(--maroon-ink);
+    --bs-btn-active-border-color: var(--maroon-ink);
+    --bs-btn-disabled-bg: var(--maroon);
+    --bs-btn-disabled-border-color: var(--maroon);
+    box-shadow: var(--shadow-btn);
+}
+
+.btn-primary:hover {
+    transform: translateY(-1px);
+}
+
+/* The site's outline button: white, maroon text, maroon edge. */
+.btn-outline-secondary {
+    --bs-btn-color: var(--maroon-deep);
+    --bs-btn-bg: var(--paper);
+    --bs-btn-border-color: var(--maroon-deep);
+    --bs-btn-hover-color: var(--maroon-deep);
+    --bs-btn-hover-bg: var(--maroon-soft);
+    --bs-btn-hover-border-color: var(--maroon-deep);
+    --bs-btn-active-color: var(--maroon-deep);
+    --bs-btn-active-bg: var(--blush);
+    --bs-btn-active-border-color: var(--maroon-deep);
 }
 
 /* --- Forms -------------------------------------------------------------- */
 
+/* The form is a card on the cream page, like the site's partner form. */
+#regForm {
+    padding: clamp(1.25rem, 4vw, 2.25rem);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    background: var(--paper);
+    box-shadow: var(--shadow);
+}
+
+/* Section headings carry the site's form legend: maroon over a gold rule. */
+#regForm fieldset > h4 {
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--gold-bright);
+    font-size: 1.15rem;
+    font-weight: 700;
+}
+
+.question-section > h5 {
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--line);
+    font-size: 1.05rem;
+}
+
 .form-label,
-.form-check-label,
-.accordion-body p,
-.accordion-body li {
-    color: var(--prism-text);
+.form-check-label {
+    color: var(--ink);
+}
+
+.form-label {
+    font-weight: 500;
+}
+
+.form-text {
+    color: var(--ink-soft);
 }
 
 .form-control,
 .form-select {
-    background-color: #fff;
-    color: #212529;
-    border: 1px solid #ced4da;
+    min-height: 44px;
+    background-color: var(--paper);
+    color: var(--ink);
+    border: 1px solid var(--field-line);
+    border-radius: var(--r-field);
+}
+
+.form-select {
+    --bs-form-select-bg-img: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23690C1A' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
 }
 
 .form-control:focus,
 .form-select:focus {
-    background-color: #fff;
-    color: #212529;
-    border-color: #86b7fe;
-    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    background-color: var(--paper);
+    color: var(--ink);
+    border-color: var(--maroon);
+    outline: var(--focus);
+    outline-offset: 2px;
+    box-shadow: none;
+}
+
+.form-check-input {
+    border-color: var(--field-line);
+}
+
+.form-check-input:checked {
+    background-color: var(--maroon);
+    border-color: var(--maroon);
+}
+
+.form-check-input:focus {
+    border-color: var(--maroon);
+    box-shadow: 0 0 0 0.2rem rgba(233, 188, 87, 0.55);
+}
+
+.form-switch .form-check-input:focus:not(:checked) {
+    --bs-form-switch-bg: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23861626'/%3e%3c/svg%3e");
 }
 
 /*
@@ -118,7 +460,7 @@ footer {
  */
 .was-validated .form-control:valid,
 .was-validated .form-select:valid {
-    border-color: #ced4da;
+    border-color: var(--field-line);
     padding-right: .75rem;
     background-image: none;
 }
@@ -131,44 +473,66 @@ footer {
 
 .was-validated .form-control:valid:focus,
 .was-validated .form-select:valid:focus {
-    border-color: #86b7fe;
-    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    border-color: var(--maroon);
+    box-shadow: none;
 }
 
 .was-validated .form-check-input:valid {
-    border-color: var(--bs-border-color);
+    border-color: var(--field-line);
 }
 
 .was-validated .form-check-input:valid:checked {
-    background-color: #0d6efd;
-    border-color: #0d6efd;
+    background-color: var(--maroon);
+    border-color: var(--maroon);
 }
 
 .was-validated .form-check-input:valid:focus {
-    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    box-shadow: 0 0 0 0.2rem rgba(233, 188, 87, 0.55);
 }
 
 .was-validated .form-check-input:valid ~ .form-check-label {
-    color: var(--prism-text);
+    color: var(--ink);
+}
+
+/* The site marks an invalid field with a heavier edge, not just a colour. */
+.was-validated .form-control:invalid,
+.was-validated .form-select:invalid {
+    border-width: 2px;
+}
+
+/* Bootstrap draws its warning icon in a fixed red; redraw it in maroon. */
+.was-validated .form-control:invalid,
+.form-control.is-invalid {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23861626'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23861626' stroke='none'/%3e%3c/svg%3e");
+}
+
+.was-validated .form-select:invalid:not([multiple]):not([size]),
+.form-select.is-invalid:not([multiple]):not([size]) {
+    --bs-form-select-bg-icon: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23861626'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23861626' stroke='none'/%3e%3c/svg%3e");
+}
+
+.invalid-feedback {
+    font-weight: 500;
 }
 
 .form-control::placeholder {
-    color: var(--prism-muted);
-    opacity: 1;
+    color: var(--ink-soft);
+    opacity: 0.8;
 }
 
 .consent-fineprint {
-    font-size: 0.7rem;
-    color: #adb5bd;
+    font-size: 0.75rem;
+    color: var(--ink-soft);
 }
 
 .service-picker {
-    background-color: var(--prism-navy-light);
+    background-color: var(--maroon-soft);
+    border-color: rgba(134, 22, 38, 0.18) !important;
+    border-radius: 14px !important;
 }
 
-.service-picker h5,
-.service-picker .form-check-label {
-    color: #fff;
+.service-picker h5 {
+    font-size: 1.05rem;
 }
 
 /* --- Signature ---------------------------------------------------------- */
@@ -177,8 +541,9 @@ footer {
     width: 100%;
     max-width: 600px;
     height: 180px;
-    background-color: #fff;
-    border-radius: 0.25rem;
+    background-color: var(--paper);
+    border-color: var(--field-line) !important;
+    border-radius: var(--r-field);
     /* Stops the browser scrolling the page while drawing on a touch screen. */
     touch-action: none;
 }
@@ -187,7 +552,7 @@ footer {
     font-family: 'Caveat', cursive;
     font-size: 2.5rem;
     border: none;
-    border-bottom: 1px solid #ccc;
+    border-bottom: 1px solid var(--field-line);
     border-radius: 0;
 }
 
@@ -199,70 +564,71 @@ footer {
 }
 
 .additional-signature {
-    background-color: var(--prism-navy-light);
-    border-color: var(--prism-blue) !important;
+    background-color: var(--cream);
+    border-color: var(--line) !important;
+    border-radius: 14px !important;
+}
+
+#signatureTabContent {
+    border-radius: 0 0 var(--r-field) var(--r-field);
 }
 
 .nav-tabs .nav-link {
-    color: var(--prism-text);
+    color: var(--ink-soft);
+    font-family: var(--f-display);
+    font-weight: 500;
+}
+
+.nav-tabs .nav-link:hover {
+    color: var(--maroon-deep);
+    border-color: transparent;
 }
 
 .nav-tabs .nav-link.active {
-    background-color: var(--prism-navy-light);
-    border-color: var(--prism-blue) var(--prism-blue) transparent;
-    color: #fff;
+    background-color: var(--paper);
+    border-color: var(--line) var(--line) transparent;
+    color: var(--maroon-deep);
 }
 
 /* --- Accordions --------------------------------------------------------- */
 
+.accordion {
+    --bs-accordion-bg: var(--paper);
+    --bs-accordion-color: var(--ink);
+    --bs-accordion-border-color: var(--line);
+    --bs-accordion-border-radius: 12px;
+    --bs-accordion-inner-border-radius: 11px;
+    --bs-accordion-btn-color: var(--maroon-deep);
+    --bs-accordion-active-color: var(--maroon-deep);
+    --bs-accordion-active-bg: var(--maroon-soft);
+    --bs-accordion-btn-focus-box-shadow: none;
+    --bs-accordion-btn-icon: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23690C1A' stroke-linecap='round' stroke-linejoin='round'%3e%3cpath d='M2 5L8 11L14 5'/%3e%3c/svg%3e");
+    --bs-accordion-btn-active-icon: var(--bs-accordion-btn-icon);
+}
+
 .accordion-button {
-    background-color: var(--prism-navy-light);
-    color: #fff;
+    font-family: var(--f-display);
 }
 
-.accordion-button:not(.collapsed) {
-    background-color: var(--prism-navy-lighter);
-    color: #fff;
-}
-
-.accordion-button:focus {
-    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-}
-
-.accordion-button::after {
-    filter: invert(1) grayscale(100%) brightness(200%);
+.accordion-button:focus-visible {
+    outline: var(--focus);
+    outline-offset: -3px;
 }
 
 .accordion-body {
-    background-color: var(--prism-navy);
-    color: var(--prism-text);
     /* The privacy notice is long; keep it scrollable rather than pushing the
        submit button several screens down. */
     max-height: 60vh;
     overflow-y: auto;
 }
 
-/* --- Buttons ------------------------------------------------------------ */
-
-.btn-primary {
-    background-color: var(--prism-blue);
-    border-color: var(--prism-blue);
+.accordion-body h3 {
+    font-size: 1.15rem;
 }
 
-.btn-primary:hover,
-.btn-primary:focus {
-    background-color: var(--prism-blue-dark);
-    border-color: var(--prism-blue-dark);
-}
-
-.btn-outline-secondary {
-    color: #fff;
-    border-color: #fff;
-}
-
-.btn-outline-secondary:hover {
-    background-color: #fff;
-    color: var(--prism-navy);
+.accordion-body h4 {
+    margin-top: 1.25rem;
+    font-size: 1rem;
 }
 
 /* --- Appointment slots -------------------------------------------------- */
@@ -274,13 +640,16 @@ footer {
 }
 
 .slot-item {
-    border: 1px solid var(--prism-blue);
-    background-color: transparent;
-    color: var(--prism-text);
+    border: 1px solid var(--line);
+    background-color: var(--paper);
+    color: var(--maroon-deep);
+    font-family: var(--f-display);
+    font-weight: 600;
     padding: 10px;
     text-align: center;
-    border-radius: 20px;
-    transition: background-color 0.2s, opacity 0.2s;
+    border-radius: 999px;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s,
+        box-shadow 0.2s var(--ease), transform 0.2s var(--ease), opacity 0.2s;
 }
 
 .slot-open {
@@ -289,8 +658,11 @@ footer {
 
 .slot-open:hover,
 .slot-open:focus-visible {
-    background-color: var(--prism-blue);
+    background-color: var(--maroon);
+    border-color: var(--maroon);
     color: #fff;
+    box-shadow: var(--shadow-btn);
+    transform: translateY(-1px);
 }
 
 .slot-selecting {
@@ -300,18 +672,26 @@ footer {
 
 .slot-taken,
 .slot-item:disabled {
-    border-color: var(--prism-muted);
-    color: var(--prism-muted);
-    background-color: #343a40;
+    border-color: var(--line);
+    color: var(--ink-soft);
+    background-color: var(--cream);
+    font-weight: 400;
     cursor: not-allowed;
 }
 
 #timer {
+    padding: 0.3rem 0.85rem;
+    border-radius: 999px;
+    background: var(--maroon-soft);
+    color: var(--maroon-deep);
+    font-family: var(--f-display);
+    font-weight: 600;
     font-variant-numeric: tabular-nums;
 }
 
 #timer.timer-warning {
-    color: #ffc107;
+    background: var(--gold-soft);
+    color: var(--gold-ink);
 }
 
 /* --- Event cards -------------------------------------------------------- */
@@ -321,24 +701,45 @@ footer {
 }
 
 .event-card {
-    background-color: var(--prism-navy-light);
-    border: 1px solid var(--prism-blue);
+    background-color: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    color: var(--ink);
     height: 100%;
-    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    transition: transform 0.25s var(--ease), box-shadow 0.25s var(--ease),
+        border-color 0.25s;
+}
+
+.event-card .card-title {
+    color: var(--maroon-deep);
+    font-family: var(--f-display);
+    font-weight: 600;
 }
 
 .event-card-link:hover .event-card {
-    transform: translateY(-5px);
-    box-shadow: 0 4px 15px rgba(42, 125, 225, 0.4);
+    transform: translateY(-3px);
+    border-color: var(--blush);
+    box-shadow: var(--shadow-lg);
 }
 
 .event-card-past {
-    background-color: #343a40;
-    border-color: var(--prism-muted);
-    color: var(--prism-muted);
+    background-color: var(--cream);
+    color: var(--ink-soft);
+}
+
+.event-card-past .card-title {
+    color: var(--ink-soft);
 }
 
 /* --- Confirmation ------------------------------------------------------- */
+
+#confirmationSection {
+    padding: clamp(1.25rem, 4vw, 2.25rem);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    background: var(--paper);
+    box-shadow: var(--shadow);
+}
 
 #confQrCode {
     max-width: 220px;
@@ -348,11 +749,15 @@ footer {
 /* --- Motion ------------------------------------------------------------- */
 
 @media (prefers-reduced-motion: reduce) {
+    .btn,
     .event-card,
     .slot-item {
         transition: none;
     }
 
+    .btn-primary:hover,
+    .slot-open:hover,
+    .slot-open:focus-visible,
     .event-card-link:hover .event-card {
         transform: none;
     }
@@ -368,8 +773,8 @@ footer {
  */
 .scored-grid table {
     border-collapse: collapse;
-    /* Bootstrap's .table paints its own light background, which reads as a
-       white slab against this page. Let the page's own colours through. */
+    /* Bootstrap's .table paints its own background and text colour. Let the
+       form card's show through instead. */
     --bs-table-bg: transparent;
     --bs-table-color: inherit;
     color: inherit;
@@ -384,6 +789,8 @@ footer {
 .scored-grid thead th {
     vertical-align: bottom;
     border-bottom: 2px solid var(--bs-border-color);
+    color: var(--ink-soft);
+    font-weight: 500;
 }
 
 .scored-grid tbody tr + tr {
@@ -443,6 +850,7 @@ footer {
 
 .consent-decline input:checked ~ label {
     font-weight: 600;
+    color: var(--maroon-deep);
 }
 
 /*
@@ -461,24 +869,30 @@ footer {
     display: none !important;
 }
 
-/*
- * Step progress header.
- *
- * Bootstrap's .text-muted is a dark grey set with !important, which on this
- * page's navy is close to unreadable. The markup drops that class rather than
- * this file trying to out-specify it.
- */
-#stepCount {
-    color: rgba(255, 255, 255, 0.7);
-}
+/* --- Step progress header ----------------------------------------------- */
 
 #stepTitle {
+    color: var(--maroon-deep);
+    font-family: var(--f-display);
     font-size: 1.05rem;
+    font-weight: 600;
+}
+
+#stepCount {
+    color: var(--ink-soft);
+}
+
+#stepNav .progress {
+    --bs-progress-bg: var(--line);
+    --bs-progress-bar-bg: var(--maroon);
+    --bs-progress-border-radius: 999px;
 }
 
 /* Which questionnaire the current step belongs to. Context, not a headline. */
 .form-eyebrow {
-    color: rgba(255, 255, 255, 0.55);
+    color: var(--gold-ink);
+    font-family: var(--f-display);
+    font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: .04em;
+    letter-spacing: .14em;
 }

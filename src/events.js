@@ -73,7 +73,7 @@ export function renderEventCards({ campaignId, facilityId }) {
             return `
                 <div class="col-md-6 col-lg-4 mb-4">
                     <a href="${escapeHtml(href)}" class="event-card-link">
-                        <div class="card event-card text-white h-100">${body}</div>
+                        <div class="card event-card h-100">${body}</div>
                     </a>
                 </div>`;
         })

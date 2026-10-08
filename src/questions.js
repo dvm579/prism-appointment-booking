@@ -508,12 +508,12 @@ export function applyServiceEligibility() {
             note.textContent =
                 'None of the services at this event are available for the date of birth and ' +
                 'gender entered above. Please check those details, or speak to our team.';
-            note.className = 'small mb-0 mt-3 text-warning';
+            note.className = 'small mb-0 mt-3 text-warning-emphasis';
         } else if (hidden > 0) {
             note.textContent =
                 'Some services are not listed because they do not apply to the age or gender ' +
                 'entered above.';
-            note.className = 'small mb-0 mt-3 text-white-50';
+            note.className = 'small mb-0 mt-3 text-body-secondary';
         } else {
             note.className = 'small mb-0 mt-3 d-none';
         }

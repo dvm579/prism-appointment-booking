@@ -5,14 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Register for Appointment | PRISM HEALTH</title>
     <meta name="description" content="Register for an upcoming Prism Health appointment: choose a time slot, complete your intake forms, and receive an emailed confirmation.">
+    <meta name="theme-color" content="#690C1A">
     <link rel="icon" href="assets/favicon.ico" sizes="any">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&family=Caveat&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Roboto:wght@400;500;700&family=Caveat&display=swap" rel="stylesheet">
     <link href="assets/css/style.css" rel="stylesheet">
   </head>
-  <body class="container-fluid container-md">
+  <body>
 
     <!-- LOADING OVERLAY -->
     <div id="loadingOverlay" class="d-none" role="status" aria-live="polite">
@@ -31,45 +32,37 @@
       </div>
     </noscript>
 
-    <!-- LANGUAGE SELECTION -->
-    <div class="row justify-content-center text-center mb-4">
-      <div class="col-auto">
-        <div id="translationButtons">
-          <button type="button" class="btn btn-outline-light btn-sm mx-1 notranslate" data-lang="en">English</button>
-          <button type="button" class="btn btn-outline-light btn-sm mx-1 notranslate" data-lang="es">Español</button>
-          <button type="button" class="btn btn-outline-light btn-sm mx-1 notranslate" data-lang="pl">Polski</button>
-          <button type="button" class="btn btn-outline-light btn-sm mx-1 notranslate" data-lang="zh-CN">中文</button>
-          <button type="button" class="btn btn-outline-light btn-sm mx-1 notranslate" data-lang="hi">हिन्दी</button>
-          <button type="button" class="btn btn-outline-light btn-sm mx-1 notranslate" data-lang="ur">اردو</button>
-          <button type="button" class="btn btn-outline-light btn-sm mx-1 notranslate" data-lang="ar">العربية</button>
-        </div>
-        <div id="google_translate_element" class="d-none"></div>
-      </div>
-    </div>
-
     <!-- PAGE HEADER -->
-    <header class="container mb-5">
-      <div class="row align-items-center">
-        <div class="col-auto logo-wrapper">
-          <a href="https://www.prism.org/schoolhealth" target="_blank" rel="noopener">
-            <img id="logo" src="https://prism.org/wp-content/uploads/2021/01/1-03-1_white-2048x447.png" alt="Prism Health" class="img-fluid">
+    <header class="site-hero">
+      <div class="container-md">
+        <div class="hero-bar">
+          <a class="logo-link" href="https://www.prism.org/schoolhealth" target="_blank" rel="noopener">
+            <img id="logo" src="https://prism.org/assets/prism-logo-white-sm.png" alt="Prism Health" width="360" height="104">
           </a>
+          <div id="translationButtons" class="lang-switch" role="group" aria-label="Language">
+            <button type="button" class="btn btn-sm notranslate" data-lang="en">English</button>
+            <button type="button" class="btn btn-sm notranslate" data-lang="es">Español</button>
+            <button type="button" class="btn btn-sm notranslate" data-lang="pl">Polski</button>
+            <button type="button" class="btn btn-sm notranslate" data-lang="zh-CN">中文</button>
+            <button type="button" class="btn btn-sm notranslate" data-lang="hi">हिन्दी</button>
+            <button type="button" class="btn btn-sm notranslate" data-lang="ur">اردو</button>
+            <button type="button" class="btn btn-sm notranslate" data-lang="ar">العربية</button>
+          </div>
+          <div id="google_translate_element" class="d-none"></div>
         </div>
-        <div class="col text-center">
-          <h1 class="mb-0">Patient Registration</h1>
-        </div>
+        <p class="hero-kicker">Prism Health · Illinois</p>
+        <h1>Patient Registration</h1>
+        <h2 class="hero-event"><span id="eventDetails"></span></h2>
       </div>
     </header>
+
+    <main class="container-md">
 
     <!-- STATUS MESSAGES -->
     <div id="appAlert" class="d-none" role="alert">
       <span id="appAlertMessage"></span>
       <button type="button" class="btn-close" data-dismiss-alert aria-label="Dismiss message"></button>
     </div>
-
-    <h2 class="d-flex justify-content-between align-items-center">
-      <span id="eventDetails"></span>
-    </h2>
 
     <!-- EVENT SELECTION (campaignId / facilityId links) -->
     <section id="eventSelectionSection" class="d-none">
@@ -236,8 +229,8 @@
           <div class="col-12">
             <label for="medicalRecordsUpload" class="form-label">Upload Files</label>
             <input type="file" class="form-control" id="medicalRecordsUpload" name="medicalRecordsUpload" multiple accept=".pdf,image/*">
-            <small class="form-text text-white-50">Accepts PDF and image files, 15 MB total.</small>
-            <div id="fileList" class="mt-2 text-white-50"></div>
+            <small class="form-text">Accepts PDF and image files, 15 MB total.</small>
+            <div id="fileList" class="mt-2 form-text"></div>
           </div>
         </fieldset>
 
@@ -272,7 +265,7 @@
             <div class="col-md-6">
               <label for="primaryPayer" class="form-label">Policyholder Name</label>
               <input type="text" class="form-control" id="primaryPayer" name="primaryPayer" aria-describedby="primaryPayerHelp">
-              <small id="primaryPayerHelp" class="form-text text-white-50">The person the insurance is under: the patient, or a parent or spouse.</small>
+              <small id="primaryPayerHelp" class="form-text">The person the insurance is under: the patient, or a parent or spouse.</small>
             </div>
             <div class="col-md-6">
               <label for="primaryPlan" class="form-label">Primary Insurance Plan Name</label>
@@ -281,7 +274,7 @@
             <div class="col-md-3">
               <label for="primaryId" class="form-label">Primary Insurance ID</label>
               <input type="text" class="form-control" id="primaryId" name="primaryId" aria-describedby="primaryIdHelp">
-              <small id="primaryIdHelp" class="form-text text-white-50">Medicaid: the RIN on your HFS card.</small>
+              <small id="primaryIdHelp" class="form-text">Medicaid: the RIN on your HFS card.</small>
             </div>
             <div class="col-md-3">
               <label for="primaryGroup" class="form-label">Group #</label>
@@ -512,45 +505,47 @@
       <p><i>A confirmation has been emailed to you. Please feel free to take a screenshot.</i></p>
     </section>
 
+    </main>
+
     <!-- FOOTER -->
-    <footer class="mt-5 py-5 text-white">
-      <div class="container">
-        <ul class="nav justify-content-center mb-4">
-          <li class="nav-item"><a href="https://prism.org/about-us/" class="nav-link px-2 text-white">About Us</a></li>
-          <li class="nav-item"><a href="https://prism.org/contact/" class="nav-link px-2 text-white">Contact</a></li>
-          <li class="nav-item"><a href="https://prism.org/careers/" class="nav-link px-2 text-white">Careers</a></li>
-          <li class="nav-item"><a rel="privacy-policy" href="https://prism.org/privacy-policy/" class="nav-link px-2 text-white">Privacy Policy</a></li>
-          <li class="nav-item"><a href="https://prism.org/terms-and-conditions/" class="nav-link px-2 text-white">Terms And Conditions</a></li>
-        </ul>
-
-        <hr>
-
-        <div class="row align-items-center my-4">
-          <div class="col-md-4 text-center text-md-start mb-3 mb-md-0">
-            <a href="https://www.prism.org/schoolhealth" target="_blank" rel="noopener">
-              <img src="https://prism.org/wp-content/uploads/2021/01/1-03-1_white-300x65.png" alt="Prism Health" class="footer-logo">
+    <footer class="site-footer">
+      <div class="container-md">
+        <div class="footer-grid">
+          <div>
+            <a href="https://prism.org/" target="_blank" rel="noopener">
+              <img src="https://prism.org/assets/prism-logo-white-sm.png" alt="Prism Health" class="footer-logo" width="360" height="104">
             </a>
+            <p class="footer-motto">We meet people where they live, learn, and work.</p>
           </div>
-          <div class="col-md-4 text-center mb-3 mb-md-0">
-            <p class="mb-1"><strong>Contact Us:</strong></p>
-            <p class="mb-0">Email: info@prism.org<br>Phone: (800) 325-1812</p>
-          </div>
-          <div class="col-md-4 text-center text-md-end">
-            <a href="https://www.facebook.com/prismhealthlab/" target="_blank" rel="noopener" class="text-white me-3" aria-label="Prism Health on Facebook">
+          <nav aria-label="Prism Health">
+            <h3>Prism Health</h3>
+            <ul>
+              <li><a href="https://prism.org/events/">Find an Event</a></li>
+              <li><a href="https://prism.org/clinics/">Programs</a></li>
+              <li><a href="https://prism.org/about/">About Us</a></li>
+              <li><a rel="privacy-policy" href="https://prism.org/privacy-policy/">Privacy Policy</a></li>
+            </ul>
+          </nav>
+          <div>
+            <h3>Contact Us</h3>
+            <ul>
+              <li><a href="tel:+18003251812">(800) 325-1812</a></li>
+              <li><a href="mailto:info@prism.org">info@prism.org</a></li>
+            </ul>
+            <div class="footer-social">
+            <a href="https://www.facebook.com/prismhealthlab/" target="_blank" rel="noopener" aria-label="Prism Health on Facebook">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 320 512" aria-hidden="true"><path d="M279.14 288l14.22-92.66h-88.91v-60.13c0-25.35 12.42-50.06 52.24-50.06h40.42V6.26S260.43 0 225.36 0C123.08 0 121.08 44.38 121.08 124.72v70.62H22.89V288h81.39v224h100.17V288z"/></svg>
             </a>
-            <a href="https://instagram.com/prismhealthlab" target="_blank" rel="noopener" class="text-white me-3" aria-label="Prism Health on Instagram">
+            <a href="https://instagram.com/prismhealthlab" target="_blank" rel="noopener" aria-label="Prism Health on Instagram">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 448 512" aria-hidden="true"><path d="M224.1 141c-63.6 0-114.9 51.3-114.9 114.9s51.3 114.9 114.9 114.9S339 319.5 339 255.9 287.7 141 224.1 141zm0 189.6c-41.1 0-74.7-33.5-74.7-74.7s33.5-74.7 74.7-74.7 74.7 33.5 74.7 74.7-33.6 74.7-74.7 74.7zm146.4-194.3c0 14.9-12 26.8-26.8 26.8-14.9 0-26.8-12-26.8-26.8s12-26.8 26.8-26.8 26.8 12 26.8 26.8zm76.1 27.2c-1.7-35.9-9.9-67.7-36.2-93.9-26.2-26.2-58-34.4-93.9-36.2-37-2.1-147.9-2.1-184.9 0-35.8 1.7-67.6 9.9-93.9 36.1s-34.4 58-36.2 93.9c-2.1 37-2.1 147.9 0 184.9 1.7 35.9 9.9 67.7 36.2 93.9s58 34.4 93.9 36.2c37 2.1 147.9 2.1 184.9 0 35.9-1.7 67.7-9.9 93.9-36.2 26.2-26.2 34.4-58 36.2-93.9 2.1-37 2.1-147.8 0-184.8zM398.8 388c-7.8 19.6-22.9 34.7-42.6 42.6-29.5 11.7-99.5 9-132.1 9s-102.7 2.6-132.1-9c-19.6-7.8-34.7-22.9-42.6-42.6-11.7-29.5-9-99.5-9-132.1s-2.6-102.7 9-132.1c7.8-19.6 22.9-34.7 42.6-42.6 29.5-11.7 99.5-9 132.1-9s102.7-2.6 132.1 9c19.6 7.8 34.7 22.9 42.6 42.6 11.7 29.5 9 99.5 9 132.1s2.7 102.7-9 132.1z"/></svg>
             </a>
-            <a href="https://www.linkedin.com/company/prismhealthorg" target="_blank" rel="noopener" class="text-white" aria-label="Prism Health on LinkedIn">
+            <a href="https://www.linkedin.com/company/prismhealthorg" target="_blank" rel="noopener" aria-label="Prism Health on LinkedIn">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 448 512" aria-hidden="true"><path d="M416 32H31.9C14.3 32 0 46.5 0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6 0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3 0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2 0 38.5 17.3 38.5 38.5 0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6 0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2 0 79.7 44.3 79.7 101.9V416z"/></svg>
             </a>
+            </div>
           </div>
         </div>
-
-        <hr>
-
-        <p class="text-center mt-4 mb-0">© <span id="copyright-year"></span> Copyright Prism Health Lab</p>
+        <p class="footer-legal">© <span id="copyright-year"></span> Copyright Prism Health Lab</p>
       </div>
     </footer>
 
