@@ -123,6 +123,51 @@ export function slotDateTime(eventDate, startTime) {
     );
 }
 
+/**
+ * A time of day as a patient reads it: "9:00 AM", "12:30 PM".
+ *
+ * Display only. Booking still sends the sheet's own value and sorts on
+ * `toSlotKey`. A value that does not parse is shown as the sheet has it rather
+ * than dropped.
+ *
+ * @param {string} value
+ * @returns {string}
+ */
+export function formatTime(value) {
+    const time = parseTimeOfDay(value);
+    if (!time) return String(value ?? '').trim();
+    return `${clockFace(time)}${NBSP}${meridiem(time)}`;
+}
+
+/**
+ * A start and end time, naming AM/PM once when both share it:
+ * "10:35 – 10:40 AM", but "11:55 AM – 12:00 PM".
+ *
+ * @param {string} start
+ * @param {string} end
+ * @returns {string}
+ */
+export function formatTimeRange(start, end) {
+    const from = parseTimeOfDay(start);
+    const to = parseTimeOfDay(end);
+    if (from && to && meridiem(from) === meridiem(to)) {
+        return `${clockFace(from)} – ${clockFace(to)}${NBSP}${meridiem(to)}`;
+    }
+    return [formatTime(start), formatTime(end)].filter(Boolean).join(' – ');
+}
+
+// Keeps "AM"/"PM" on the same line as its time, so a narrow slot pill breaks
+// after the dash instead of stranding the suffix on a line of its own.
+const NBSP = String.fromCharCode(0xa0); // no-break space
+
+function clockFace({ hours, minutes }) {
+    return `${hours % 12 || 12}:${String(minutes).padStart(2, '0')}`;
+}
+
+function meridiem({ hours }) {
+    return hours < 12 ? 'AM' : 'PM';
+}
+
 // --- Misc -------------------------------------------------------------------
 
 /** Escapes a spreadsheet-authored value for safe interpolation into markup. */

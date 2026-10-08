@@ -1,7 +1,7 @@
 import { BASE_URL } from './config.js';
 import { dom } from './dom.js';
 import { state } from './state.js';
-import { escapeHtml, parseSheetDate } from './utils.js';
+import { escapeHtml, formatTimeRange, parseSheetDate } from './utils.js';
 
 /** Renders the event name and date above the slot picker / form. */
 export function displayEventDetails(event, suffixHtml = '') {
@@ -59,7 +59,7 @@ export function renderEventCards({ campaignId, facilityId }) {
                 <div class="card-body">
                     <h5 class="card-title">${escapeHtml(event['Event Name'])}</h5>
                     <p class="card-text mb-1"><strong>Date:</strong> ${escapeHtml(formatted)}</p>
-                    <p class="card-text"><strong>Time:</strong> ${escapeHtml(event['Start Time'])} - ${escapeHtml(event['End Time'])}</p>
+                    <p class="card-text"><strong>Time:</strong> ${escapeHtml(formatTimeRange(event['Start Time'], event['End Time']))}</p>
                 </div>`;
 
             if (isPast) {

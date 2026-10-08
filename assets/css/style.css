@@ -639,6 +639,14 @@ main {
     gap: 10px;
 }
 
+/* Room for a slot that crosses noon ("11:55 AM – 12:00 PM") on one line. On a
+   phone that would cost the second column, so there it wraps after the dash. */
+@media (min-width: 576px) {
+    #slotsGrid {
+        grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
+    }
+}
+
 .slot-item {
     border: 1px solid var(--line);
     background-color: var(--paper);

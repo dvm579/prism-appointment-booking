@@ -7,6 +7,8 @@ import { renderDynamicForms } from './questions.js';
 import { initSignaturePad, resetAdditionalSignatures } from './signature.js';
 import {
     escapeHtml,
+    formatTime,
+    formatTimeRange,
     handleError,
     hideLoading,
     parseSheetDate,
@@ -44,7 +46,7 @@ export function currentHoldToken() {
  * `wire` is the sheet's own start-time string, sent to the backend untouched so
  * that whatever format the column uses ("11:00:00", "09:00", "9:00 AM") still
  * matches the sheet on the other side. `key` is the tidied "HH:mm" form, used
- * only for sorting and for what the patient sees.
+ * for sorting; `label` is what the patient sees, on a 12-hour clock.
  *
  * @returns {Array<{wire: string, key: string|null, label: string, startsAt: Date|null, bookable: boolean}>}
  */
@@ -57,14 +59,13 @@ function describeSlots() {
         .filter(slot => String(slot.EventID) === String(state.eventId))
         .map(slot => {
             const key = toSlotKey(slot['Start Time']);
-            const endKey = toSlotKey(slot['End Time']);
             // The slot sheet carries its own Date; prefer it so an event spanning
             // more than one day still hides only the slots that have passed.
             const startsAt = slotDateTime(parseSheetDate(slot.Date) ?? eventDate, slot['Start Time']);
             return {
                 wire: slot['Start Time'],
                 key,
-                label: `${key ?? slot['Start Time']} – ${endKey ?? slot['End Time']}`,
+                label: formatTimeRange(slot['Start Time'], slot['End Time']),
                 startsAt,
                 // An unparseable start time is treated as unbookable rather than
                 // silently offered: we could not tell whether it is in the past.
@@ -137,7 +138,7 @@ async function selectSlot(slot, pill) {
         });
         state.heldSlotTime = slot.wire;
         updateLoadingMessage('Slot reserved.');
-        openRegistrationForm(`<br>Selected Time Slot: ${escapeHtml(slot.key ?? slot.wire)}`);
+        openRegistrationForm(`<br>Selected Time Slot: ${escapeHtml(formatTime(slot.wire))}`);
     } catch (error) {
         handleError('That slot was just taken. Please choose another.', error);
         try {
