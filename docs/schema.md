@@ -129,7 +129,63 @@ Two rules worth knowing:
   consent too. If a correction leaves nothing eligible, the picker says so rather
   than showing an empty box.
 
-## How a registration is assembled
+## Paper intake
+
+An event runs in one of two modes. **Online** is everything this document
+describes. **Paper** keeps registration to what the EMR needs before the day:
+the patient panel, the services being booked, insurance, and contact
+preferences. The patient fills in their intake forms, consent and signatures on
+paper on site, and staff scan those into the chart.
+
+| Where | Value |
+| --- | --- |
+| `Intake` on the Events row | `paper` or `online`. Anything else, or no column, falls back to the default. |
+| `DEFAULT_INTAKE` in `src/config.js` | The default, currently `paper`. |
+
+This is a mode of the one page rather than a fork, so the full forms stay live
+on any event set to `online` while they are polished. On a paper event:
+
+- **Services are still picked**, with eligibility applied as usual. The
+  Services Rendered rows they write are the appointment's visit types, and the
+  clinical-sheet rows are keyed on the service, so both are written as before.
+- **No form, consent or signature is rendered.** The medical-records upload and
+  the electronic-signature agreement go too.
+- **Insurance is always asked**, because checking Medicaid and insurance coverage
+  before the day is half the point. Whether the patient is insured is required,
+  as it is on any form that carries the `insurance` marker.
+- **The submission names no forms.** `selectedServices[].formIds` is empty, so
+  both backends fall back to the ServiceTypeID, which no document generator is
+  keyed on, and no blank PDF is filed for a form that will arrive on paper. No
+  backend change is needed. The payload also carries `intake: 'paper'`, which
+  neither backend reads yet.
+
+What the online part asks, against what the checks look up:
+
+| Check | Looks up by | Online source |
+| --- | --- | --- |
+| Illinois MEDI | RIN; or SSN + DOB; or name + DOB; or name + SSN | Name, DOB, optional SSN, and the RIN as the insurance ID |
+| Commercial eligibility | Payer, member ID, policyholder, name, DOB | Insurance block, patient panel |
+| I-CARE | Name and DOB | Patient panel |
+| EMR patient and appointment | Demographics, sex at birth, full address, guardian for a minor, event, slot, services | Patient panel, slot, picker |
+
+### Patient panel fields that land in Patients
+
+These apply in both modes, because the online forms create EMR patients too.
+
+- **Sex at Birth** is asked beside Gender and is required. Gender drives
+  eligibility and `@gender` triggers; sex at birth is what the EMR and the
+  registries match on. It is written to a **`Sex at Birth` column appended as
+  column 48** of `Patients`, after `DrChrono Chart ID`, `DrChrono API ID` and
+  `Last Updated` (45–47), which registration writes blank because they are
+  filled in later. Appending keeps every earlier column where it was.
+- **Street, city and state are required**, alongside the ZIP. A patient cannot
+  be created in the EMR without a full address.
+- **`Primary Insurance Payer Name` (column 25) holds the policyholder**: the
+  person the plan is under. The page labels it *Policyholder Name*;
+  `primaryPayer` is still its field name. It is required once the patient says
+  they are insured. There is no column for the policyholder's date of birth or
+  relationship.
+
 
 1. **Services** — one checkbox per code in `Events.Services` the patient is
    eligible for, labelled from `Service Name`. A service with no intake form
@@ -406,8 +462,10 @@ and the Core Field Map therefore still get a value for every printed field.
 `prefilled`, like `step-off`, is deliberately not `d-none`: a `d-none` question
 does not apply and is not collected.
 
-Only equivalents belong in the map. Sex at birth is not gender and stays asked.
-Where the panel's wording differs from the paper option ("White or Caucasian" and
+Only equivalents belong in the map. Sex at birth is not gender, so the forms'
+sex-at-birth questions (`shccore-17`/`-18`, the physicals, the WOW sign-up) take
+the panel's own **Sex at Birth**, never Gender; the child form's `Girl|Boy` is
+mapped from Female and Male. Where the panel's wording differs from the paper option ("White or Caucasian" and
 "White"), the map rewords it; a panel answer the paper has no box for passes
 through rather than being dropped.
 

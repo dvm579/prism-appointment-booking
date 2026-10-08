@@ -18,6 +18,7 @@ import {
     splitList
 } from './catalog.js';
 import { setInsuranceVisible } from './insurance.js';
+import { applyIntakeMode } from './intake.js';
 import { setConsentSignatureVisible, syncAdditionalSignatures } from './signature.js';
 import { renderConsentDeclines, attachConsentDeclineListeners } from './consent.js';
 import { refreshSteps, attachStepListeners } from './steps.js';
@@ -367,6 +368,7 @@ export function renderDynamicForms(event) {
     const container = dom.dynamicFormsContainer;
     container.innerHTML = '';
     offered.clear();
+    applyIntakeMode(event);
 
     const services = servicesForEvent(event);
     services.forEach(service => offered.set(service.id, service));
@@ -400,12 +402,13 @@ export function renderDynamicForms(event) {
     container.appendChild(picker);
 
     // 2. One section per form used by any service at this event, hidden until the
-    //    patient selects a service that needs it.
+    //    patient selects a service that needs it. Paper intake renders none: the
+    //    services are still picked, but their forms are filled in on site.
     const sections = document.createElement('div');
     sections.id = 'questionsContent';
     container.appendChild(sections);
 
-    formsForServices(services).forEach(formId => {
+    (state.paperIntake ? [] : formsForServices(services)).forEach(formId => {
         const section = document.createElement('div');
         section.id = `section_${formId}`;
         section.className = 'd-none mt-4 form-section';
@@ -545,8 +548,9 @@ function applySelection() {
     // form are gated on their triggers and the demographics straight away.
     applyConditionals();
 
-    // Consent: union of the selected services' blocks, deduplicated by id.
-    const blocks = consentForServices(services);
+    // Consent: union of the selected services' blocks, deduplicated by id. None
+    // on paper intake, which takes consent and signatures on site.
+    const blocks = state.paperIntake ? [] : consentForServices(services);
     dom.consentBody.innerHTML = blocks.map(block => block.html).join('\n<hr>\n');
     dom.consentAccordion.classList.toggle('d-none', blocks.length === 0);
     setConsentSignatureVisible(blocks.length > 0);
@@ -555,16 +559,19 @@ function applySelection() {
     renderConsentDeclines(blocks.map(block => block.id));
     attachConsentDeclineListeners();
 
+    // Insurance applies when any visible form asks for it - and always on paper
+    // intake, where checking coverage before the day is half the point.
+    setInsuranceVisible(
+        state.paperIntake ||
+            dom.dynamicFormsContainer.querySelectorAll(
+                '.form-section:not(.d-none) [data-insurance-marker]'
+            ).length > 0
+    );
+
     // Steps are recomputed here rather than only after a render: a trigger
     // can empty a section, and an empty step is one to skip, not to show.
+    // After insurance, which is a step of its own once shown.
     refreshSteps();
-
-    // Insurance applies when any visible form asks for it.
-    setInsuranceVisible(
-        dom.dynamicFormsContainer.querySelectorAll(
-            '.form-section:not(.d-none) [data-insurance-marker]'
-        ).length > 0
-    );
 
     syncRequestedSignatures();
 }
@@ -710,20 +717,23 @@ function applyConditionals() {
  * The services to record, each carrying the forms it pulled in.
  *
  * `formIds` lets the backend map a questionnaire answer back to the right
- * ServiceID even when a form is shared between services.
+ * ServiceID even when a form is shared between services. Paper intake sends
+ * none, because no form was filled in online: both backends then file each
+ * service under its own ServiceTypeID, which no document generator is keyed
+ * on, so no blank PDF is made for a form the patient will fill in on paper.
  */
 export function collectSelectedServices() {
     return selectedServices().map(service => ({
         id: service.id,
         name: service.name,
         serviceTypeId: service.id,
-        formIds: service.formIds
+        formIds: state.paperIntake ? [] : service.formIds
     }));
 }
 
 /** True when any selected service requires consent, so a signature is needed. */
 export function consentRequired() {
-    return consentForServices(selectedServices()).length > 0;
+    return !state.paperIntake && consentForServices(selectedServices()).length > 0;
 }
 
 /**

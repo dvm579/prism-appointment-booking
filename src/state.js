@@ -21,6 +21,11 @@ export const state = {
 
     /** Normalised "HH:mm" start time of the slot currently held, if any. */
     heldSlotTime: null,
+    /**
+     * True when this event's intake forms are done on paper, so only the patient
+     * panel, services and insurance are asked. Set per event by src/intake.js.
+     */
+    paperIntake: false,
     /** True when the submission should be recorded as a waitlist entry. */
     isWaitlist: false,
     /** Handle for the slot-hold countdown. */

@@ -210,7 +210,10 @@ export function submitAction({ sheets, store, slots, drive, mailer, documents, n
             Boolean(data.consentCalls), Boolean(data.consentTexts), Boolean(data.consentEmails),
             Boolean(data.electronicConsent), Boolean(data.vaxConsent),
             // School and grade columns, kept blank so Patients rows keep their shape.
-            '', ''
+            '', '',
+            // DrChrono Chart ID, DrChrono API ID and Last Updated are filled in
+            // later, outside registration. Sex at Birth was added after them.
+            '', '', '', demographics.sexAtBirth
         ].map(value => value ?? '');
 
         if (data.isWaitlist) {

@@ -94,6 +94,11 @@
         <span id="timer" class="d-none" aria-live="off"></span>
       </div>
       <h3 class="text-center">Complete Your Registration</h3>
+      <!-- Paper intake only. See src/intake.js. -->
+      <p id="paperIntakeNote" class="text-center d-none">
+        We only need a few details online to set up your visit and check your coverage.
+        You will fill in the rest of your health forms on paper when you arrive.
+      </p>
 
       <form id="regForm" novalidate>
 
@@ -140,6 +145,16 @@
               </select>
             </div>
             <div class="col-md-4">
+              <label for="sexAtBirth" class="form-label">Sex at Birth<span class="text-danger">*</span></label>
+              <select class="form-select" id="sexAtBirth" name="sexAtBirth" required>
+                <option value="" disabled selected></option>
+                <option>Female</option>
+                <option>Male</option>
+                <option>Intersex</option>
+                <option>Decline to Answer</option>
+              </select>
+            </div>
+            <div class="col-md-6">
               <label for="race" class="form-label">Race<span class="text-danger">*</span></label>
               <select class="form-select" id="race" name="race" required>
                 <option value="" disabled selected></option>
@@ -153,7 +168,7 @@
                 <option>Unknown</option>
               </select>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-6">
               <label for="ethnicity" class="form-label">Ethnicity<span class="text-danger">*</span></label>
               <select class="form-select" id="ethnicity" name="ethnicity" required>
                 <option value="" disabled selected></option>
@@ -177,16 +192,16 @@
               </div>
             </div>
             <div class="col-12">
-              <label for="street" class="form-label">Street Address</label>
-              <input type="text" class="form-control" id="street" name="street" autocomplete="address-line1">
+              <label for="street" class="form-label">Street Address<span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="street" name="street" autocomplete="address-line1" required>
             </div>
             <div class="col-md-4">
-              <label for="city" class="form-label">City</label>
-              <input type="text" class="form-control" id="city" name="city" autocomplete="address-level2">
+              <label for="city" class="form-label">City<span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="city" name="city" autocomplete="address-level2" required>
             </div>
             <div class="col-md-4">
-              <label for="state" class="form-label">State</label>
-              <input type="text" class="form-control" id="state" name="state" autocomplete="address-level1">
+              <label for="state" class="form-label">State<span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="state" name="state" placeholder="IL" autocomplete="address-level1" required>
             </div>
             <div class="col-md-4">
               <label for="zip" class="form-label">Zip Code<span class="text-danger">*</span></label>
@@ -212,7 +227,7 @@
         </fieldset>
 
         <!-- Medical Records -->
-        <div class="form-check mb-4">
+        <div class="form-check mb-4" id="recordsToggle">
           <input class="form-check-input" type="checkbox" id="hasRecordsCheck">
           <label class="form-check-label" for="hasRecordsCheck">I have medical records to upload</label>
         </div>
@@ -255,8 +270,9 @@
               <input type="text" class="form-control" id="primaryIns" name="primaryIns">
             </div>
             <div class="col-md-6">
-              <label for="primaryPayer" class="form-label">Primary Insurance Payer Name</label>
-              <input type="text" class="form-control" id="primaryPayer" name="primaryPayer">
+              <label for="primaryPayer" class="form-label">Policyholder Name</label>
+              <input type="text" class="form-control" id="primaryPayer" name="primaryPayer" aria-describedby="primaryPayerHelp">
+              <small id="primaryPayerHelp" class="form-text text-white-50">The person the insurance is under: the patient, or a parent or spouse.</small>
             </div>
             <div class="col-md-6">
               <label for="primaryPlan" class="form-label">Primary Insurance Plan Name</label>
@@ -264,7 +280,8 @@
             </div>
             <div class="col-md-3">
               <label for="primaryId" class="form-label">Primary Insurance ID</label>
-              <input type="text" class="form-control" id="primaryId" name="primaryId">
+              <input type="text" class="form-control" id="primaryId" name="primaryId" aria-describedby="primaryIdHelp">
+              <small id="primaryIdHelp" class="form-text text-white-50">Medicaid: the RIN on your HFS card.</small>
             </div>
             <div class="col-md-3">
               <label for="primaryGroup" class="form-label">Group #</label>
@@ -300,7 +317,7 @@
 
         <!-- Consent & Signature -->
         <fieldset class="mb-4" id="consentFieldset">
-          <h4>Consent &amp; Signature</h4>
+          <h4 id="consentHeading">Consent &amp; Signature</h4>
 
           <div class="mb-3">
             <span class="form-label d-block">
@@ -418,7 +435,7 @@
                accordion is one nobody takes. -->
           <div id="consentDeclines" class="d-none"></div>
 
-          <div class="form-check mb-3 pt-3">
+          <div class="form-check mb-3 pt-3" id="electronicConsentRow">
             <input type="checkbox" class="form-check-input" id="electronicConsent" name="electronicConsent" required>
             <label class="form-check-label" for="electronicConsent">
               I agree to the use of electronic records and electronic signatures.<span class="text-danger">*</span>
@@ -484,6 +501,10 @@
       <p id="confWaitlistMessage" class="d-none">
         Thanks for your registration! We'll update your chart in the background and reach out
         soon with next steps.
+      </p>
+      <p id="confPaperNote" class="d-none">
+        Please bring your insurance card. You will fill in the rest of your health forms on
+        paper when you arrive.
       </p>
       <div class="mt-3">
         <img id="confQrCode" class="d-none" alt="QR code for your appointment ID">

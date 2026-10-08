@@ -12,6 +12,7 @@
 // while off screen.
 
 import { dom } from './dom.js';
+import { state } from './state.js';
 
 /** Applied to a panel that belongs to a step other than the current one. */
 const OFF_STEP = 'step-off';
@@ -25,7 +26,10 @@ function fixedPanels() {
         { el: dom.patientInfo, title: 'About the patient' },
         { el: dom.insuranceMount, title: 'Insurance' },
         { el: dom.recordsSection, title: 'Medical records' },
-        { el: dom.consentFieldset, title: 'Consent and signature' }
+        {
+            el: dom.consentFieldset,
+            title: state.paperIntake ? 'Contact preferences' : 'Consent and signature'
+        }
     ];
 }
 

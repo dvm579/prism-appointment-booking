@@ -64,6 +64,21 @@ export const CSV_URLS = {
     consentItems: published(389763252)
 };
 
+/**
+ * How an event's intake forms are completed when its Events row does not say.
+ *
+ * `paper`: registration asks only what it takes to create the patient and the
+ * appointment in the EMR and to check Medicaid, insurance and I-CARE ahead of the
+ * day - demographics, services and insurance. Questionnaires, consent and
+ * signatures are done on paper on site and scanned to the chart.
+ * `online`: the full build-out - every intake form, consent and signature.
+ *
+ * An `Intake` column on Events overrides this per event, so the full forms stay
+ * live on whichever events are set to `online`. See "Paper intake" in
+ * docs/schema.md.
+ */
+export const DEFAULT_INTAKE = 'paper';
+
 /** Base URL used when building links to a single event. */
 export const BASE_URL = 'https://register.prism.org/';
 

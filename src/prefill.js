@@ -8,8 +8,9 @@
 // panel when the responses are collected, so Question Responses and the Core
 // Field Map still get a value for every printed field.
 //
-// Only equivalents belong here. Sex at birth is not gender, so it stays asked;
-// so does anything else the patient could reasonably answer differently.
+// Only equivalents belong here. Sex at birth is not gender, so the forms take it
+// from the panel's own Sex at Birth, never from Gender; anything else the
+// patient could reasonably answer differently stays asked.
 
 import { ageYears } from './patient.js';
 
@@ -21,6 +22,8 @@ const RACE = {
 const ETHNICITY = {
     'Prefer not to answer': 'Prefer not to say'
 };
+const SEX_CHILD = { Female: 'Girl', Male: 'Boy' };
+const SEX_ADULT = { 'Decline to Answer': 'Decline to answer' };
 
 const field = id => String(document.getElementById(id)?.value ?? '').trim();
 const isMinor = () => {
@@ -43,6 +46,8 @@ const PREFILLED = {
     'shccore-51': () => field('middleName'),       // Middle name (18+)
     'shccore-6': () => RACE[field('race')] ?? field('race'),
     'shccore-7': () => ETHNICITY[field('ethnicity')] ?? field('ethnicity'),
+    'shccore-17': () => SEX_CHILD[field('sexAtBirth')] ?? field('sexAtBirth'),
+    'shccore-18': () => SEX_ADULT[field('sexAtBirth')] ?? field('sexAtBirth'),
     // "Your name (print)" is the parent on a child's form and the patient on
     // an adult's.
     'shccore-19': () => (isMinor() ? field('parentName') : fullName()),
@@ -59,7 +64,15 @@ const PREFILLED = {
     'shcvax26-4': () => [field('parentName'), field('parentRel')].filter(Boolean).join(', '),
     'shcvax26-13': () => signedToday(),            // Parent or guardian signature
     'shcvax26-14': () => new Date().toISOString().slice(0, 10),
-    'shcvax26-15': () => field('parentContact') || field('cell')
+    'shcvax26-15': () => field('parentContact') || field('cell'),
+
+    // Sex at birth on the physicals and the WOW sign-up. The physicals print
+    // only Male and Female; Intersex and Decline pass through, as race does.
+    'schlphys26-2': () => field('sexAtBirth'),
+    'sprtphys26-2': () => field('sexAtBirth'),
+    'schlphys22-6': () => field('sexAtBirth'),
+    'sprtphys22-1': () => field('sexAtBirth'),
+    '99be5397-1': () => field('sexAtBirth')        // Biological Sex
 };
 
 function signedToday() {

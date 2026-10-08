@@ -465,7 +465,10 @@ function submitForm1(data) {
     // School and grade moved to the school-physical and sports-physical intake
     // forms, so they now arrive as question responses. These two columns are kept
     // blank rather than removed so existing Patients rows keep their shape.
-    '', ''
+    '', '',
+    // DrChrono Chart ID, DrChrono API ID and Last Updated are filled in later,
+    // outside registration. Sex at Birth was added after them.
+    '', '', '', demographics.sexAtBirth || ''
   ]);
 
   // 2. Waitlist entries stop here.

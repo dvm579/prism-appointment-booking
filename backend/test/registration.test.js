@@ -64,7 +64,7 @@ function payload(extra = {}) {
         signature: 'data:image/png;base64,' + Buffer.from('png').toString('base64'),
         additionalSignatures: [],
         consentDeclines: [{ consentId: 'cfs20267', itemId: 'othertest', label: 'Another test', note: 'Strep' }],
-        demographics: { firstName: 'Test', lastName: 'Declines', dob: '2018-04-02', email: 'x@example.com', zip: '02134' },
+        demographics: { firstName: 'Test', lastName: 'Declines', dob: '2018-04-02', email: 'x@example.com', zip: '02134', sexAtBirth: 'Female' },
         insurance: {},
         consentCalls: true, consentTexts: true, consentEmails: true, electronicConsent: true, vaxConsent: true,
         ...extra
@@ -128,7 +128,8 @@ test('a registration writes every record endpoints.gs wrote, in its column order
     assert.deepEqual(slotRow(w, '10:00').slice(4), ['Booked', sheetTimestamp(NOW), result.appointmentID]);
 
     const [patient] = w.rows(MAIN, 'Patients').slice(1);
-    assert.equal(patient.length, 44);
+    assert.equal(patient.length, 48);
+    assert.deepEqual(patient.slice(44), ['', '', '', 'Female']);   // DrChrono x2, Last Updated, Sex at Birth
     assert.equal(patient[1].length, 36);                     // PatientID
     assert.deepEqual(patient.slice(2, 5), ['f1', 'Peoria - Manpower', 'Test']);
     assert.equal(patient[35], 'https://drive.google.com/file/d/fake1/view?usp=drivesdk');

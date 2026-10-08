@@ -126,6 +126,9 @@ export async function submitBooking(event) {
             eventId: state.eventId,
             slotTime: state.heldSlotTime,
             isWaitlist: state.isWaitlist,
+            // Not read by either backend yet; recorded so a paper registration can
+            // be told apart from an online one that simply asked nothing.
+            intake: state.paperIntake ? 'paper' : 'online',
             selectedServices: validated.services,
             formResponses: validated.responses,
             medicalRecords,

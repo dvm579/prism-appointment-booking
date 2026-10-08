@@ -11,7 +11,7 @@ import { parseSheetDate, showAlert } from './utils.js';
 export const DEMOGRAPHIC_FIELDS = [
     'firstName', 'middleName', 'lastName', 'dob', 'gender', 'race', 'ethnicity',
     'street', 'city', 'state', 'zip', 'cell', 'home', 'email', 'ssn',
-    'parentName', 'parentRel', 'parentContact'
+    'parentName', 'parentRel', 'parentContact', 'sexAtBirth'
 ];
 
 /**

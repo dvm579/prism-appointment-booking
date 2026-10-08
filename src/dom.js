@@ -31,6 +31,8 @@ export const dom = {
     parentFields: byId('parentFields'),
     parentName: byId('parentName'),
     parentRel: byId('parentRel'),
+    paperIntakeNote: byId('paperIntakeNote'),
+    recordsToggle: byId('recordsToggle'),
     hasRecordsCheck: byId('hasRecordsCheck'),
     recordsSection: byId('recordsSection'),
     medicalRecordsUpload: byId('medicalRecordsUpload'),
@@ -45,6 +47,9 @@ export const dom = {
     consentAccordion: byId('consentAccordion'),
     patientInfo: byId('patientInfo'),
     consentFieldset: byId('consentFieldset'),
+    consentHeading: byId('consentHeading'),
+    electronicConsentRow: byId('electronicConsentRow'),
+    electronicConsent: byId('electronicConsent'),
     stepNav: byId('stepNav'),
     stepTitle: byId('stepTitle'),
     stepCount: byId('stepCount'),
@@ -75,5 +80,6 @@ export const dom = {
     confApptIdRow: byId('confApptIdRow'),
     confApptId: byId('confApptId'),
     confWaitlistMessage: byId('confWaitlistMessage'),
+    confPaperNote: byId('confPaperNote'),
     confQrCode: byId('confQrCode')
 };
