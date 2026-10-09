@@ -156,6 +156,29 @@ this file is deployed.
 Workspace, 100/day on consumer accounts). A single execution is capped at 6
 minutes, which is why the upload budget is limited client-side.
 
+## Keeping slots in step with events
+
+`slotSync.gs` mirrors a **separate, standalone** Apps Script project, not this
+web app's. AppSheet calls it from two bots on the *Events* table:
+
+| Bot event | Task calls |
+| --- | --- |
+| Adds and updates | `populateSlots([EventID], [Date], [Start Time], [End Time], <duration>)` |
+| Deletes | `deleteSlots([EventID])` |
+
+`populateSlots` reconciles rather than appends, so it is safe on every update and
+writes nothing when the times did not change. A booked appointment whose time
+survives stays put. One whose time is gone moves to the nearest free time, and
+its *Appointments* row moves with it. One with nowhere to go is left at its old
+time. A changed date is copied to *Appointments* and *Services Rendered*.
+Deleting an event marks its bookings `Cancelled`. Both functions return a summary
+naming every appointment that moved, could not be placed, or was cancelled. Patients
+are not notified, so send that summary to staff from the bot.
+
+It clears rows instead of deleting them, because the booking endpoints write to a
+row number under a lock this project cannot share. The file header explains why.
+Test it with `node tools/slot-sync-test.js`.
+
 ## Building the Slides templates
 
 `tools/makeWowSlidesTemplates.gs` is a one-off builder, not part of the deployed
