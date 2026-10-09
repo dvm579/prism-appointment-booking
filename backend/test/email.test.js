@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
-import { clockTime, confirmationMessage, longDate, render } from '../src/email.js';
+import { clockTime, confirmationMessage, longDate, mime, render } from '../src/email.js';
 
 const booking = (extra = {}) => confirmationMessage({
     data: { demographics: { firstName: 'Ana', lastName: 'López <Jr>' }, slotTime: '13:05:00' },
@@ -55,4 +55,11 @@ test('dates and times read as the page shows them', () => {
     assert.equal(clockTime('00:30'), '12:30 AM');
     assert.equal(clockTime('12:00'), '12:00 PM');
     assert.equal(clockTime('soon'), 'soon');
+});
+
+test('replies go to the Reply-To address, not the From one', () => {
+    const raw = Buffer.from(mime({
+        from: 'Prism Health <noreply@prism.org>', replyTo: 'info@prism.org', to: 'x@example.com', subject: 'Hi', html: '<p>Hi</p>'
+    }), 'base64url').toString();
+    assert.match(raw, /^From: Prism Health <noreply@prism\.org>\r\nReply-To: info@prism\.org\r\nTo: x@example\.com\r\n/);
 });

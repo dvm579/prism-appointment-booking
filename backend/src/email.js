@@ -7,7 +7,7 @@
 
 import { readFileSync } from 'node:fs';
 import { google } from 'googleapis';
-import { EMAIL_SENDER } from './config.js';
+import { EMAIL_FROM, EMAIL_REPLY_TO, EMAIL_SENDER } from './config.js';
 import { normalizeTime } from './time.js';
 
 const SURVEY_FORM =
@@ -86,10 +86,11 @@ export function confirmationMessage({ data, patientID, appointmentID, qrBase64, 
 }
 
 /** RFC 2822 with an optional inline PNG, base64url-encoded for the Gmail API. */
-export function mime({ from, to, subject, html, inline }) {
+export function mime({ from, replyTo, to, subject, html, inline }) {
     const boundary = `prism-${Math.random().toString(36).slice(2)}`;
     const encodedSubject = `=?UTF-8?B?${Buffer.from(subject).toString('base64')}?=`;
     const head = [`From: ${from}`, `To: ${to}`, `Subject: ${encodedSubject}`, 'MIME-Version: 1.0'];
+    if (replyTo) head.splice(1, 0, `Reply-To: ${replyTo}`);
     let body;
     if (!inline) {
         body = [...head, 'Content-Type: text/html; charset=UTF-8', 'Content-Transfer-Encoding: base64', '',
@@ -145,7 +146,7 @@ export class GmailSender {
             console.warn('EMAIL_SENDER is not set; confirmation email skipped.');
             return false;
         }
-        const raw = mime({ from: EMAIL_SENDER, to, ...message });
+        const raw = mime({ from: EMAIL_FROM, replyTo: EMAIL_REPLY_TO, to, ...message });
         const response = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
             method: 'POST',
             headers: { Authorization: `Bearer ${await this.accessToken()}`, 'Content-Type': 'application/json' },

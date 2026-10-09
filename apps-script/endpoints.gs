@@ -36,6 +36,14 @@ const LOCK_TIMEOUT_MS = 45 * 1000;
  */
 const GENERAL_REGISTRATION_EVENT_ID = 'WAITLIST';
 
+/**
+ * Confirmation emails go out from the script owner's mailbox under this name,
+ * and replies go to info@ rather than to that mailbox. MailApp cannot set the
+ * From address itself; the Cloud Run backend sends as noreply@prism.org.
+ */
+const EMAIL_NAME = 'Prism Health';
+const EMAIL_REPLY_TO = 'info@prism.org';
+
 // --- Spreadsheet access -----------------------------------------------------
 
 /**
@@ -800,6 +808,8 @@ function sendConfirmationEmail(formData, patientID, appointmentID, qrBase64, eve
 
     MailApp.sendEmail({
       to: recipient,
+      name: EMAIL_NAME,
+      replyTo: EMAIL_REPLY_TO,
       subject: 'Your registration with Prism Health',
       htmlBody: registrationTemplate.evaluate().getContent()
     });
@@ -817,6 +827,8 @@ function sendConfirmationEmail(formData, patientID, appointmentID, qrBase64, eve
 
   const message = {
     to: recipient,
+    name: EMAIL_NAME,
+    replyTo: EMAIL_REPLY_TO,
     subject: 'Your Appointment for ' + eventName + ' on ' + eventDateStr,
     htmlBody: template.evaluate().getContent()
   };

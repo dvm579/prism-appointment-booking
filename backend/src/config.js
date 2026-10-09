@@ -54,6 +54,15 @@ export const ALLOWED_ORIGINS = (env.ALLOWED_ORIGINS ||
  */
 export const EMAIL_SENDER = env.EMAIL_SENDER || '';
 
+/**
+ * What the patient sees as the sender. Gmail keeps this From only when it is one
+ * of EMAIL_SENDER's send-as addresses; otherwise it puts EMAIL_SENDER back.
+ */
+export const EMAIL_FROM = env.EMAIL_FROM || 'Prism Health <noreply@prism.org>';
+
+/** Where a patient's reply goes, since nobody reads the From mailbox. */
+export const EMAIL_REPLY_TO = env.EMAIL_REPLY_TO || 'info@prism.org';
+
 /** Service account the Cloud Scheduler sweep authenticates as. */
 export const SWEEP_CALLER = env.SWEEP_CALLER || '';
 

@@ -49,7 +49,9 @@ the EMR, Form Responses, Clinical Documentation) and on the attachment folders.
 
 | Variable | Meaning |
 | --- | --- |
-| `EMAIL_SENDER` | Mailbox confirmations are sent as, via domain-wide delegation. Unset skips email. |
+| `EMAIL_SENDER` | Workspace user the service sends as, via domain-wide delegation (`tech@prismhealthlab.com`). Must be a licensed user, not a group. Unset skips email. |
+| `EMAIL_FROM` | The From the patient sees. Default `Prism Health <noreply@prism.org>`, an alias of `EMAIL_SENDER`; Gmail falls back to `EMAIL_SENDER` for any address that is not one of its send-as addresses. |
+| `EMAIL_REPLY_TO` | Where replies go. Default `info@prism.org`. |
 | `SWEEP_CALLER` | Service account Cloud Scheduler calls `/jobs/sweep` as. |
 | `SWEEP_AUDIENCE` | This service's URL, the audience of the scheduler's token. |
 | `ALLOWED_ORIGINS` | Pages allowed to call from a browser. |
