@@ -5,6 +5,7 @@ import { state, currentEvent } from './state.js';
 import { displayEventDetails } from './events.js';
 import { renderDynamicForms } from './questions.js';
 import { initSignaturePad, resetAdditionalSignatures } from './signature.js';
+import { restoreDraft } from './draft.js';
 import {
     escapeHtml,
     formatTime,
@@ -199,6 +200,9 @@ function openRegistrationForm(detailsSuffixHtml) {
     initSignaturePad();
     // Rendered last: it decides which forms, consent and signatures apply.
     renderDynamicForms(currentEvent());
+    if (restoreDraft()) {
+        showAlert('We kept the answers you entered earlier. Please check them before submitting.', 'info');
+    }
 
     if (state.heldSlotTime) startSlotTimer();
 }

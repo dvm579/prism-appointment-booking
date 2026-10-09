@@ -8,6 +8,7 @@ import { revealElement } from './steps.js';
 import { INSURANCE_FIELDS } from './insurance.js';
 import { DEMOGRAPHIC_FIELDS, readFilesAsBase64 } from './patient.js';
 import { hideSlotTimer, returnAfterLostHold } from './slots.js';
+import { clearDraft } from './draft.js';
 import {
     handleError,
     hideLoading,
@@ -155,6 +156,7 @@ export async function submitBooking(event) {
         hideSlotTimer();
         state.heldSlotTime = null;
         submissionId = null;
+        clearDraft();
 
         displayConfirmation(response, payload.demographics);
     } catch (error) {

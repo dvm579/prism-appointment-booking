@@ -8,7 +8,8 @@ import { refreshForDemographics, renderDynamicForms } from './questions.js';
 import { initSignaturePad, setupSignatureListeners } from './signature.js';
 import { checkAge, handleFileSelection, toggleRecordsSection } from './patient.js';
 import { submitBooking } from './submit.js';
-import { clearAlert, handleError, hideLoading, showLoading } from './utils.js';
+import { attachDraftListeners, loadDraft, restoreDraft } from './draft.js';
+import { clearAlert, handleError, hideLoading, showAlert, showLoading } from './utils.js';
 
 /**
  * Switches the Google Translate widget's language.
@@ -40,6 +41,7 @@ function setupEventListeners() {
     dom.medicalRecordsUpload.addEventListener('change', handleFileSelection);
 
     setupSignatureListeners();
+    attachDraftListeners();
 
     dom.translationButtons.addEventListener('click', event => {
         const lang = event.target.closest('[data-lang]')?.dataset.lang;
@@ -77,6 +79,9 @@ function startGeneralRegistration() {
 
     initSignaturePad();
     renderDynamicForms(currentEvent());
+    if (restoreDraft()) {
+        showAlert('We kept the answers you entered earlier. Please check them before submitting.', 'info');
+    }
 }
 
 async function init() {
@@ -89,6 +94,11 @@ async function init() {
         const eventId = params.get('eventId');
         const campaignId = params.get('campaignId');
         const facilityId = params.get('facilityId');
+
+        // Decrypted alongside the feeds, so it is ready before the form is drawn.
+        // An event list has no form; its cards link to ?eventId= pages.
+        const formEventId = eventId || (campaignId || facilityId ? null : GENERAL_REGISTRATION_EVENT_ID);
+        const draftLoaded = formEventId ? loadDraft(formEventId) : Promise.resolve();
 
         [
             state.events,
@@ -108,6 +118,7 @@ async function init() {
             // Optional: absent until the sheet is published. See CSV_URLS.
             CSV_URLS.consentItems ? fetchCSV(CSV_URLS.consentItems) : Promise.resolve([])
         ]);
+        await draftLoaded;
 
         if (eventId) {
             state.eventId = eventId;

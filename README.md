@@ -69,6 +69,7 @@ src/
   patient.js             Demographics, guardian fields, uploads
   signature.js           Consent signature plus per-question signatures
   submit.js              Validation, submission, confirmation
+  draft.js               Keeps answers through a reload or a lost slot, encrypted at rest
 apps-script/             Mirror of the backend endpoint file (see its README)
 docs/schema.md           How services, forms and consent fit together
 CNAME                    GitHub Pages custom domain
