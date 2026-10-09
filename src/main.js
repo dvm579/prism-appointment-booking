@@ -3,7 +3,7 @@ import { fetchCSV, releaseSlotOnUnload } from './api.js';
 import { dom } from './dom.js';
 import { state, currentEvent } from './state.js';
 import { displayEventDetails, renderEventCards } from './events.js';
-import { currentHoldToken, joinWaitlist, renderSlots, returnToSlotPicker } from './slots.js';
+import { currentHoldToken, renderSlots, returnToSlotPicker } from './slots.js';
 import { refreshForDemographics, renderDynamicForms } from './questions.js';
 import { initSignaturePad, setupSignatureListeners } from './signature.js';
 import { checkAge, handleFileSelection, toggleRecordsSection } from './patient.js';
@@ -28,7 +28,6 @@ function changeLanguage(lang) {
 function setupEventListeners() {
     dom.regForm.addEventListener('submit', submitBooking);
     dom.goBackButton.addEventListener('click', returnToSlotPicker);
-    dom.joinWaitlistBtn.addEventListener('click', joinWaitlist);
 
     // Date of birth and gender gate which services are offered and which questions
     // apply, so both re-run the dependent logic as soon as they change.
@@ -70,7 +69,6 @@ function setupEventListeners() {
  */
 function startGeneralRegistration() {
     state.eventId = GENERAL_REGISTRATION_EVENT_ID;
-    state.isWaitlist = true;
 
     dom.slotSection.classList.add('d-none');
     dom.formSection.classList.remove('d-none');

@@ -102,7 +102,11 @@ export const SLOT_HOLD_MS = 18 * 60 * 1000;
  */
 export const MAX_UPLOAD_BYTES = 15 * 1024 * 1024;
 
-/** Sentinel event id used by the parameterless "general registration" mode. */
+/**
+ * Sentinel event id used by the parameterless "general registration" mode. The
+ * name is historical: there is no waitlist, and this is the only event that
+ * registers without a slot.
+ */
 export const GENERAL_REGISTRATION_EVENT_ID = 'WAITLIST';
 
 /**

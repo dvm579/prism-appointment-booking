@@ -1,3 +1,5 @@
+import { GENERAL_REGISTRATION_EVENT_ID } from './config.js';
+
 // Mutable state shared between modules. Kept in a single object so that
 // reassignment is visible everywhere (a plain exported `let` would not be).
 
@@ -26,13 +28,16 @@ export const state = {
      * panel, services and insurance are asked. Set per event by src/intake.js.
      */
     paperIntake: false,
-    /** True when the submission should be recorded as a waitlist entry. */
-    isWaitlist: false,
     /** Handle for the slot-hold countdown. */
     timerInterval: null,
     /** Consent-signature SignaturePad, created lazily with the form. */
     signaturePad: null
 };
+
+/** True for the no-link general registration: a patient record, no appointment. */
+export function isGeneralRegistration() {
+    return state.eventId === GENERAL_REGISTRATION_EVENT_ID;
+}
 
 /** Looks up the event currently being registered for. */
 export function currentEvent() {

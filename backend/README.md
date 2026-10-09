@@ -21,6 +21,7 @@ every one of its services is documented here; the rest stay on Apps Script.
 | `src/docs/wow/` | The four WOW / mobile health forms and their clinical rows |
 | `src/store.js` | Firestore: slot hold tokens and replayable submission results |
 | `assets/forms/` | Blank form artwork, one PDF per FormID |
+| `assets/email/` | Copies of the Apps Script email templates; `test/email.test.js` keeps them identical |
 
 ## Running the tests
 

@@ -3,8 +3,15 @@
 
 const env = process.env;
 
-/** "Events Management": Events, Appointment Slots, Appointment Waitlist. */
+/** "Events Management": Events, Appointment Slots. */
 export const BOOKING_SPREADSHEET_ID = env.BOOKING_SPREADSHEET_ID || '17226ud6cLY7gbLyv0IS_3k1mylHeWuoHHKyr96hoy1I';
+
+/**
+ * The Events row behind the page's no-link general registration: a patient
+ * record with no appointment. Every other event needs a slot; there is no
+ * waitlist.
+ */
+export const GENERAL_REGISTRATION_EVENT_ID = 'WAITLIST';
 
 /** The EMR: Patients, Appointments, Services Rendered, Attachments. */
 export const MAIN_SPREADSHEET_ID = env.MAIN_SPREADSHEET_ID || '1CX9GiID58srjCcrB_QH2RNgzMYtYSKFbfTmxKPwYeLs';

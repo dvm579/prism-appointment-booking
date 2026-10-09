@@ -1,9 +1,9 @@
 /**
  * Web app endpoints for the Prism Health appointment booking frontend.
  *
- * This file mirrors `endpoints.gs` in the Apps Script project. The rest of that
- * project (document generation, email templates, triggers) is maintained
- * separately and is not tracked here — see apps-script/README.md.
+ * This file mirrors `endpoints.gs` in the Apps Script project. The email
+ * templates and document generators beside it in apps-script/ are mirrors too —
+ * see apps-script/README.md.
  */
 
 const SPREADSHEET_ID = '1CX9GiID58srjCcrB_QH2RNgzMYtYSKFbfTmxKPwYeLs'; // Main DB
@@ -29,10 +29,17 @@ const SUBMISSION_CACHE_SECONDS = 6 * 60 * 60;
  */
 const LOCK_TIMEOUT_MS = 45 * 1000;
 
+/**
+ * The Events row behind the page's no-link general registration: a patient
+ * record with no appointment. Every other event needs a slot; there is no
+ * waitlist.
+ */
+const GENERAL_REGISTRATION_EVENT_ID = 'WAITLIST';
+
 // --- Spreadsheet access -----------------------------------------------------
 
 /**
- * The container spreadsheet: 'Events', 'Appointment Slots', 'Appointment Waitlist'.
+ * The container spreadsheet: 'Events' and 'Appointment Slots'.
  *
  * Resolved lazily rather than at load time — a top-level
  * `SpreadsheetApp.getActiveSpreadsheet()` runs on every single execution of the
@@ -410,17 +417,27 @@ function submitForm1(data) {
     );
   }
 
+  // Decided by the event, not by the client: a page older than the waitlist's
+  // removal can still send `isWaitlist` for a full event.
+  const generalRegistration = String(data.eventId) === GENERAL_REGISTRATION_EVENT_ID;
+  if (!generalRegistration && !data.slotTime) {
+    throw coded_(
+      'NO_SLOT',
+      'This event no longer takes registrations without an appointment time. Please reload the page and choose a time.'
+    );
+  }
+
   const mainBook = mainBook_();
   const now = new Date();
   const patientID = Utilities.getUuid();
-  const appointmentID = data.isWaitlist ? '' : Utilities.getUuid();
+  const appointmentID = generalRegistration ? '' : Utilities.getUuid();
   const selectedServices = data.selectedServices || [];
   const demographics = data.demographics || {};
   const insurance = data.insurance || {};
 
   // Claim the slot first: if the reservation has expired there is no point
   // writing anything else.
-  if (!data.isWaitlist) {
+  if (!generalRegistration) {
     confirmSlot_(data.eventId, data.slotTime, appointmentID, now);
   }
 
@@ -471,14 +488,13 @@ function submitForm1(data) {
     '', '', '', demographics.sexAtBirth || ''
   ]);
 
-  // 2. Waitlist entries stop here.
-  if (data.isWaitlist) {
-    sheet_(bookingBook_(), 'Appointment Waitlist').appendRow([data.eventId, patientID]);
+  // 2. A general registration is only the patient record.
+  if (generalRegistration) {
     trySendConfirmationEmail_(data, patientID, null, null, event.eventName, event.dateOfService);
 
-    const waitlistResult = { status: 'success', isWaitlist: true, patientID: patientID };
-    rememberSubmission_(data.submissionId, waitlistResult);
-    return waitlistResult;
+    const generalResult = { status: 'success', patientID: patientID };
+    rememberSubmission_(data.submissionId, generalResult);
+    return generalResult;
   }
 
   // 3. Appointment record.
@@ -550,8 +566,7 @@ function submitForm1(data) {
   const result = {
     status: 'success',
     appointmentID: appointmentID,
-    qrBase64: qrBase64,
-    isWaitlist: false
+    qrBase64: qrBase64
   };
   rememberSubmission_(data.submissionId, result);
   return result;
@@ -777,28 +792,27 @@ function sendConfirmationEmail(formData, patientID, appointmentID, qrBase64, eve
     encodeURIComponent(patientID);
   const patientName = formData.demographics.firstName + ' ' + formData.demographics.lastName;
 
+  // A general registration has no appointment.
   if (!appointmentID) {
-    const waitlistTemplate = HtmlService.createTemplateFromFile('WaitlistEmail');
-    waitlistTemplate.eventName = eventName;
-    waitlistTemplate.eventDate = eventDateStr;
-    waitlistTemplate.patientName = patientName;
-    waitlistTemplate.formUrl = formURL;
+    const registrationTemplate = HtmlService.createTemplateFromFile('RegistrationEmail');
+    registrationTemplate.patientName = patientName;
+    registrationTemplate.formUrl = formURL;
 
     MailApp.sendEmail({
       to: recipient,
-      subject: 'Waitlist Confirmation for ' + eventName + ' on ' + eventDateStr,
-      htmlBody: waitlistTemplate.evaluate().getContent()
+      subject: 'Your registration with Prism Health',
+      htmlBody: registrationTemplate.evaluate().getContent()
     });
     return;
   }
 
   const template = HtmlService.createTemplateFromFile('ConfirmationEmail');
   template.eventName = eventName;
-  template.eventDate = eventDateStr;
-  template.apptTime = formData.slotTime;
+  template.eventDate = longDate_(eventDateStr);
+  template.apptTime = clockTime_(formData.slotTime);
   template.patientName = patientName;
   template.apptID = appointmentID;
-  template.qrBase64 = qrBase64;
+  template.hasQr = Boolean(qrBase64);
   template.formUrl = formURL;
 
   const message = {
@@ -819,6 +833,22 @@ function sendConfirmationEmail(formData, patientID, appointmentID, qrBase64, eve
   }
 
   MailApp.sendEmail(message);
+}
+
+/** 'Wednesday, October 14, 2026' from findEvent_'s '10-14-2026'; anything else as given. */
+function longDate_(serviceDate) {
+  const match = String(serviceDate || '').match(/^(\d{2})-(\d{2})-(\d{4})$/);
+  if (!match) return serviceDate;
+  const date = new Date(Number(match[3]), Number(match[1]) - 1, Number(match[2]));
+  return Utilities.formatDate(date, Session.getScriptTimeZone(), 'EEEE, MMMM d, yyyy');
+}
+
+/** '1:30 PM' from any start time the slot sheet holds, as the page shows it. */
+function clockTime_(slotTime) {
+  const time = normalizeTime_(slotTime);
+  if (!time) return slotTime;
+  const hours = Number(time.slice(0, 2));
+  return (hours % 12 || 12) + ':' + time.slice(3) + (hours < 12 ? ' AM' : ' PM');
 }
 
 // --- Maintenance trigger ----------------------------------------------------

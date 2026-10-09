@@ -22,7 +22,8 @@ function world({ fillers = {}, zones = {} } = {}) {
         [BOOK]: {
             Events: [
                 ['CampaignID', 'EventID', 'FacilityID', 'Facility Name', 'Event Name', 'Date'],
-                ['c1', 'ev1', 'f1', 'Peoria - Manpower', 'test', '10/3/2026']
+                ['c1', 'ev1', 'f1', 'Peoria - Manpower', 'test', '10/3/2026'],
+                ['xxxxxxxx', 'WAITLIST', 'f0', 'Prism Health', 'General Registration', '']
             ],
             'Appointment Slots': [
                 ['EventID', 'Date', 'Start Time', 'End Time', 'Status', 'Status Timestamp', 'Booked AppointmentID'],
@@ -31,8 +32,7 @@ function world({ fillers = {}, zones = {} } = {}) {
                 ['ev1', '2026-10-03 0:00:00', '11:35', '11:40', 'Pending', '10/5/2026 9:20:00', ''],
                 ['ev1', '2026-10-03 0:00:00', '11:40', '11:45', 'Pending', '10/5/2026 9:50:00', ''],
                 ['ev2', '2026-10-03 0:00:00', '10:00', '10:05', 'Open', '', '']
-            ],
-            'Appointment Waitlist': [['EventID', 'PatientID']]
+            ]
         },
         [MAIN]: { Patients: [['h']], Appointments: [['h']], 'Services Rendered': [['h']], Attachments: [['h']] },
         [RESP]: { 'Question Responses': [['PatientID', 'ServiceID', 'QuestionID', 'Answer']] }
@@ -51,7 +51,7 @@ const slotRow = (w, time, event = 'ev1') =>
 
 function payload(extra = {}) {
     return {
-        submissionId: 'sub-1', eventId: 'ev1', slotTime: '10:00', isWaitlist: false,
+        submissionId: 'sub-1', eventId: 'ev1', slotTime: '10:00',
         selectedServices: [
             { id: 'SHCV0411', serviceTypeId: 'SHCV0411', name: 'School Health Visit (ages 4-11)', formIds: ['shccore', 'shc0411'] },
             { id: 'SHCVAXIM', serviceTypeId: 'SHCVAXIM', name: 'Immunizations', formIds: ['shcvax26'] }
@@ -188,12 +188,22 @@ test('an unknown event is refused by name', async () => {
     await assert.rejects(w.submitForm(payload({ eventId: 'nope' })), { code: 'UNKNOWN_EVENT' });
 });
 
-test('a waitlist entry records the patient and the event, no slot', async () => {
+test('a general registration records the patient and no appointment', async () => {
     const w = world();
-    const result = await w.submitForm(payload({ isWaitlist: true, slotTime: '' }));
-    assert.equal(result.isWaitlist, true);
-    assert.equal(w.rows(BOOK, 'Appointment Waitlist')[1][1], result.patientID);
+    const result = await w.submitForm(payload({
+        eventId: 'WAITLIST', slotTime: null, selectedServices: [], formResponses: [], consentDeclines: [], signature: ''
+    }));
+    assert.equal(result.appointmentID, undefined);
+    assert.equal(w.rows(MAIN, 'Patients')[1][1], result.patientID);
     assert.equal(w.rows(MAIN, 'Appointments').length, 1);
+    assert.equal(w.rows(BOOK, 'Appointment Waitlist'), undefined);
+    assert.deepEqual(w.mailer.sent, [{ to: 'x@example.com', subject: 'Your registration with Prism Health' }]);
+});
+
+test('a full event takes no registration without a slot, whatever the page asks', async () => {
+    const w = world();
+    await assert.rejects(w.submitForm(payload({ isWaitlist: true, slotTime: '' })), { code: 'NO_SLOT' });
+    assert.equal(w.rows(MAIN, 'Patients').length, 1);
 });
 
 test('a filled document is uploaded and logged once per service that used it', async () => {

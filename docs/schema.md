@@ -74,7 +74,9 @@ gone.
 
 The `WAITLIST` row (CampaignID `xxxxxxxx`) backs the parameterless general-registration
 mode. Its `Services` is empty, which is why that mode asks for no consent and no
-signature.
+signature. Despite the id it is not a waitlist: there is none. It is the one event
+registered without a slot, and writes only a Patients row; any other event with
+nothing open shows a fully-booked notice instead.
 
 ### `Forms`, `Form Questions`, `Appointment Slots`
 

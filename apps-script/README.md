@@ -4,13 +4,25 @@
 [register.prism.org](https://register.prism.org/). It is tracked here so the
 frontend's contract with the backend is reviewable in one place.
 
-The Apps Script project is the source of truth and is maintained separately. It
-also contains files that are *not* in this repo:
+The Apps Script project is the source of truth and is maintained separately.
+The email templates `endpoints.gs` renders are tracked here as HTML files of the
+same name:
 
-| Referenced from `endpoints.gs` | What it is |
+| File | Sent for |
 | --- | --- |
-| `ConfirmationEmail` | HTML template for booked appointments |
-| `WaitlistEmail` | HTML template for waitlist entries |
+| `ConfirmationEmail.html` | A booked appointment: date, time, appointment ID, QR code |
+| `RegistrationEmail.html` | A general registration (no link, no appointment) |
+
+They are styled like the page (maroon and gold on cream) with inline styles and
+tables, because email clients drop most stylesheets. The logo is served from
+`register.prism.org/assets/`, so it cannot break the way prism.org's hotlinked one
+did. `backend/assets/email/` holds identical copies for the Cloud Run backend; a
+test there fails if they drift, so change both. In the Apps Script editor, add
+each as an HTML file without the `.html` (File → New → HTML).
+
+There is no waitlist. Only the general-registration event (`WAITLIST` in
+*Events*, a historical name) is recorded without a slot, as a patient row alone.
+The old `WaitlistEmail` file can be deleted from the project.
 
 Document generation *is* tracked here: `pdfHandler.gs` (the queue and the
 FormID → generator table), `pdfHelper.gs` (shared rendering and logging), and
@@ -38,7 +50,7 @@ unexpected server response.
 
 The script must stay **container-bound** to the scheduling spreadsheet:
 `bookingBook_()` uses `SpreadsheetApp.getActiveSpreadsheet()` for *Events*,
-*Appointment Slots* and *Appointment Waitlist*, while `mainBook_()` opens the EMR
+*Appointment Slots*, while `mainBook_()` opens the EMR
 spreadsheet by id for *Patients*, *Appointments* and *Services Rendered*.
 
 ## Required trigger
@@ -64,6 +76,7 @@ Every response is JSON. Failures return `{ status: 'error', code, message }` whe
 | `SLOT_UNAVAILABLE` | Someone else took the slot first |
 | `SLOT_EXPIRED` | The `Pending` hold was swept before submission completed |
 | `UNKNOWN_EVENT` | No Events row matches the submitted `eventId` |
+| `NO_SLOT` | No slot was sent for an event that needs one — a page from before the waitlist was removed |
 | `MISSING_SHEET` | A required sheet has been renamed or deleted |
 | `BAD_REQUEST` / `EMPTY_REQUEST` / `UNKNOWN_ACTION` | Malformed request |
 

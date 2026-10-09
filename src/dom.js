@@ -16,8 +16,11 @@ export const dom = {
     eventCardsGrid: byId('eventCardsGrid'),
     slotSection: byId('slotSection'),
     slotsGrid: byId('slotsGrid'),
-    waitlistSection: byId('waitlistSection'),
-    joinWaitlistBtn: byId('joinWaitlistBtn'),
+    fullyBookedSection: byId('fullyBookedSection'),
+    fullyBookedTitle: byId('fullyBookedTitle'),
+    fullyBookedText: byId('fullyBookedText'),
+    otherDates: byId('otherDates'),
+    otherDatesLink: byId('otherDatesLink'),
     formSection: byId('formSection'),
     confirmationSection: byId('confirmationSection'),
 
@@ -79,7 +82,7 @@ export const dom = {
     confPatientDob: byId('confPatientDob'),
     confApptIdRow: byId('confApptIdRow'),
     confApptId: byId('confApptId'),
-    confWaitlistMessage: byId('confWaitlistMessage'),
+    confGeneralMessage: byId('confGeneralMessage'),
     confPaperNote: byId('confPaperNote'),
     confQrCode: byId('confQrCode')
 };

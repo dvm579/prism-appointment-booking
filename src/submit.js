@@ -1,7 +1,6 @@
-import { GENERAL_REGISTRATION_EVENT_ID } from './config.js';
 import { callAPI } from './api.js';
 import { dom } from './dom.js';
-import { state, currentEvent } from './state.js';
+import { state, currentEvent, isGeneralRegistration } from './state.js';
 import { collectResponses, collectSelectedServices, consentRequired } from './questions.js';
 import { readAdditionalSignatures, readConsentSignature } from './signature.js';
 import { collectDeclines } from './consent.js';
@@ -71,7 +70,7 @@ function validate(form) {
     }
 
     const services = collectSelectedServices();
-    if (services.length === 0 && !state.isWaitlist) {
+    if (services.length === 0 && !isGeneralRegistration()) {
         return reject(
             'Please select at least one service to continue.',
             dom.dynamicFormsContainer.querySelector('.service-selector')
@@ -125,7 +124,10 @@ export async function submitBooking(event) {
             submissionId,
             eventId: state.eventId,
             slotTime: state.heldSlotTime,
-            isWaitlist: state.isWaitlist,
+            // Read only by an endpoints.gs from before the waitlist was removed,
+            // which needs it to take a general registration without a slot. The
+            // current backends decide from eventId and ignore it.
+            isWaitlist: isGeneralRegistration(),
             // Not read by either backend yet; recorded so a paper registration can
             // be told apart from an online one that simply asked nothing.
             intake: state.paperIntake ? 'paper' : 'online',
@@ -180,7 +182,7 @@ function readFields(form, names) {
 
 /** Swaps the form out for the confirmation panel. */
 function displayConfirmation(response, demographics) {
-    const { appointmentID, qrBase64, isWaitlist } = response;
+    const { appointmentID, qrBase64 } = response;
 
     dom.slotSection.classList.add('d-none');
     dom.formSection.classList.add('d-none');
@@ -190,7 +192,7 @@ function displayConfirmation(response, demographics) {
     dom.confPatientName.textContent = `${demographics.firstName} ${demographics.lastName}`.trim();
     dom.confPatientDob.textContent = demographics.dob;
 
-    if (state.eventId === GENERAL_REGISTRATION_EVENT_ID) {
+    if (isGeneralRegistration()) {
         dom.confEventName.textContent = 'General Registration / School Records Check';
         dom.confEventDateRow.classList.add('d-none');
     } else {
@@ -201,13 +203,13 @@ function displayConfirmation(response, demographics) {
         dom.confEventDateRow.classList.remove('d-none');
     }
 
-    if (isWaitlist) {
+    if (isGeneralRegistration()) {
         dom.confApptIdRow.classList.add('d-none');
-        dom.confWaitlistMessage.classList.remove('d-none');
+        dom.confGeneralMessage.classList.remove('d-none');
         dom.confQrCode.classList.add('d-none');
     } else {
         dom.confApptIdRow.classList.remove('d-none');
-        dom.confWaitlistMessage.classList.add('d-none');
+        dom.confGeneralMessage.classList.add('d-none');
         dom.confApptId.textContent = appointmentID ?? '';
         if (qrBase64) {
             dom.confQrCode.src = `data:image/png;base64,${qrBase64}`;

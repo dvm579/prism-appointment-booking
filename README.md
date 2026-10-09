@@ -34,7 +34,7 @@ web app so two people cannot claim the same slot.
 | --- | --- |
 | `?eventId=<id>` | Slot picker for one event, then the registration form. |
 | `?campaignId=<id>` or `?facilityId=<id>` | Card list of matching events, each linking to `?eventId=`. |
-| no parameters | General registration / records request, recorded as a waitlist entry. |
+| no parameters | General registration / records request: a patient record with no appointment. |
 
 ### Booking lifecycle
 
@@ -63,7 +63,7 @@ src/
   utils.js               Sheet value parsing, loading overlay, alerts
   catalog.js             Resolves event services into forms and consent
   events.js              Event heading and event-selection cards
-  slots.js               Slot grid, hold countdown, waitlist entry
+  slots.js               Slot grid, hold countdown, fully-booked notice
   questions.js           Service picker and dynamic questionnaires
   insurance.js           Insurance block (the `insurance` question type)
   patient.js             Demographics, guardian fields, uploads

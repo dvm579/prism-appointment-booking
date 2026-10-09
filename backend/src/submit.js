@@ -12,7 +12,8 @@
 import { randomUUID } from 'node:crypto';
 import QRCode from 'qrcode';
 import {
-    BOOKING_SPREADSHEET_ID, MAIN_SPREADSHEET_ID, RESPONSES_SPREADSHEET_ID, UPLOAD_FOLDER_ID
+    BOOKING_SPREADSHEET_ID, GENERAL_REGISTRATION_EVENT_ID, MAIN_SPREADSHEET_ID, RESPONSES_SPREADSHEET_ID,
+    UPLOAD_FOLDER_ID
 } from './config.js';
 import { dataUrlBytes, driveUrl } from './drive.js';
 import { confirmationMessage } from './email.js';
@@ -169,6 +170,14 @@ export function submitAction({ sheets, store, slots, drive, mailer, documents, n
         }
         clock.lap('event');
 
+        // Decided by the event, not by the client: a page older than the
+        // waitlist's removal can still send `isWaitlist` for a full event.
+        const generalRegistration = String(data.eventId) === GENERAL_REGISTRATION_EVENT_ID;
+        if (!generalRegistration && !data.slotTime) {
+            throw coded('NO_SLOT',
+                'This event no longer takes registrations without an appointment time. Please reload the page and choose a time.');
+        }
+
         const at = now();
         // One instant, written in each workbook's own zone.
         const [mainStamp, responsesStamp] = await Promise.all([
@@ -176,13 +185,13 @@ export function submitAction({ sheets, store, slots, drive, mailer, documents, n
             sheets.stamp(RESPONSES_SPREADSHEET_ID, at)
         ]);
         const patientID = randomUUID();
-        const appointmentID = data.isWaitlist ? '' : randomUUID();
+        const appointmentID = generalRegistration ? '' : randomUUID();
         const selectedServices = data.selectedServices || [];
         const demographics = data.demographics || {};
         const insurance = data.insurance || {};
 
         // Claim the slot first: if the reservation has expired, write nothing.
-        if (!data.isWaitlist) await slots.confirmSlot(data.eventId, data.slotTime, appointmentID, at);
+        if (!generalRegistration) await slots.confirmSlot(data.eventId, data.slotTime, appointmentID, at);
         clock.lap('slot');
 
         const { sigFile, signatureUrls, uploads } = await planSignatures(data, at);
@@ -216,11 +225,11 @@ export function submitAction({ sheets, store, slots, drive, mailer, documents, n
             '', '', '', demographics.sexAtBirth
         ].map(value => value ?? '');
 
-        if (data.isWaitlist) {
+        // A general registration is only the patient record.
+        if (generalRegistration) {
             await Promise.all([uploads, sheets.append(MAIN_SPREADSHEET_ID, 'Patients', [patientRow])]);
-            await sheets.append(BOOKING_SPREADSHEET_ID, 'Appointment Waitlist', [[data.eventId, patientID]]);
             await email(data, patientID, null, null, event);
-            const result = { status: 'success', isWaitlist: true, patientID };
+            const result = { status: 'success', patientID };
             await remember(data.submissionId, result);
             return result;
         }
@@ -293,7 +302,7 @@ export function submitAction({ sheets, store, slots, drive, mailer, documents, n
         ]);
         clock.lap('extras');
 
-        const result = { status: 'success', appointmentID, qrBase64, isWaitlist: false };
+        const result = { status: 'success', appointmentID, qrBase64 };
         await remember(data.submissionId, result);
         console.info('submitForm timings (ms)', JSON.stringify(clock.total()));
         return result;

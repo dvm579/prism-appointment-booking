@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <meta name="supported-color-schemes" content="light">
+    <base target="_top">
+    <title>Your Prism Health registration</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+      @media (max-width: 620px) {
+        .gutter { padding-left: 22px !important; padding-right: 22px !important; }
+        .event-name { font-size: 24px !important; }
+      }
+    </style>
+  </head>
+  <body style="margin:0; padding:0; background-color:#FAF6F0;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#FAF6F0" style="background-color:#FAF6F0;">
+      <tr>
+        <td align="center" style="padding:24px 12px;">
+          <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%; max-width:600px;">
+
+            <!-- Header: the page's maroon hero, with a flat colour where gradients are not drawn. -->
+            <tr>
+              <td class="gutter" bgcolor="#690C1A" style="padding:28px 36px 32px; border-radius:18px 18px 0 0; background-color:#690C1A; background-image:linear-gradient(156deg, #8C1729 0%, #690C1A 48%, #4E0913 100%);">
+                <a href="https://prism.org/" target="_blank">
+                  <img src="https://register.prism.org/assets/prism-logo-white.png" alt="Prism Health" width="166" height="48" style="display:block; width:166px; height:48px; border:0;">
+                </a>
+                <p style="margin:28px 0 8px; color:#E9BC57; font-family:Poppins, Arial, sans-serif; font-size:12px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase;">Registration received</p>
+                <h1 class="event-name" style="margin:0; color:#FFFFFF; font-family:Poppins, Arial, sans-serif; font-size:28px; font-weight:600; line-height:1.25;">Thank you for registering</h1>
+              </td>
+            </tr>
+
+            <!-- Body -->
+            <tr>
+              <td class="gutter" bgcolor="#FFFFFF" style="padding:32px 36px 36px; background-color:#FFFFFF; border:1px solid #E9E2DA; border-top:0; border-radius:0 0 18px 18px; color:#33302E; font-family:Roboto, Arial, sans-serif; font-size:16px; line-height:1.6;">
+                <p style="margin:0 0 24px;">We have received the registration for <strong><?= patientName ?></strong>. We will update the chart and reach out soon with next steps.</p>
+
+                <!-- The section's gold rule, as on the page. -->
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:8px;">
+                  <tr><td width="44" height="3" bgcolor="#E9BC57" style="width:44px; height:3px; font-size:0; line-height:0; background-color:#E9BC57; border-radius:2px;">&nbsp;</td></tr>
+                </table>
+                <h2 style="margin:14px 0 8px; color:#690C1A; font-family:Poppins, Arial, sans-serif; font-size:19px; font-weight:600;">Have vaccination or medical records?</h2>
+                <p style="margin:0 0 20px;">If you have records you would like us to have, you can upload them securely.</p>
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+                    <td bgcolor="#861626" style="background-color:#861626; border-radius:999px;">
+                      <a href="<?!= formUrl ?>" target="_blank" style="display:inline-block; padding:12px 28px; color:#FFFFFF; font-family:Poppins, Arial, sans-serif; font-size:15px; font-weight:600; text-decoration:none; border-radius:999px;">Upload records</a>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td align="center" style="padding:24px 16px 8px; color:#6E6862; font-family:Roboto, Arial, sans-serif; font-size:13px; line-height:1.6;">
+                <p style="margin:0 0 6px;">Prism Health · We meet people where they live, learn, and work.</p>
+                <p style="margin:0;">
+                  Questions? Call <a href="tel:+18003251812" style="color:#861626;">(800) 325-1812</a>
+                  · <a href="https://prism.org/" target="_blank" style="color:#861626;">prism.org</a>
+                  · <a href="https://prism.org/privacy-policy/" target="_blank" style="color:#861626;">Privacy Policy</a>
+                </p>
+              </td>
+            </tr>
+
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

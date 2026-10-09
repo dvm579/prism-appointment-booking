@@ -1,4 +1,4 @@
-import { CSV_URLS, SLOT_HOLD_MS } from './config.js';
+import { BASE_URL, CSV_URLS, GENERAL_REGISTRATION_EVENT_ID, SLOT_HOLD_MS } from './config.js';
 import { callAPI, fetchCSVFresh } from './api.js';
 import { dom } from './dom.js';
 import { state, currentEvent } from './state.js';
@@ -41,7 +41,7 @@ export function currentHoldToken() {
 // --- Slot grid --------------------------------------------------------------
 
 /**
- * Decorates the event's slots for display and booking.
+ * Decorates an event's slots for display and booking.
  *
  * `wire` is the sheet's own start-time string, sent to the backend untouched so
  * that whatever format the column uses ("11:00:00", "09:00", "9:00 AM") still
@@ -50,13 +50,12 @@ export function currentHoldToken() {
  *
  * @returns {Array<{wire: string, key: string|null, label: string, startsAt: Date|null, bookable: boolean}>}
  */
-function describeSlots() {
-    const event = currentEvent();
+function describeSlots(event) {
     const eventDate = parseSheetDate(event?.Date);
     const now = new Date();
 
     return state.slots
-        .filter(slot => String(slot.EventID) === String(state.eventId))
+        .filter(slot => String(slot.EventID) === String(event?.EventID))
         .map(slot => {
             const key = toSlotKey(slot['Start Time']);
             // The slot sheet carries its own Date; prefer it so an event spanning
@@ -75,7 +74,44 @@ function describeSlots() {
         .sort((a, b) => (a.key ?? '').localeCompare(b.key ?? ''));
 }
 
-/** Renders the slot picker, falling back to the waitlist when nothing is open. */
+/**
+ * The event chooser for this event's campaign, or failing that its facility,
+ * when another event there still has a slot to book. Null when none does.
+ */
+function otherDatesHref(event) {
+    const open = state.events.filter(other =>
+        String(other.EventID) !== String(event.EventID) &&
+        String(other.EventID) !== GENERAL_REGISTRATION_EVENT_ID &&
+        describeSlots(other).some(slot => slot.bookable)
+    );
+
+    for (const [column, param] of [['CampaignID', 'campaignId'], ['FacilityID', 'facilityId']]) {
+        const id = String(event[column] ?? '').trim();
+        if (id && open.some(other => String(other[column]) === id)) {
+            return `${BASE_URL}?${param}=${encodeURIComponent(id)}`;
+        }
+    }
+    return null;
+}
+
+/** Explains why there is nothing to book, and points at other dates if any are open. */
+function showFullyBooked(event, slots) {
+    const now = new Date();
+    const over = slots.length > 0 && slots.every(slot => slot.startsAt && slot.startsAt < now);
+    dom.fullyBookedTitle.textContent = over ? 'This event has ended' : 'This event is fully booked';
+    dom.fullyBookedText.textContent = over
+        ? 'Every appointment time for this event has passed.'
+        : 'Every appointment time has been taken.';
+
+    const href = otherDatesHref(event);
+    dom.otherDates.classList.toggle('d-none', !href);
+    if (href) dom.otherDatesLink.href = href;
+
+    dom.slotsGrid.classList.add('d-none');
+    dom.fullyBookedSection.classList.remove('d-none');
+}
+
+/** Renders the slot picker, or the fully-booked notice when nothing is open. */
 export function renderSlots() {
     const event = currentEvent();
     if (!event) {
@@ -83,17 +119,16 @@ export function renderSlots() {
         return;
     }
 
-    const slots = describeSlots();
+    const slots = describeSlots(event);
     dom.slotsGrid.innerHTML = '';
 
     if (!slots.some(slot => slot.bookable)) {
-        dom.slotsGrid.classList.add('d-none');
-        dom.waitlistSection.classList.remove('d-none');
+        showFullyBooked(event, slots);
         return;
     }
 
     dom.slotsGrid.classList.remove('d-none');
-    dom.waitlistSection.classList.add('d-none');
+    dom.fullyBookedSection.classList.add('d-none');
 
     slots.forEach(slot => {
         const pill = document.createElement('button');
@@ -232,19 +267,10 @@ export async function returnToSlotPicker() {
     } finally {
         state.heldSlotTime = null;
         holdToken = null;
-        state.isWaitlist = false;
         dom.formSection.classList.add('d-none');
         dom.slotSection.classList.remove('d-none');
         displayEventDetails(currentEvent());
         renderSlots();
         hideLoading();
     }
-}
-
-/** Switches to the form in waitlist mode, without reserving a slot. */
-export function joinWaitlist() {
-    state.isWaitlist = true;
-    state.heldSlotTime = null;
-    hideSlotTimer();
-    openRegistrationForm('<br><b>Joining the Waitlist</b>');
 }
