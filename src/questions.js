@@ -373,6 +373,10 @@ export function renderDynamicForms(event) {
     const services = servicesForEvent(event);
     services.forEach(service => offered.set(service.id, service));
 
+    // Before the early return: a general registration offers no services but is
+    // still stepped through, and without this its Next button did nothing.
+    attachStepListeners();
+
     if (services.length === 0) {
         applySelection();
         return;
@@ -456,7 +460,6 @@ export function renderDynamicForms(event) {
     });
 
     attachListeners();
-    attachStepListeners();
     applyServiceEligibility();
     applySelection();
 }
