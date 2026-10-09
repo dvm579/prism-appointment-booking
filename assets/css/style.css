@@ -756,15 +756,6 @@ main {
     box-shadow: var(--shadow-lg);
 }
 
-.event-card-past {
-    background-color: var(--cream);
-    color: var(--ink-soft);
-}
-
-.event-card-past .card-title {
-    color: var(--ink-soft);
-}
-
 /* --- Confirmation ------------------------------------------------------- */
 
 #confirmationSection {

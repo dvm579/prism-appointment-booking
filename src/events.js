@@ -1,7 +1,7 @@
 import { BASE_URL } from './config.js';
 import { dom } from './dom.js';
 import { state } from './state.js';
-import { escapeHtml, formatTimeRange, parseSheetDate } from './utils.js';
+import { escapeHtml, formatTimeRange, parseSheetDate, slotDateTime } from './utils.js';
 
 /** Renders the event name and date above the slot picker / form. */
 export function displayEventDetails(event, suffixHtml = '') {
@@ -20,17 +20,38 @@ export function displayEventDetails(event, suffixHtml = '') {
 }
 
 /**
+ * True once an event is over: its end time has passed, or, with no readable end
+ * time, its day has. An event later today is still upcoming. One with no date
+ * at all is kept, shown as "Date to be announced".
+ */
+function hasEnded(event, date, now) {
+    if (!date) return false;
+    const end = slotDateTime(date, event['End Time']);
+    if (end) return end <= now;
+    const nextDay = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1);
+    return nextDay <= now;
+}
+
+/**
  * Renders the event chooser used when the page is opened with a campaignId or
  * facilityId instead of a single eventId.
+ *
+ * Only upcoming events are listed, soonest first. A campaign or facility keeps
+ * every event it has ever run, and listing those too buried the bookable ones
+ * at the bottom of a long page.
  *
  * @param {{campaignId?: string, facilityId?: string}} filter
  */
 export function renderEventCards({ campaignId, facilityId }) {
-    const matches = state.events.filter(event =>
-        campaignId
-            ? String(event.CampaignID) === String(campaignId)
-            : String(event.FacilityID) === String(facilityId)
-    );
+    const now = new Date();
+    const matches = state.events
+        .filter(event =>
+            campaignId
+                ? String(event.CampaignID) === String(campaignId)
+                : String(event.FacilityID) === String(facilityId)
+        )
+        .map(event => ({ event, date: parseSheetDate(event.Date) }))
+        .filter(({ event, date }) => !hasEnded(event, date, now));
 
     if (matches.length === 0) {
         dom.eventCardsGrid.innerHTML =
@@ -38,14 +59,9 @@ export function renderEventCards({ campaignId, facilityId }) {
         return;
     }
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
     const cards = matches
-        .map(event => ({ event, date: parseSheetDate(event.Date) }))
         .sort((a, b) => (a.date?.getTime() ?? Infinity) - (b.date?.getTime() ?? Infinity))
         .map(({ event, date }) => {
-            const isPast = date !== null && date < today;
             const formatted = date
                 ? date.toLocaleDateString(undefined, {
                       weekday: 'long',
@@ -61,13 +77,6 @@ export function renderEventCards({ campaignId, facilityId }) {
                     <p class="card-text mb-1"><strong>Date:</strong> ${escapeHtml(formatted)}</p>
                     <p class="card-text"><strong>Time:</strong> ${escapeHtml(formatTimeRange(event['Start Time'], event['End Time']))}</p>
                 </div>`;
-
-            if (isPast) {
-                return `
-                <div class="col-md-6 col-lg-4 mb-4">
-                    <div class="card event-card event-card-past h-100" aria-disabled="true">${body}</div>
-                </div>`;
-            }
 
             const href = `${BASE_URL}?eventId=${encodeURIComponent(event.EventID)}`;
             return `
