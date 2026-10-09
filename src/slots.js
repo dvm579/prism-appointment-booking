@@ -245,6 +245,24 @@ export function hideSlotTimer() {
 
 // --- Leaving the form -------------------------------------------------------
 
+/**
+ * Back to the picker after the backend says the hold is already gone: the
+ * sweep reopened it, or staff changed the event's times. Nothing is released,
+ * because releaseSlot does not check whose hold it frees and that time may now
+ * be another patient's. The slots are fetched fresh so the picker shows the
+ * event's current times.
+ */
+export async function returnAfterLostHold() {
+    state.heldSlotTime = null;
+    try {
+        state.slots = await fetchCSVFresh(CSV_URLS.slots);
+    } catch (error) {
+        console.error('Could not refresh slot availability.', error);
+    }
+    await returnToSlotPicker();
+    showAlert('Your reserved time is no longer available. Please choose a time again.', 'warning');
+}
+
 /** Releases any held slot and returns the user to the slot picker. */
 export async function returnToSlotPicker() {
     hideSlotTimer();

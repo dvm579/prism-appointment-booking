@@ -7,7 +7,7 @@ import { collectDeclines } from './consent.js';
 import { revealElement } from './steps.js';
 import { INSURANCE_FIELDS } from './insurance.js';
 import { DEMOGRAPHIC_FIELDS, readFilesAsBase64 } from './patient.js';
-import { hideSlotTimer } from './slots.js';
+import { hideSlotTimer, returnAfterLostHold } from './slots.js';
 import {
     handleError,
     hideLoading,
@@ -158,6 +158,12 @@ export async function submitBooking(event) {
 
         displayConfirmation(response, payload.demographics);
     } catch (error) {
+        if (error.body?.code === 'SLOT_EXPIRED') {
+            // Submitting again would fail the same way: there is no hold left.
+            console.error('The slot hold was gone at submit.', error);
+            await returnAfterLostHold();
+            return;
+        }
         // The slot is still held and the countdown is still running, so the user
         // can correct something and submit again.
         handleError(
